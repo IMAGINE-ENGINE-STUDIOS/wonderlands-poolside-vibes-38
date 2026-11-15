@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useMemo } from 'react';
+import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import {
   AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle,
   AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction,
@@ -17,9 +17,11 @@ import { useToast } from '@/hooks/use-toast';
 import {
   FolderPlus, ArrowLeft, Upload, Folder, Search,
   Link2, ExternalLink, Download, Trash2, Printer, CheckSquare, XSquare, BookOpen,
+  FileText, Loader2, Copy, Check,
 } from 'lucide-react';
 import FileCard from '@/components/gallery/FileCard';
 import GalleryFlipBook from '@/components/gallery/GalleryFlipBook';
+import { resolveFolderContractLink } from '@/components/gallery/folderContract';
 import FolderCard from '@/components/gallery/FolderCard';
 import { downloadFile, downloadFilesAsZip } from '@/components/gallery/galleryUtils';
 import FileViewer from '@/components/gallery/FileViewer';
@@ -52,6 +54,62 @@ const GalleryFilesPage = () => {
     setFlipStartFileId(fileId);
     setViewerOpen(false);
     setFlipOpen(true);
+  };
+
+  // ---- Customer contract link (contract.html?c=<id>) ----
+  const [contractLink, setContractLink] = useState<string | null>(null);
+  const [contractBusy, setContractBusy] = useState(false);
+  const [contractCopied, setContractCopied] = useState(false);
+
+  useEffect(() => {
+    setContractLink(null);
+    setContractCopied(false);
+  }, [selectedFolder]);
+
+  const ensureContractLink = async (): Promise<string | null> => {
+    if (contractLink) return contractLink;
+    if (!selectedFolder || !selectedFolderData) return null;
+    setContractBusy(true);
+    try {
+      const link = await resolveFolderContractLink(selectedFolder, selectedFolderData.name);
+      setContractLink(link);
+      return link;
+    } catch {
+      toast({
+        title: 'Contract link unavailable',
+        description: 'The contract record could not be reached. Please try again.',
+        variant: 'destructive',
+      });
+      return null;
+    } finally {
+      setContractBusy(false);
+    }
+  };
+
+  const openContract = async () => {
+    if (contractLink) {
+      window.open(contractLink, '_blank');
+      return;
+    }
+    // Open the tab synchronously so the browser does not block it while
+    // the link is being resolved/created.
+    const tab = window.open('', '_blank');
+    const link = await ensureContractLink();
+    if (link && tab) tab.location.href = link;
+    else if (tab) tab.close();
+    else if (link) {
+      await navigator.clipboard.writeText(link).catch(() => {});
+      toast({ title: 'Contract link copied', description: 'Pop-ups were blocked, so the link was copied instead.' });
+    }
+  };
+
+  const copyContractLink = async () => {
+    const link = await ensureContractLink();
+    if (!link) return;
+    await navigator.clipboard.writeText(link);
+    setContractCopied(true);
+    toast({ title: 'Contract link copied!', description: `${selectedFolderData?.name ?? 'Customer'} — send it to the customer to open and sign.` });
+    setTimeout(() => setContractCopied(false), 2000);
   };
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -325,6 +383,14 @@ const GalleryFilesPage = () => {
           <div className="flex items-center gap-2">
             {selectedFolder && selectedFolderData && (
               <>
+                <div className="flex items-center">
+                  <Button variant="outline" size="sm" className="rounded-none border-zinc-950 bg-white text-zinc-950 hover:bg-zinc-950 hover:text-white uppercase tracking-[0.18em] text-[11px] h-10 px-4" onClick={openContract} disabled={contractBusy}>
+                    {contractBusy ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <FileText className="h-4 w-4 mr-1" />} Contract
+                  </Button>
+                  <Button variant="outline" size="sm" className="rounded-none border-l-0 border-zinc-950 bg-white text-zinc-950 hover:bg-zinc-950 hover:text-white h-10 w-10 px-0" onClick={copyContractLink} disabled={contractBusy} title="Copy the customer's contract link" aria-label="Copy the customer's contract link">
+                    {contractCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  </Button>
+                </div>
                 {files.some(f => f.file_type?.startsWith('image/')) && (
                   <Button variant="outline" size="sm" className="rounded-none border-zinc-950 bg-white text-zinc-950 hover:bg-zinc-950 hover:text-white uppercase tracking-[0.18em] text-[11px] h-10 px-4" onClick={() => openFlipBook()}>
                     <BookOpen className="h-4 w-4 mr-1" /> Flip Book
