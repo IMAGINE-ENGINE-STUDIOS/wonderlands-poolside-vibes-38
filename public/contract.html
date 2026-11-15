@@ -18,6 +18,15 @@
   .pill.signed { background:#19b586; color:#06251c; }
   .hint { width:100%; font-size:13px; color:#cfe6dc; display:none; }
   .hint.on { display:block; }
+  .sharepanel { background:#10231d; color:#fff; padding:4px 14px 14px; font-family:-apple-system,'Segoe UI',Arial,sans-serif; }
+  .sharepanel[hidden] { display:none; }
+  .sharepanel-row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:10px; }
+  .sharepanel-row label { font-size:13px; font-weight:600; min-width:132px; }
+  .sharepanel-row input { flex:1; min-width:220px; padding:9px 10px; font-size:14px; border:1px solid #33524a; border-radius:8px; background:#fff; color:#10231d; }
+  .sharepanel-row button { background:#ffffff; color:#10231d; border:0; border-radius:8px; padding:9px 14px; font-size:14px; font-weight:600; cursor:pointer; }
+  .sharepanel-row button.primary { background:#19b586; color:#06251c; }
+  .share-status { width:100%; font-size:13px; color:#cfe6dc; margin:10px 0 0; min-height:16px; }
+  .share-status a { color:#19b586; }
   .page { background:var(--paper); max-width:820px; margin:22px auto; padding:56px 60px; box-shadow:0 4px 24px rgba(0,0,0,.18); line-height:1.55; font-size:15.5px; }
   .page h1 { font-size:21px; text-align:center; margin:0 0 4px; letter-spacing:.04em; }
   .page h2 { font-size:16px; margin:26px 0 8px; }
@@ -48,7 +57,7 @@
   body.editing .page { outline:3px solid #f4b740; }
   @media print {
     body { background:#fff; }
-    .toolbar, .panel, .hint { display:none !important; }
+    .toolbar, .panel, .hint, .sharepanel { display:none !important; }
     .page { box-shadow:none; margin:0; max-width:none; padding:24px 10px; }
     body.editing .page { outline:none; }
   }
@@ -63,7 +72,23 @@
   <button id="signBtn" class="primary">Sign the contract</button>
   <button id="printBtn">Print / Save PDF</button>
   <button id="dlBtn">Download copy</button>
+  <button id="shareBtn">Share</button>
+  <button id="emailBtn">Send Email</button>
   <span class="hint" id="editHint">Edit mode is ON — click any text in the document to change it. Turn Edit mode off before signing.</span>
+</div>
+
+<div class="sharepanel" id="sharePanel" hidden>
+  <div class="sharepanel-row">
+    <label for="shareLink">Contract link</label>
+    <input type="text" id="shareLink" readonly placeholder="Your shareable contract link will appear here">
+    <button id="copyLinkBtn" type="button">Copy link</button>
+  </div>
+  <div class="sharepanel-row">
+    <label for="shareEmail">Email the contract</label>
+    <input type="email" id="shareEmail" placeholder="client@example.com" autocomplete="email">
+    <button id="sendEmailBtn" type="button" class="primary">Send</button>
+  </div>
+  <p class="share-status" id="shareStatus"></p>
 </div>
 
 <div class="page" id="doc">
@@ -526,7 +551,171 @@
   }
   document.getElementById('applySig').addEventListener('click', applySignature);
   if(finishBtn) finishBtn.addEventListener('click', finalize);
-  restoreProgress();
+
+  // ---- Shared contract links: server-side drafts, Share and Send Email ----
+  // A contract can be stored on the Wonderlands backend as a draft and
+  // opened again from a shareable link (?c=<draft id>). The stored draft
+  // is the source of truth for that link: when one loads, the on-device
+  // localStorage restore does not run.
+  var draftId = params.get('c');
+  var draftIsFinal = false;
+  var sharePanel = document.getElementById('sharePanel');
+  var shareLinkInput = document.getElementById('shareLink');
+  var shareEmailInput = document.getElementById('shareEmail');
+  var shareStatus = document.getElementById('shareStatus');
+  function shareMsg(t){ shareStatus.textContent = t; }
+  function rpc(name, body){
+    return fetch(SB_URL + '/rest/v1/rpc/' + name, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    }).then(function(r){ return r.json(); });
+  }
+  function shareLink(){
+    return location.origin + '/contract.html?c=' + draftId;
+  }
+  function ensureDraft(){
+    if(draftId) return Promise.resolve(draftId);
+    return rpc('create_contract_draft', {
+      p_document_html: doc.innerHTML,
+      p_signed_roles: signedRoles,
+      p_client_sig_data: clientSigData,
+      p_client_name: fieldText('clientName'),
+      p_client_email: fieldText('clientEmail'),
+      p_project_address: fieldText('projectAddress'),
+      p_proposal_no: fieldText('proposalNo'),
+      p_proposal_date: fieldText('proposalDate'),
+      p_contract_price: fieldText('contractPrice')
+    }).then(function(id){
+      draftId = id;
+      try {
+        var u = new URL(location.href);
+        u.searchParams.set('c', draftId);
+        history.replaceState(null, '', u.toString());
+      } catch (e) { /* the URL keeps its parameters; the panel link is complete */ }
+      return draftId;
+    });
+  }
+  function applyDraft(row){
+    draftIsFinal = !!row.is_final;
+    doc.innerHTML = row.document_html;
+    signedRoles = row.signed_roles || {};
+    clientSigData = row.client_sig_data || '';
+    sigData = clientSigData;
+    var roleEl = document.getElementById('signerRole');
+    if(roleEl){
+      Object.keys(signedRoles).forEach(function(r){
+        var opt = roleEl.querySelector('option[value="' + r + '"]'); if(opt) opt.disabled = true;
+      });
+      var order = ['contractor','client','witness'];
+      for(var i=0;i<order.length;i++){ if(!signedRoles[order[i]]){ roleEl.value = order[i]; break; } }
+    }
+    var doneCount = Object.keys(signedRoles).length;
+    if(draftIsFinal || doneCount >= 3){
+      signed = true;
+      doc.contentEditable = 'false';
+      editBtn.disabled = true;
+      pill.textContent = 'SIGNED'; pill.classList.add('signed');
+      document.getElementById('applySig').disabled = true;
+      document.getElementById('clearPad').disabled = true;
+      document.getElementById('typedBtn').disabled = true;
+      if(finishBtn) finishBtn.disabled = true;
+    } else if(doneCount > 0){
+      pill.textContent = 'SIGNING — ' + doneCount + ' OF 3';
+      msg('Signing in progress — ' + doneCount + ' of 3 parties already signed.');
+      refreshFinish();
+    }
+  }
+  function loadDraft(){
+    rpc('get_contract_draft', { p_id: draftId }).then(function(rows){
+      if(rows && rows.length){ applyDraft(rows[0]); }
+      else { restoreProgress(); }
+    }).catch(function(){ restoreProgress(); });
+  }
+  function copyShareLink(){
+    var link = shareLinkInput.value;
+    if(!link) return;
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(link).then(function(){
+        shareMsg('Link copied. Anyone with this link can open the contract.');
+      }, function(){
+        shareLinkInput.select();
+        shareMsg('Copy the link above.');
+      });
+    } else {
+      shareLinkInput.select();
+      shareMsg('Copy the link above.');
+    }
+  }
+  document.getElementById('shareBtn').addEventListener('click', function(){
+    sharePanel.hidden = false;
+    shareMsg('Preparing your link...');
+    ensureDraft().then(function(){
+      shareLinkInput.value = shareLink();
+      copyShareLink();
+    }).catch(function(){ shareMsg('The link could not be created. Check your connection and try again.'); });
+  });
+  document.getElementById('copyLinkBtn').addEventListener('click', copyShareLink);
+  document.getElementById('emailBtn').addEventListener('click', function(){
+    sharePanel.hidden = false;
+    ensureDraft().then(function(){
+      shareLinkInput.value = shareLink();
+      if(!shareEmailInput.value) shareEmailInput.value = fieldText('clientEmail');
+      shareMsg('Enter the email address and press Send.');
+      shareEmailInput.focus();
+    }).catch(function(){ shareMsg('The link could not be created. Check your connection and try again.'); });
+  });
+  function escHtml(s){
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  document.getElementById('sendEmailBtn').addEventListener('click', function(){
+    var addr = shareEmailInput.value.trim();
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(addr)){ shareMsg('Enter a valid email address.'); shareEmailInput.focus(); return; }
+    ensureDraft().then(function(){
+      var link = shareLink();
+      shareLinkInput.value = link;
+      var name = fieldText('clientName') || 'Client';
+      shareMsg('Sending...');
+      var textMsg = 'Hello ' + name + ',\n\nYour Construction Services Agreement with Wonderlands World Experience LLC is ready to view and sign online. Open your contract here: ' + link + '\n\nIf you have any questions, just reply to this email.\n\nThank you,\nWonderlands World Experience LLC';
+      var htmlMsg = '<div style="font-family:Arial,sans-serif;font-size:15px;line-height:1.6;color:#1c2430;max-width:600px;">'
+        + '<p>Hello ' + escHtml(name) + ',</p>'
+        + '<p>Your Construction Services Agreement with Wonderlands World Experience LLC is ready to view and sign online.</p>'
+        + '<p><a href="' + link + '" style="display:inline-block;background:#0e7a5f;color:#ffffff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:600;">View and sign your contract</a></p>'
+        + '<p>You can also open the contract by pasting this address into your browser:<br><a href="' + link + '">' + link + '</a></p>'
+        + '<p>If you have any questions, just reply to this email.</p>'
+        + '<p>Thank you,<br>Wonderlands World Experience LLC</p></div>';
+      return fetch(SB_URL + '/functions/v1/send-notification', {
+        method: 'POST',
+        headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          channels: ['email'],
+          recipientType: 'client',
+          recipientName: name,
+          recipientEmail: addr,
+          subject: 'Your Wonderlands World Construction Services Agreement',
+          message: textMsg,
+          htmlContent: htmlMsg
+        })
+      }).then(function(r){
+        return r.json().catch(function(){ return null; }).then(function(j){ return { ok: r.ok, j: j }; });
+      }).then(function(res){
+        var j = res.j;
+        var failed = !res.ok || !j || j.success === false || (j.errors && j.errors.email);
+        if(failed){
+          shareStatus.textContent = '';
+          shareStatus.appendChild(document.createTextNode('The email could not be sent. You can copy the link above and send it yourself. '));
+          var a = document.createElement('a');
+          a.href = 'mailto:' + encodeURIComponent(addr) + '?subject=' + encodeURIComponent('Your Wonderlands World Construction Services Agreement') + '&body=' + encodeURIComponent(textMsg);
+          a.textContent = 'Open your email app instead';
+          shareStatus.appendChild(a);
+        } else {
+          shareMsg('Email sent to ' + addr + '.');
+        }
+      });
+    }).catch(function(){ shareMsg('The email could not be sent. You can copy the link above and send it yourself.'); });
+  });
+
+  if(draftId){ loadDraft(); } else { restoreProgress(); }
   document.getElementById('signBtn').addEventListener('click', function(){ document.getElementById('signPanel').scrollIntoView({ behavior:'smooth' }); });
   
   function cleanCopy(){
