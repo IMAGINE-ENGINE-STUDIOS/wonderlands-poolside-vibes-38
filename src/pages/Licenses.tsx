@@ -236,8 +236,7 @@ const BermudaImageCard = () => (
           of Wonderlands World Experience LLC is the{" "}
           <strong className="text-foreground">image</strong> — the proprietary photograph/render
           published at wonderlandsworld.com/media/bermuda-pool.webp — together with its catalog
-          presentation. {PROPRIETARY_SINCE} License document issued November 15, 2026. No use
-          transfers any ownership.
+          presentation. {PROPRIETARY_SINCE} No use transfers any ownership.
         </p>
         <p>
           <strong className="text-foreground">How a license is obtained.</strong> Only with a
@@ -261,6 +260,89 @@ const BermudaImageCard = () => (
           license is an infringement. The infringer is liable for the license fee for the entire
           period of use, plus the 5% royalty on sales made with the image, plus the damages and
           remedies provided by U.S. copyright law (17 U.S.C. §§ 502–505), and must remove the
+          material immediately when Wonderlands demands it.
+        </p>
+      </div>
+    </CardContent>
+  </Card>
+);
+
+const NATURAL_POOL_PROHIBITED = [
+  "Offering, marketing or selling the Natural Pool product, design or concept as your own.",
+  "Publishing its photographs or its catalog presentation on any website, social network, advertisement or listing.",
+  "Building a pool to the Natural Pool design — freeform concrete sanctuary with integrated rock waterfall and water features — under the Natural Pool name or presentation.",
+  "Presenting the Natural Pool or the projects shown in its photographs as your own work.",
+];
+
+const NaturalPoolCard = () => (
+  <Card className="flex h-full flex-col overflow-hidden">
+    <div className="relative aspect-[16/10] w-full overflow-hidden bg-muted">
+      <img
+        src="https://bwngxlbnavnhbtahyzbf.supabase.co/storage/v1/object/public/site-assets/l5e/e0ff3e40-ac8a-4ee6-9afe-43f9c2d40a96__natural-pool-view-1.jpg"
+        alt="Natural Pool — proprietary Wonderlands product"
+        className="h-full w-full object-cover"
+        loading="lazy"
+      />
+      <Badge className="absolute left-3 top-3 bg-background/90 text-foreground hover:bg-background/90">
+        Proprietary Product License
+      </Badge>
+    </div>
+    <CardHeader className="pb-2">
+      <CardTitle className="font-serif text-2xl tracking-tight">Natural Pool</CardTitle>
+      <p className="text-sm text-muted-foreground">
+        Wonderlands World Collection — bespoke freeform concrete pool, designed to order
+      </p>
+      <p className="text-sm text-muted-foreground">
+        Custom dimensions · Freeform design · Integrated water features, including rock waterfall
+      </p>
+    </CardHeader>
+    <CardContent className="flex flex-1 flex-col gap-4">
+      <div className="flex items-baseline justify-between border-y border-border py-3">
+        <span className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+          Catalog price
+        </span>
+        <span className="font-serif text-xl">Consultation only</span>
+      </div>
+
+      <div className="bg-muted/40 p-4">
+        <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">Usage License</p>
+        <p className="mt-2 font-serif text-2xl leading-snug">
+          $10,000 <span className="text-base text-muted-foreground">/ year for this product</span>
+        </p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          + 5% royalty on each Natural Pool project sold
+        </p>
+      </div>
+
+      <div className="space-y-3 text-sm leading-relaxed text-muted-foreground">
+        <p>
+          <strong className="text-foreground">Ownership.</strong> The Natural Pool product — its
+          name, its bespoke freeform design, its photographs and its catalog presentation — is the
+          exclusive property of Wonderlands World Experience LLC. {PROPRIETARY_SINCE} No use
+          transfers any ownership.
+        </p>
+        <p>
+          <strong className="text-foreground">How a license is obtained.</strong> Only with a
+          license document <strong className="text-foreground">signed by Wonderlands World
+          Experience LLC</strong> and payment completed before use. Without that document there is
+          no license, verbal or implied. The annual fee is paid in advance; the royalty is reported
+          and paid quarterly, with the detail of each project sold.
+        </p>
+        <div>
+          <p className="flex items-center gap-2 font-medium text-foreground">
+            <Ban className="h-4 w-4" /> Prohibited without a license
+          </p>
+          <ul className="mt-2 list-disc space-y-1 pl-5">
+            {NATURAL_POOL_PROHIBITED.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </div>
+        <p>
+          <strong className="text-foreground">Unauthorized use.</strong> Any use without a signed
+          license is an infringement. The infringer is liable for the license fee for the entire
+          period of use, plus the 5% royalty on projects sold with the product, plus the damages
+          and remedies provided by U.S. copyright law (17 U.S.C. §§ 502–505), and must remove the
           material immediately when Wonderlands demands it.
         </p>
       </div>
@@ -302,8 +384,7 @@ const Licenses = () => {
           </p>
           <p className="mt-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">
             {PROPRIETARY_SINCE} These models, their names, their images and the software are
-            property of Wonderlands from their creation under the company. License documents issued
-            November 15, 2026.
+            property of Wonderlands from their creation under the company.
           </p>
           <div className="mt-8 flex flex-wrap gap-x-8 gap-y-2 text-sm text-muted-foreground">
             <span className="flex items-center gap-2">
@@ -357,6 +438,26 @@ const Licenses = () => {
 
             <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
               <BermudaImageCard />
+            </div>
+          </div>
+
+          <div className="mt-20">
+            <Eyebrow>Proprietary Product License</Eyebrow>
+            <h3 className="mt-4 font-serif text-2xl tracking-tight md:text-3xl">
+              Natural Pool — the Wonderlands bespoke product
+            </h3>
+            <p className="mt-4 max-w-3xl text-base leading-relaxed text-muted-foreground">
+              The Natural Pool is an original Wonderlands product: a fully custom freeform concrete
+              sanctuary shaped around the terrain, with integrated water features. Wonderlands
+              licenses the product — its name, design, photographs and catalog presentation — for{" "}
+              <strong className="text-foreground">
+                $10,000 per year, plus a 5% royalty
+              </strong>{" "}
+              on the price of each Natural Pool project sold.
+            </p>
+
+            <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+              <NaturalPoolCard />
             </div>
           </div>
         </section>
@@ -484,7 +585,7 @@ const Licenses = () => {
             </div>
             <p className="mt-10 text-xs text-muted-foreground">
               © Wonderlands World Experience LLC. All models, images and software on this page are
-              proprietary. License documents issued November 15, 2026.
+              proprietary.
             </p>
           </div>
         </section>
