@@ -136,8 +136,19 @@ async function postOne(p: string, text: string, media: string[], owner: string, 
     if (media.length > 1) return igCarousel(ig.accountId, token, text, media);
     const c = await (await fetch(`${G}/${ig.accountId}/media`, { method: "POST", body: new URLSearchParams({ ...(isVideo(m) ? { media_type: "REELS", video_url: m } : { image_url: m }), caption: text, access_token: token }) })).json();
     if (!c.id) return c;
-    if (isVideo(m)) await new Promise((r) => setTimeout(r, 15000)); // let IG process the video
-    return (await fetch(`${G}/${ig.accountId}/media_publish`, { method: "POST", body: new URLSearchParams({ creation_id: c.id, access_token: token }) })).json();
+    // IG processes every container asynchronously. Publishing before it is
+    // FINISHED fails with 9007 "Media ID is not available" — the carousel and
+    // story paths already wait via igWait; the single-media path must too
+    // (it used to publish immediately for photos, racing IG processing).
+    const ready = await igWait(c.id, token, 30, 3000);
+    if (!ready) return { error: "Instagram media was not ready to publish (processing did not finish)" };
+    let pub = await (await fetch(`${G}/${ig.accountId}/media_publish`, { method: "POST", body: new URLSearchParams({ creation_id: c.id, access_token: token }) })).json();
+    // Belt and braces: if publish still answers "not ready", wait and retry.
+    for (let i = 0; i < 2 && pub?.error?.code === 9007; i++) {
+      await new Promise((r) => setTimeout(r, 10000));
+      pub = await (await fetch(`${G}/${ig.accountId}/media_publish`, { method: "POST", body: new URLSearchParams({ creation_id: c.id, access_token: token }) })).json();
+    }
+    return pub;
   }
   if (p === "threads") {
     const t = await getCredential("threads", owner);
