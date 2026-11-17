@@ -274,3 +274,63 @@ export async function sendThreadMessage(
     .insert({ job_id: jobId, supplier_id: supplierId, sender_id: senderId, body });
   return !error;
 }
+
+/* -------------------- public project exchange -------------------- */
+/* Wonderlands projects live in construction_projects, procurement_listings
+ * and procurement_documents. Those tables are not readable by signed out
+ * visitors, so the public exchange reads them through the
+ * get_public_procurement_projects lookup (migration 20261117220000), which
+ * returns the public fields of every project with at least one open
+ * listing. It is the same single source of truth the admin Projects
+ * section, the client dashboard and the contractor procurement tab use. */
+
+export interface PublicProjectListing {
+  id: string;
+  title: string;
+  description: string | null;
+  location: string | null;
+  budget_min: number | null;
+  budget_max: number | null;
+  deadline: string | null;
+  start_date: string | null;
+  status: string;
+  phase_item_id: string | null;
+  item_order: number | null;
+  created_at: string;
+  /** Documents attached to the phase item behind this listing (item_documents). */
+  documents: PublicProjectDocument[];
+}
+
+export interface PublicProjectDocument {
+  id: string;
+  file_name: string;
+  file_url: string;
+  file_type: string | null;
+  file_size: number | null;
+}
+
+export interface PublicProject {
+  project_id: string;
+  project_name: string;
+  cover_image_url: string | null;
+  project_status: string;
+  listings: PublicProjectListing[];
+  documents: PublicProjectDocument[];
+}
+
+export const projectListingOf = (p: PublicProject): PublicProjectListing | null =>
+  p.listings.find((l) => !l.phase_item_id) ?? null;
+
+export const areaListingsOf = (p: PublicProject): PublicProjectListing[] =>
+  p.listings.filter((l) => l.phase_item_id);
+
+// The lookup is created by migration 20261117220000, so it is not in the
+// generated Supabase types yet — use an untyped handle, like job_messages.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const publicProjectsRpc = () => (supabase as any).rpc("get_public_procurement_projects");
+
+export async function fetchPublicProjects(): Promise<PublicProject[]> {
+  const { data, error } = await publicProjectsRpc();
+  if (error) throw error;
+  return (data ?? []) as PublicProject[];
+}

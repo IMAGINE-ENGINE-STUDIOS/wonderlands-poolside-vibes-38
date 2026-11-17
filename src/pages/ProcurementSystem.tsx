@@ -20,6 +20,8 @@ import { toast } from 'sonner';
 import EnhancedJobPostingForm from '@/components/procurement/EnhancedJobPostingForm';
 import JobFeed from '@/components/procurement/JobFeed';
 import JobDetailModal from '@/components/procurement/JobDetailModal';
+import ProjectDetailModal, { formatDateColumn } from '@/components/procurement/ProjectDetailModal';
+import ProcurementProposalForm from '@/components/contractor/ProcurementProposalForm';
 import QuickProposalModal from '@/components/procurement/QuickProposalModal';
 import UserProfileModal from '@/components/UserProfileModal';
 import JobSearchEnhanced from '@/components/procurement/JobSearchEnhanced';
@@ -27,15 +29,20 @@ import { BidComparison } from '@/components/procurement/BidComparison';
 import { ProcurementMessages } from '@/components/procurement/ProcurementMessages';
 import { useProcurementData } from '@/hooks/useProcurementData';
 import {
+  areaListingsOf,
   fetchJobProposals,
   fetchMyJobs,
   fetchMyProposals,
+  fetchPublicProjects,
   jobStatusLabel,
+  projectListingOf,
   proposalStatusLabel,
   setJobStatus,
   withdrawProposal,
   type ProcJob,
   type ProcProposal,
+  type PublicProject,
+  type PublicProjectListing,
 } from '@/lib/procurement/procurementService';
 
 interface JobPosting {
@@ -106,17 +113,21 @@ const ProcurementSystem = () => {
   // figures. Their own procurement lives in their dashboard's Procurement tab.
   const isMainAdmin = profile?.role === 'main_admin';
   const [contractorAccount, setContractorAccount] = useState(false);
+  const [contractorRecord, setContractorRecord] = useState<{ id: string; status: string } | null>(null);
   useEffect(() => {
     if (!user || isMainAdmin) return;
     let on = true;
     (async () => {
-      const byId = await supabase.from('contractors').select('id').eq('user_id', user.id).maybeSingle();
-      let found = !!byId.data;
-      if (!found && user.email) {
-        const byEmail = await supabase.from('contractors').select('id').eq('email', user.email).maybeSingle();
-        found = !!byEmail.data;
+      const byId = await supabase.from('contractors').select('id, status').eq('user_id', user.id).maybeSingle();
+      let record = (byId.data as { id: string; status: string } | null) ?? null;
+      if (!record && user.email) {
+        const byEmail = await supabase.from('contractors').select('id, status').eq('email', user.email).maybeSingle();
+        record = (byEmail.data as { id: string; status: string } | null) ?? null;
       }
-      if (on) setContractorAccount(found);
+      if (on) {
+        setContractorAccount(!!record);
+        setContractorRecord(record);
+      }
     })();
     return () => { on = false; };
   }, [user, isMainAdmin]);
@@ -195,6 +206,61 @@ const ProcurementSystem = () => {
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     }
   });
+
+  /* ------------------------------ public projects ------------------------------ */
+  // Wonderlands projects (construction_projects with open procurement
+  // listings) shown on the exchange next to the job postings. They come
+  // from the get_public_procurement_projects lookup, the same records the
+  // admin Projects section, the client dashboard and the contractor
+  // procurement tab read. Until that SQL is applied the section simply
+  // stays empty and the job feed carries the page.
+  const [publicProjects, setPublicProjects] = useState<PublicProject[]>([]);
+  const [selectedProject, setSelectedProject] = useState<PublicProject | null>(null);
+  const [bidListing, setBidListing] = useState<PublicProjectListing | null>(null);
+
+  useEffect(() => {
+    let on = true;
+    fetchPublicProjects()
+      .then((projects) => { if (on) setPublicProjects(projects); })
+      .catch(() => { if (on) setPublicProjects([]); });
+    return () => { on = false; };
+  }, []);
+
+  // Project records carry no category or budget of their own, so while a
+  // category, budget or deadline filter is active the feed shows jobs
+  // only. Search and location filters do apply to projects.
+  const projectFiltersActive =
+    (!!searchFilters.category && searchFilters.category !== 'all') ||
+    (searchFilters.budgetMin ?? 0) > 0 ||
+    (!!searchFilters.budgetMax && searchFilters.budgetMax < 100000) ||
+    !!searchFilters.deadline;
+  const visibleProjects = projectFiltersActive
+    ? []
+    : publicProjects.filter((p) => {
+        const listing = projectListingOf(p);
+        const term = (searchFilters.searchTerm || '').toLowerCase();
+        const matchesSearch = !term ||
+          (listing?.title || '').toLowerCase().includes(term) ||
+          p.project_name.toLowerCase().includes(term) ||
+          (listing?.description || '').toLowerCase().includes(term) ||
+          (listing?.location || '').toLowerCase().includes(term) ||
+          areaListingsOf(p).some((a) => a.title.toLowerCase().includes(term));
+        const matchesLocation = !searchFilters.location ||
+          (listing?.location || '').toLowerCase().includes(searchFilters.location.toLowerCase());
+        return matchesSearch && matchesLocation;
+      });
+
+  const handleProjectBid = (listing: PublicProjectListing) => {
+    if (!user) {
+      requireAuth(() => undefined, 'place bids');
+      return;
+    }
+    if (contractorRecord) {
+      setBidListing(listing);
+      return;
+    }
+    toast.info('Bids on project areas are placed from an approved contractor account. Your contractor dashboard shows the same projects with the bid form on each area.');
+  };
 
   const requireAuth = (action: () => void, actionName: string) => {
     if (!user) {
@@ -326,6 +392,57 @@ const ProcurementSystem = () => {
               <div className="mb-8">
                 <JobSearchEnhanced onFiltersChange={setSearchFilters} totalJobs={filteredJobs.length} />
               </div>
+              {visibleProjects.length > 0 && (
+                <div className="mb-10">
+                  <h2 className="font-serif text-2xl font-light text-foreground">Projects open for bids</h2>
+                  <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+                    Wonderlands posts its own projects here. Every project is divided into areas and each area takes its own bids. Open a project to see its plans, renders and documents, then bid on the area that matches your trade.
+                  </p>
+                  <div className="mt-5 space-y-6">
+                    {visibleProjects.map((p) => {
+                      const listing = projectListingOf(p);
+                      const areas = areaListingsOf(p);
+                      const start = formatDateColumn(listing?.start_date || areas[0]?.start_date);
+                      return (
+                        <div key={p.project_id} className="overflow-hidden rounded-2xl border border-border bg-card">
+                          {p.cover_image_url && (
+                            <button onClick={() => setSelectedProject(p)} className="block w-full" aria-label={listing?.title || p.project_name}>
+                              <img src={p.cover_image_url} alt={listing?.title || p.project_name} className="h-52 w-full object-cover" loading="lazy" />
+                            </button>
+                          )}
+                          <div className="p-5">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <h3 className="min-w-0 flex-1 font-serif text-2xl font-normal text-foreground">
+                                {listing?.title || p.project_name}
+                              </h3>
+                              <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium ring-1 ${jobPill.open}`}>
+                                Open for bids
+                              </span>
+                            </div>
+                            <div className="mt-2 flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted-foreground">
+                              {listing?.location && <span>{listing.location}</span>}
+                              {start && <span>Work starts {start}</span>}
+                              <span>{areas.length} areas open for bids</span>
+                              <span>{p.documents.length} documents</span>
+                            </div>
+                            {listing?.description && (
+                              <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-neutral-600">{listing.description}</p>
+                            )}
+                            <div className="mt-4">
+                              <button
+                                onClick={() => setSelectedProject(p)}
+                                className="rounded-full bg-neutral-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-neutral-700"
+                              >
+                                View project and bid
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
               {error ? (
                 <p className="text-sm text-red-600">The marketplace could not load just now — try Refresh.</p>
               ) : (
@@ -480,6 +597,25 @@ const ProcurementSystem = () => {
             setSelectedJob(null);
             refetch();
           }}
+        />
+      )}
+
+      {selectedProject && (
+        <ProjectDetailModal
+          project={selectedProject}
+          isOpen={!!selectedProject}
+          onClose={() => setSelectedProject(null)}
+          onBid={handleProjectBid}
+        />
+      )}
+
+      {bidListing && contractorRecord && (
+        <ProcurementProposalForm
+          open={!!bidListing}
+          onOpenChange={(open) => { if (!open) setBidListing(null); }}
+          listing={bidListing}
+          contractorId={contractorRecord.id}
+          onSubmitted={() => setBidListing(null)}
         />
       )}
 
