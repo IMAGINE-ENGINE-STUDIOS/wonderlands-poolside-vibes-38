@@ -37,7 +37,7 @@ const JobSearchEnhanced = ({ onFiltersChange, totalJobs }: JobSearchEnhancedProp
   const [filters, setFilters] = useState<SearchFilters>({
     searchTerm: '',
     category: 'all',
-    location: '',
+    location: 'any',
     budgetMin: 0,
     budgetMax: 100000,
     deadline: undefined,
@@ -79,14 +79,16 @@ const JobSearchEnhanced = ({ onFiltersChange, totalJobs }: JobSearchEnhancedProp
   useEffect(() => {
     const count = [
       filters.category !== 'all',
-      filters.location !== '',
+      filters.location !== 'any',
       filters.budgetMin > 0 || filters.budgetMax < 100000,
       filters.deadline !== undefined,
       filters.urgent
     ].filter(Boolean).length;
-    
+
     setActiveFiltersCount(count);
-    onFiltersChange(filters);
+    // 'any' is the Select sentinel for "no location filter"; parents keep
+    // receiving '' for it, exactly as before.
+    onFiltersChange({ ...filters, location: filters.location === 'any' ? '' : filters.location });
   }, [filters, onFiltersChange]);
 
   const updateFilter = (key: keyof SearchFilters, value: any) => {
@@ -97,7 +99,7 @@ const JobSearchEnhanced = ({ onFiltersChange, totalJobs }: JobSearchEnhancedProp
     setFilters({
       searchTerm: '',
       category: 'all',
-      location: '',
+      location: 'any',
       budgetMin: 0,
       budgetMax: 100000,
       deadline: undefined,
@@ -188,7 +190,7 @@ const JobSearchEnhanced = ({ onFiltersChange, totalJobs }: JobSearchEnhancedProp
                 <SelectValue placeholder="Any location" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Any location</SelectItem>
+                <SelectItem value="any">Any location</SelectItem>
                 {locations.map((location) => (
                   <SelectItem key={location} value={location}>
                     {location}
@@ -288,12 +290,12 @@ const JobSearchEnhanced = ({ onFiltersChange, totalJobs }: JobSearchEnhancedProp
             </Badge>
           )}
           
-          {filters.location && (
+          {filters.location !== 'any' && (
             <Badge variant="secondary" className="gap-1">
               Location: {filters.location}
-              <X 
-                className="h-3 w-3 cursor-pointer" 
-                onClick={() => updateFilter('location', '')}
+              <X
+                className="h-3 w-3 cursor-pointer"
+                onClick={() => updateFilter('location', 'any')}
               />
             </Badge>
           )}
