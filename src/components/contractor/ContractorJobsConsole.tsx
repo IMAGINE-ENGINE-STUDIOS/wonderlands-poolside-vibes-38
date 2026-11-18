@@ -1,8 +1,10 @@
 /**
  * ContractorJobsConsole — the contractor's own procurement console, inside
  * their dashboard's Procurement tab. Same engine as the main Wonderlands
- * board: post a project, receive bids, compare side by side, award, and
- * chat per project — scoped to the jobs THEY posted (business_id = user).
+ * board, and the same records: posting here creates a project + listing in
+ * the one procurement system (construction_projects / procurement_listings),
+ * which is exactly what the public /procurement page shows. Scoped to the
+ * project-level listings of the projects THEY created (created_by = user).
  * Bidding on Wonderlands' own projects happens on the main board and in the
  * opportunities list below this console.
  * Credits: Imagine Engine Studios Corp.
@@ -110,7 +112,7 @@ export default function ContractorJobsConsole() {
               <div className="min-w-0 flex-1">
                 <p className="truncate font-medium text-neutral-900">{job.title}</p>
                 <p className="text-xs text-neutral-500">
-                  {job.category} · {jobStatusLabel[job.status] ?? job.status} · Budget {money(job.budget_min)} – {money(job.budget_max)} · {job.proposal_count ?? 0} bids
+                  {job.category ? `${job.category} · ` : ''}{jobStatusLabel[job.status] ?? job.status} · Budget {money(job.budget_min)} – {money(job.budget_max)} · {job.proposal_count ?? 0} bids
                 </p>
               </div>
               {(job.status === 'open' || job.status === 'closed') && (

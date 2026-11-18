@@ -1,10 +1,15 @@
 /**
  * ProcurementSystem — the Wonderlands Procurement Exchange (/procurement).
  *
- * One home for the whole jobs marketplace, in the Wonderlands editorial
- * style: browse and bid (Marketplace), manage your postings and award bids
- * side by side (My Postings), track your proposals (My Bids), and talk to
- * the other side in private per-job threads (Messages).
+ * THE one procurement page (founder ruling 2026-11-18): every job anyone
+ * publishes — from the contractor dashboard console, from this page, from
+ * the admin side — is one project + listings in the single system
+ * (construction_projects / procurement_listings / procurement_proposals),
+ * and this page reads only that system through
+ * get_public_procurement_projects. There is no second feed and no copy.
+ * Browse and bid (Marketplace), manage your postings and award bids side
+ * by side (My Postings), track your proposals (My Bids), and talk to the
+ * other side in private per-job threads (Messages).
  * Credits: Imagine Engine Studios Corp.
  */
 import React, { useCallback, useEffect, useState } from 'react';
@@ -18,16 +23,11 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import EnhancedJobPostingForm from '@/components/procurement/EnhancedJobPostingForm';
-import JobFeed from '@/components/procurement/JobFeed';
-import JobDetailModal from '@/components/procurement/JobDetailModal';
 import ProjectDetailModal, { formatDateColumn } from '@/components/procurement/ProjectDetailModal';
 import ProcurementProposalForm from '@/components/contractor/ProcurementProposalForm';
-import QuickProposalModal from '@/components/procurement/QuickProposalModal';
-import UserProfileModal from '@/components/UserProfileModal';
 import JobSearchEnhanced from '@/components/procurement/JobSearchEnhanced';
 import { BidComparison } from '@/components/procurement/BidComparison';
 import { ProcurementMessages } from '@/components/procurement/ProcurementMessages';
-import { useProcurementData } from '@/hooks/useProcurementData';
 import {
   areaListingsOf,
   fetchJobProposals,
@@ -44,28 +44,6 @@ import {
   type PublicProject,
   type PublicProjectListing,
 } from '@/lib/procurement/procurementService';
-
-interface JobPosting {
-  id: string;
-  title: string;
-  description: string;
-  category: string;
-  budget_min: number;
-  budget_max: number;
-  deadline: string;
-  location: string;
-  status: string;
-  created_at: string;
-  business_id: string;
-  view_count?: number;
-  proposal_count?: number;
-  last_activity?: string;
-  profiles: {
-    first_name: string;
-    last_name: string;
-    company_name: string;
-  };
-}
 
 type View = 'marketplace' | 'postings' | 'bids' | 'messages';
 
@@ -89,15 +67,8 @@ const ProcurementSystem = () => {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
   const [view, setView] = useState<View>('marketplace');
-  const [selectedJob, setSelectedJob] = useState<JobPosting | null>(null);
   const [showJobForm, setShowJobForm] = useState(false);
-  const [showQuickProposal, setShowQuickProposal] = useState(false);
-  const [quickProposalJob, setQuickProposalJob] = useState<JobPosting | null>(null);
-  const [showProfile, setShowProfile] = useState(false);
-  const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
   const [searchFilters, setSearchFilters] = useState<any>({});
-
-  const { jobs, loading, error, refetch, trackJobView } = useProcurementData(searchFilters);
 
   /* ------------------------------ my postings / my bids ------------------------------ */
   const [myJobs, setMyJobs] = useState<ProcJob[]>([]);
@@ -166,89 +137,76 @@ const ProcurementSystem = () => {
     void loadMine();
   };
 
-  /* ------------------------------ marketplace filtering (unchanged behavior) ------------------------------ */
-  const filteredJobs = jobs.filter(job => {
-    const matchesSearch = !searchFilters.searchTerm ||
-      job.title.toLowerCase().includes(searchFilters.searchTerm.toLowerCase()) ||
-      job.description?.toLowerCase().includes(searchFilters.searchTerm.toLowerCase()) ||
-      job.location?.toLowerCase().includes(searchFilters.searchTerm.toLowerCase()) ||
-      job.profiles?.company_name?.toLowerCase().includes(searchFilters.searchTerm.toLowerCase()) ||
-      job.profiles?.first_name?.toLowerCase().includes(searchFilters.searchTerm.toLowerCase()) ||
-      job.profiles?.last_name?.toLowerCase().includes(searchFilters.searchTerm.toLowerCase());
-    const matchesCategory = !searchFilters.category ||
-      searchFilters.category === 'all' ||
-      job.category === searchFilters.category;
-    const matchesLocation = !searchFilters.location ||
-      job.location?.toLowerCase().includes(searchFilters.location.toLowerCase());
-    const matchesBudget =
-      (!searchFilters.budgetMin || job.budget_min >= searchFilters.budgetMin) &&
-      (!searchFilters.budgetMax || job.budget_max <= searchFilters.budgetMax);
-    const matchesDeadline = !searchFilters.deadline ||
-      new Date(job.deadline) <= new Date(searchFilters.deadline);
-    return matchesSearch && matchesCategory && matchesLocation && matchesBudget && matchesDeadline;
-  }).sort((a, b) => {
-    switch (searchFilters.sortBy) {
-      case 'oldest':
-        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-      case 'budget_high':
-        return (b.budget_max || 0) - (a.budget_max || 0);
-      case 'budget_low':
-        return (a.budget_min || 0) - (b.budget_min || 0);
-      case 'deadline':
-        return new Date(a.deadline || '9999-12-31').getTime() -
-          new Date(b.deadline || '9999-12-31').getTime();
-      case 'most_proposals':
-        return (b.proposal_count || 0) - (a.proposal_count || 0);
-      case 'most_viewed':
-        return (b.view_count || 0) - (a.view_count || 0);
-      case 'newest':
-      default:
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-    }
-  });
-
-  /* ------------------------------ public projects ------------------------------ */
-  // Wonderlands projects (construction_projects with open procurement
-  // listings) shown on the exchange next to the job postings. They come
-  // from the get_public_procurement_projects lookup, the same records the
-  // admin Projects section, the client dashboard and the contractor
-  // procurement tab read. Until that SQL is applied the section simply
-  // stays empty and the job feed carries the page.
+  /* ------------------------------ the board: projects of the single system ------------------------------ */
+  // Every project with at least one open listing, from the
+  // get_public_procurement_projects lookup — the same records the admin
+  // Projects section, the client dashboard and the contractor procurement
+  // tab read. This is the only feed on the page.
   const [publicProjects, setPublicProjects] = useState<PublicProject[]>([]);
+  const [projectsLoading, setProjectsLoading] = useState(true);
+  const [projectsError, setProjectsError] = useState(false);
   const [selectedProject, setSelectedProject] = useState<PublicProject | null>(null);
   const [bidListing, setBidListing] = useState<PublicProjectListing | null>(null);
 
-  useEffect(() => {
-    let on = true;
-    fetchPublicProjects()
-      .then((projects) => { if (on) setPublicProjects(projects); })
-      .catch(() => { if (on) setPublicProjects([]); });
-    return () => { on = false; };
+  const loadProjects = useCallback(async () => {
+    setProjectsLoading(true);
+    try {
+      setPublicProjects(await fetchPublicProjects());
+      setProjectsError(false);
+    } catch {
+      setPublicProjects([]);
+      setProjectsError(true);
+    } finally {
+      setProjectsLoading(false);
+    }
   }, []);
 
-  // Project records carry no category or budget of their own, so while a
-  // category, budget or deadline filter is active the feed shows jobs
-  // only. Search and location filters do apply to projects.
-  const projectFiltersActive =
-    (!!searchFilters.category && searchFilters.category !== 'all') ||
-    (searchFilters.budgetMin ?? 0) > 0 ||
-    (!!searchFilters.budgetMax && searchFilters.budgetMax < 100000) ||
-    !!searchFilters.deadline;
-  const visibleProjects = projectFiltersActive
-    ? []
-    : publicProjects.filter((p) => {
-        const listing = projectListingOf(p);
-        const term = (searchFilters.searchTerm || '').toLowerCase();
-        const matchesSearch = !term ||
-          (listing?.title || '').toLowerCase().includes(term) ||
-          p.project_name.toLowerCase().includes(term) ||
-          (listing?.description || '').toLowerCase().includes(term) ||
-          (listing?.location || '').toLowerCase().includes(term) ||
-          areaListingsOf(p).some((a) => a.title.toLowerCase().includes(term));
-        const matchesLocation = !searchFilters.location ||
-          (listing?.location || '').toLowerCase().includes(searchFilters.location.toLowerCase());
-        return matchesSearch && matchesLocation;
-      });
+  useEffect(() => { void loadProjects(); }, [loadProjects]);
+
+  // Filters run against the projects and their listings. Projects carry no
+  // category of their own, so choosing a category filters the board out;
+  // search, location, budget and deadline all match on listing fields.
+  const visibleProjects = publicProjects.filter((p) => {
+    if (searchFilters.category && searchFilters.category !== 'all') return false;
+    const listing = projectListingOf(p);
+    const term = (searchFilters.searchTerm || '').toLowerCase();
+    const matchesSearch = !term ||
+      (listing?.title || '').toLowerCase().includes(term) ||
+      p.project_name.toLowerCase().includes(term) ||
+      (listing?.description || '').toLowerCase().includes(term) ||
+      (listing?.location || '').toLowerCase().includes(term) ||
+      areaListingsOf(p).some((a) => a.title.toLowerCase().includes(term));
+    const matchesLocation = !searchFilters.location ||
+      p.listings.some((l) => (l.location || '').toLowerCase().includes(searchFilters.location.toLowerCase()));
+    const budgetMin = searchFilters.budgetMin ?? 0;
+    const budgetMax = searchFilters.budgetMax;
+    const matchesBudget =
+      (!budgetMin || p.listings.some((l) => (l.budget_max ?? 0) >= budgetMin)) &&
+      (!budgetMax || budgetMax >= 100000 || p.listings.some((l) => (l.budget_min ?? 0) <= budgetMax));
+    const matchesDeadline = !searchFilters.deadline ||
+      p.listings.some((l) => l.deadline && new Date(l.deadline) <= new Date(searchFilters.deadline));
+    return matchesSearch && matchesLocation && matchesBudget && matchesDeadline;
+  }).sort((a, b) => {
+    const maxBudget = (p: PublicProject) => Math.max(0, ...p.listings.map((l) => l.budget_max ?? 0));
+    const minBudget = (p: PublicProject) => Math.min(...p.listings.map((l) => l.budget_min ?? 0), 0);
+    const earliestDeadline = (p: PublicProject) =>
+      Math.min(...p.listings.map((l) => (l.deadline ? new Date(l.deadline).getTime() : Infinity)), Infinity);
+    const latestListing = (p: PublicProject) =>
+      Math.max(0, ...p.listings.map((l) => new Date(l.created_at).getTime()));
+    switch (searchFilters.sortBy) {
+      case 'oldest':
+        return latestListing(a) - latestListing(b);
+      case 'budget_high':
+        return maxBudget(b) - maxBudget(a);
+      case 'budget_low':
+        return minBudget(a) - minBudget(b);
+      case 'deadline':
+        return earliestDeadline(a) - earliestDeadline(b);
+      case 'newest':
+      default:
+        return latestListing(b) - latestListing(a);
+    }
+  });
 
   const handleProjectBid = (listing: PublicProjectListing) => {
     if (!user) {
@@ -272,7 +230,8 @@ const ProcurementSystem = () => {
   };
   const handleJobCreated = () => {
     setShowJobForm(false);
-    refetch();
+    void loadProjects();
+    void loadMine();
     toast.success('Job posted successfully!');
   };
   const handlePostJobClick = () => {
@@ -280,29 +239,18 @@ const ProcurementSystem = () => {
       setShowJobForm(true);
     }, 'post jobs');
   };
-  const handleQuickProposal = (jobId: string) => {
-    requireAuth(() => {
-      const job = filteredJobs.find(j => j.id === jobId);
-      if (job) {
-        setQuickProposalJob(job);
-        setShowQuickProposal(true);
-        trackJobView(jobId);
-      }
-    }, 'submit proposals');
-  };
-  const handleProfileClick = (userId: string) => {
-    requireAuth(() => {
-      setSelectedProfileId(userId);
-      setShowProfile(true);
-    }, 'view profiles');
+  const handleRefresh = () => {
+    void loadProjects();
+    if (user) void loadMine();
   };
 
 
+  const openListingCount = visibleProjects.reduce((n, p) => n + p.listings.length, 0);
   const stats = [
-    { label: 'Open opportunities', value: String(filteredJobs.length) },
-    { label: 'Proposals on open jobs', value: String(filteredJobs.reduce((n, j) => n + (j.proposal_count || 0), 0)) },
+    { label: 'Open projects', value: String(visibleProjects.length) },
+    { label: 'Open opportunities', value: String(openListingCount) },
     ...(!bidderView
-      ? [{ label: 'Open budget (max)', value: `$${filteredJobs.reduce((n, j) => n + (j.budget_max || 0), 0).toLocaleString()}` }]
+      ? [{ label: 'Open budget (max)', value: `$${visibleProjects.reduce((n, p) => n + p.listings.reduce((m, l) => m + (l.budget_max || 0), 0), 0).toLocaleString()}` }]
       : []),
     ...(user && !bidderView
       ? [{ label: 'Your open postings', value: String(myJobs.filter(j => j.status === 'open').length) }]
@@ -356,8 +304,8 @@ const ProcurementSystem = () => {
                 <PlusCircle className="mr-2 h-4 w-4" /> Post a requirement
               </Button>
             )}
-            <Button variant="outline" onClick={() => refetch()} className="gap-2">
-              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} /> Refresh
+            <Button variant="outline" onClick={handleRefresh} className="gap-2">
+              <RefreshCw className={`h-4 w-4 ${projectsLoading ? 'animate-spin' : ''}`} /> Refresh
             </Button>
           </div>
         </div>
@@ -390,9 +338,20 @@ const ProcurementSystem = () => {
           {effectiveView === 'marketplace' && (
             <>
               <div className="mb-8">
-                <JobSearchEnhanced onFiltersChange={setSearchFilters} totalJobs={filteredJobs.length} />
+                <JobSearchEnhanced onFiltersChange={setSearchFilters} totalJobs={visibleProjects.length} />
               </div>
-              {visibleProjects.length > 0 && (
+              {projectsError ? (
+                <p className="text-sm text-red-600">The marketplace could not load just now — try Refresh.</p>
+              ) : projectsLoading ? (
+                <p className="text-sm text-muted-foreground">Loading projects…</p>
+              ) : visibleProjects.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-neutral-300 bg-white p-10 text-center">
+                  <p className="font-serif text-2xl font-light">No open projects right now</p>
+                  <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
+                    When a project is published — by Wonderlands or by any business on the platform — it appears here, divided into areas that each take their own bids.
+                  </p>
+                </div>
+              ) : (
                 <div className="mb-10">
                   <h2 className="font-serif text-2xl font-light text-foreground">Projects open for bids</h2>
                   <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
@@ -443,20 +402,6 @@ const ProcurementSystem = () => {
                   </div>
                 </div>
               )}
-              {error ? (
-                <p className="text-sm text-red-600">The marketplace could not load just now — try Refresh.</p>
-              ) : (
-                <JobFeed
-                  jobs={filteredJobs}
-                  loading={loading}
-                  onJobClick={(job) => {
-                    setSelectedJob(job);
-                    trackJobView(job.id);
-                  }}
-                  onQuickProposal={handleQuickProposal}
-                  onProfileClick={handleProfileClick}
-                />
-              )}
             </>
           )}
 
@@ -487,7 +432,6 @@ const ProcurementSystem = () => {
                     {job.location && <span>{job.location}</span>}
                     {job.deadline && <span>Deadline {new Date(job.deadline).toLocaleDateString()}</span>}
                     <span>{job.proposal_count ?? 0} proposals</span>
-                    <span>{job.view_count ?? 0} views</span>
                   </div>
                   {job.description && <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-neutral-600">{job.description}</p>}
                   <div className="mt-4 flex flex-wrap gap-2">
@@ -588,18 +532,6 @@ const ProcurementSystem = () => {
         </Dialog>
       )}
 
-      {selectedJob && (
-        <JobDetailModal
-          job={selectedJob}
-          isOpen={!!selectedJob}
-          onClose={() => setSelectedJob(null)}
-          onProposalSubmitted={() => {
-            setSelectedJob(null);
-            refetch();
-          }}
-        />
-      )}
-
       {selectedProject && (
         <ProjectDetailModal
           project={selectedProject}
@@ -619,27 +551,6 @@ const ProcurementSystem = () => {
         />
       )}
 
-      <QuickProposalModal
-        job={quickProposalJob}
-        isOpen={showQuickProposal}
-        onClose={() => {
-          setShowQuickProposal(false);
-          setQuickProposalJob(null);
-        }}
-        onSubmit={() => {
-          refetch();
-        }}
-      />
-
-      <UserProfileModal
-        isOpen={showProfile}
-        onClose={() => {
-          setShowProfile(false);
-          setSelectedProfileId(null);
-        }}
-        userId={selectedProfileId || undefined}
-        isOwnProfile={!selectedProfileId}
-      />
     </div>
   );
 };

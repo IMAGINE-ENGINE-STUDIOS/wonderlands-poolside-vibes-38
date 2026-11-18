@@ -141,56 +141,104 @@ const EnhancedJobPostingForm = ({ onJobCreated }: EnhancedJobPostingFormProps) =
 
     setLoading(true);
     try {
-      const { data: jobData, error: jobError } = await supabase
-        .from('job_postings')
+      // ONE procurement system (founder ruling 2026-11-18): publishing here
+      // creates exactly one construction_projects row plus one project-level
+      // procurement_listings row under it — the same records the public
+      // /procurement page, the admin Projects section and the contractor
+      // procurement tab read. Nothing is written to the legacy job_postings
+      // tables, and there is no second copy anywhere.
+
+      // The poster's company: business sign-up creates a company and an
+      // owner membership; a contractor record is the fallback. When neither
+      // exists the database default (current_company_id()) applies.
+      let companyId: string | null = null;
+      const { data: membership } = await supabase
+        .from('company_members')
+        .select('company_id')
+        .eq('user_id', user.id)
+        .eq('is_active', true)
+        .order('created_at')
+        .limit(1)
+        .maybeSingle();
+      companyId = membership?.company_id ?? null;
+      if (!companyId) {
+        const { data: contractor } = await supabase
+          .from('contractors')
+          .select('company_id')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        companyId = contractor?.company_id ?? null;
+      }
+
+      // Listings have no category or requirements columns, so the chosen
+      // category and the requirements list travel inside the description —
+      // the one text home the single system gives them.
+      const categoryLabel = categories.find(c => c.value === formData.category)?.label;
+      const extras: string[] = [];
+      if (categoryLabel) extras.push(`Category: ${categoryLabel}`);
+      if (requirements.length > 0) {
+        extras.push(
+          'Requirements:\n' +
+          requirements.map(req => `- ${req.text}${req.mandatory ? ' (required)' : ''}`).join('\n')
+        );
+      }
+      const description = [formData.description.trim(), ...extras].filter(Boolean).join('\n\n') || null;
+
+      const { data: project, error: projectError } = await supabase
+        .from('construction_projects')
         .insert({
-          business_id: user.id,
-          title: formData.title,
-          description: formData.description,
-          category: formData.category,
-          budget_min: formData.budget_min ? parseFloat(formData.budget_min) : null,
-          budget_max: formData.budget_max ? parseFloat(formData.budget_max) : null,
-          deadline: formData.deadline || null,
-          location: formData.location
+          project_name: formData.title,
+          created_by: user.id,
+          status: 'active',
+          ...(companyId ? { company_id: companyId } : {}),
         })
         .select()
         .single();
 
-      if (jobError) throw jobError;
+      if (projectError) throw projectError;
 
-      // Add requirements
-      if (requirements.length > 0) {
-        const requirementsData = requirements.map((req, index) => ({
-          job_id: jobData.id,
-          requirement_text: req.text,
-          is_mandatory: req.mandatory,
-          order_index: index
-        }));
+      const { data: listing, error: listingError } = await supabase
+        .from('procurement_listings')
+        .insert({
+          project_id: project.id,
+          phase_item_id: null,
+          title: formData.title,
+          description,
+          location: formData.location || null,
+          budget_min: formData.budget_min ? parseFloat(formData.budget_min) : null,
+          budget_max: formData.budget_max ? parseFloat(formData.budget_max) : null,
+          deadline: formData.deadline || null,
+          status: 'open',
+          created_by: user.id,
+          ...(companyId ? { company_id: companyId } : {}),
+        })
+        .select()
+        .single();
 
-        const { error: reqError } = await supabase
-          .from('job_requirements')
-          .insert(requirementsData);
-
-        if (reqError) throw reqError;
+      if (listingError) {
+        // Best effort: do not leave an orphan project with no listing.
+        await supabase.from('construction_projects').delete().eq('id', project.id);
+        throw listingError;
       }
 
-      // Upload attachments
+      // Attachments live in procurement_documents (project + listing),
+      // best effort like the metadata-only upload above them.
       if (attachments.length > 0) {
-        const attachmentPromises = attachments.map(async (attachment) => {
-          const fileData = await uploadFile(attachment.file, jobData.id);
+        const attachmentData = await Promise.all(attachments.map(async (attachment) => {
+          const fileData = await uploadFile(attachment.file, listing.id);
           return {
-            job_id: jobData.id,
+            project_id: project.id,
+            listing_id: listing.id,
+            uploaded_by: user.id,
             ...fileData
           };
-        });
+        }));
 
-        const attachmentData = await Promise.all(attachmentPromises);
-        
         const { error: attachError } = await supabase
-          .from('job_attachments')
+          .from('procurement_documents')
           .insert(attachmentData);
 
-        if (attachError) throw attachError;
+        if (attachError) console.error('Error saving attachments:', attachError);
       }
 
       onJobCreated();

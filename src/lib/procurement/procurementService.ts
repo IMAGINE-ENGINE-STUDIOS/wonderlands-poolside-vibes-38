@@ -1,22 +1,36 @@
 /**
- * Procurement service — the jobs marketplace data layer (job_postings /
- * job_proposals), completing the loop the UI always promised:
- * post → bid → shortlist → award → notify, plus per-thread messaging
- * (job_messages, see the 20261029120000_job_messages migration).
+ * Procurement service — the data layer for the ONE procurement system
+ * (founder ruling 2026-11-18: one procurement page, one set of records).
+ * Everything reads and writes construction_projects + procurement_listings
+ * + procurement_proposals: posting a job creates one project with one
+ * project-level listing (phase_item_id NULL), bids are procurement
+ * proposals on that listing, and the public board reads the same records
+ * through get_public_procurement_projects (see fetchPublicProjects below).
+ * The legacy job_postings / job_proposals tables are no longer written or
+ * read here. Per-thread messaging still uses job_messages (see the
+ * messaging section below).
  * Credits: Imagine Engine Studios Corp.
  */
 import { supabase } from "@/integrations/supabase/client";
 
+/**
+ * A "job" in the single system is a project-level procurement listing.
+ * `id` is the listing id; `business_id` is the poster's auth user id
+ * (construction_projects.created_by). Listing status 'assigned' (the
+ * vocabulary the admin award flow uses) is presented as 'awarded'.
+ * Listings carry no category, so `category` is null for these jobs.
+ */
 export interface ProcJob {
   id: string;
+  project_id?: string;
   title: string;
   description: string | null;
-  category: string;
+  category: string | null;
   budget_min: number | null;
   budget_max: number | null;
   deadline: string | null;
   location: string | null;
-  status: string;
+  status: string; // open | closed | awarded
   created_at: string;
   business_id: string;
   view_count?: number | null;
@@ -27,8 +41,9 @@ export interface ProcJob {
 
 export interface ProcProposal {
   id: string;
-  job_id: string;
-  supplier_id: string;
+  job_id: string; // procurement_listings.id
+  supplier_id: string; // bidder's auth user id when known (contractors.user_id), else the contractor row id
+  contractor_id?: string; // procurement_proposals.contractor_id
   proposal_text: string | null;
   proposed_price: number | null;
   estimated_timeline: string | null;
@@ -94,23 +109,116 @@ export async function notifyUser(
 }
 
 /* ------------------------------ buyer side ------------------------------ */
+/* Own postings = the project-level listings (phase_item_id NULL) of the   */
+/* projects this user created. Area listings of a project belong to the    */
+/* project/areas model and are managed from the project itself, not here.  */
+
+type ListingRow = {
+  id: string;
+  project_id: string;
+  title: string;
+  description: string | null;
+  location: string | null;
+  budget_min: number | null;
+  budget_max: number | null;
+  deadline: string | null;
+  status: string;
+  created_at: string;
+};
+
+type ContractorLite = {
+  id: string;
+  company_name: string;
+  contact_name: string;
+  user_id: string | null;
+};
+
+const listingStatusToJob = (status: string): string =>
+  status === "assigned" ? "awarded" : status;
+
+function mapListing(l: ListingRow, businessId: string): ProcJob {
+  return {
+    id: l.id,
+    project_id: l.project_id,
+    title: l.title,
+    description: l.description,
+    category: null,
+    budget_min: l.budget_min,
+    budget_max: l.budget_max,
+    deadline: l.deadline,
+    location: l.location,
+    status: listingStatusToJob(l.status),
+    created_at: l.created_at,
+    business_id: businessId,
+    view_count: null,
+    proposal_count: 0,
+  };
+}
+
+function mapProposal(
+  r: {
+    id: string;
+    listing_id: string;
+    contractor_id: string;
+    proposal_text: string | null;
+    proposed_price: number | null;
+    estimated_timeline: string | null;
+    status: string;
+    created_at: string;
+  },
+  contractor?: ContractorLite | null,
+): ProcProposal {
+  return {
+    id: r.id,
+    job_id: r.listing_id,
+    supplier_id: contractor?.user_id ?? r.contractor_id,
+    contractor_id: r.contractor_id,
+    proposal_text: r.proposal_text,
+    proposed_price: r.proposed_price,
+    estimated_timeline: r.estimated_timeline,
+    status: r.status,
+    created_at: r.created_at,
+    profiles: contractor
+      ? { first_name: contractor.contact_name || null, last_name: null, company_name: contractor.company_name || null }
+      : null,
+  };
+}
+
+async function contractorsById(ids: string[]): Promise<Map<string, ContractorLite>> {
+  const map = new Map<string, ContractorLite>();
+  if (!ids.length) return map;
+  const { data } = await supabase
+    .from("contractors")
+    .select("id, company_name, contact_name, user_id")
+    .in("id", ids);
+  for (const c of (data ?? []) as ContractorLite[]) map.set(c.id, c);
+  return map;
+}
 
 export async function fetchMyJobs(userId: string): Promise<ProcJob[]> {
-  const { data, error } = await supabase
-    .from("job_postings")
-    .select("*")
-    .eq("business_id", userId)
-    .order("created_at", { ascending: false });
+  const { data: projects, error } = await supabase
+    .from("construction_projects")
+    .select("id")
+    .eq("created_by", userId);
   if (error) throw error;
-  const jobs = (data ?? []) as ProcJob[];
+  const projectIds = (projects ?? []).map((p) => p.id);
+  if (!projectIds.length) return [];
+  const { data: listings, error: listingError } = await supabase
+    .from("procurement_listings")
+    .select("*")
+    .in("project_id", projectIds)
+    .is("phase_item_id", null)
+    .order("created_at", { ascending: false });
+  if (listingError) throw listingError;
+  const jobs = ((listings ?? []) as ListingRow[]).map((l) => mapListing(l, userId));
   if (jobs.length) {
     const { data: props } = await supabase
-      .from("job_proposals")
-      .select("job_id")
-      .in("job_id", jobs.map((j) => j.id));
+      .from("procurement_proposals")
+      .select("listing_id")
+      .in("listing_id", jobs.map((j) => j.id));
     const counts = new Map<string, number>();
-    for (const p of (props ?? []) as Array<{ job_id: string }>) {
-      counts.set(p.job_id, (counts.get(p.job_id) ?? 0) + 1);
+    for (const p of (props ?? []) as Array<{ listing_id: string }>) {
+      counts.set(p.listing_id, (counts.get(p.listing_id) ?? 0) + 1);
     }
     for (const j of jobs) j.proposal_count = counts.get(j.id) ?? 0;
   }
@@ -119,24 +227,23 @@ export async function fetchMyJobs(userId: string): Promise<ProcJob[]> {
 
 export async function fetchJobProposals(jobId: string): Promise<ProcProposal[]> {
   const { data, error } = await supabase
-    .from("job_proposals")
-    .select(`
-      *,
-      profiles!job_proposals_supplier_id_fkey ( first_name, last_name, company_name )
-    `)
-    .eq("job_id", jobId)
+    .from("procurement_proposals")
+    .select("*")
+    .eq("listing_id", jobId)
     .order("proposed_price", { ascending: true, nullsFirst: false });
   if (error) throw error;
-  return (data ?? []) as unknown as ProcProposal[];
+  const rows = data ?? [];
+  const byId = await contractorsById([...new Set(rows.map((r) => r.contractor_id))]);
+  return rows.map((r) => mapProposal(r, byId.get(r.contractor_id)));
 }
 
 export async function setJobStatus(jobId: string, status: "open" | "closed"): Promise<void> {
-  const { error } = await supabase.from("job_postings").update({ status }).eq("id", jobId);
+  const { error } = await supabase.from("procurement_listings").update({ status }).eq("id", jobId);
   if (error) throw error;
 }
 
 async function setProposalStatus(proposal: ProcProposal, status: string): Promise<void> {
-  const { error } = await supabase.from("job_proposals").update({ status }).eq("id", proposal.id);
+  const { error } = await supabase.from("procurement_proposals").update({ status }).eq("id", proposal.id);
   if (error) throw error;
 }
 
@@ -167,7 +274,8 @@ export async function rejectProposal(proposal: ProcProposal, job: ProcJob): Prom
 
 /**
  * Award a job to one proposal: winner → accepted, every other live proposal
- * → rejected, job → awarded, and both sides are notified.
+ * → rejected, the listing → assigned to the winning contractor (the status
+ * vocabulary the single system already uses), and both sides are notified.
  */
 export async function awardProposal(job: ProcJob, winner: ProcProposal, all: ProcProposal[]): Promise<void> {
   const losers = all.filter(
@@ -175,7 +283,13 @@ export async function awardProposal(job: ProcJob, winner: ProcProposal, all: Pro
   );
   await setProposalStatus(winner, "accepted");
   for (const loser of losers) await setProposalStatus(loser, "rejected");
-  const { error } = await supabase.from("job_postings").update({ status: "awarded" }).eq("id", job.id);
+  const { error } = await supabase
+    .from("procurement_listings")
+    .update({
+      status: "assigned",
+      ...(winner.contractor_id ? { assigned_contractor_id: winner.contractor_id } : {}),
+    })
+    .eq("id", job.id);
   if (error) throw error;
   await notifyUser(
     winner.supplier_id,
@@ -205,24 +319,57 @@ export async function awardProposal(job: ProcJob, winner: ProcProposal, all: Pro
 /* ------------------------------ bidder side ------------------------------ */
 
 export async function fetchMyProposals(userId: string): Promise<Array<ProcProposal & { job: ProcJob | null }>> {
+  // Bids in the single system belong to the user's contractor record(s),
+  // not to the auth user directly.
+  const { data: mine, error: contractorError } = await supabase
+    .from("contractors")
+    .select("id, company_name, contact_name, user_id")
+    .eq("user_id", userId);
+  if (contractorError) throw contractorError;
+  const myContractors = (mine ?? []) as ContractorLite[];
+  if (!myContractors.length) return [];
+  const byId = new Map(myContractors.map((c) => [c.id, c]));
   const { data, error } = await supabase
-    .from("job_proposals")
+    .from("procurement_proposals")
     .select("*")
-    .eq("supplier_id", userId)
+    .in("contractor_id", myContractors.map((c) => c.id))
     .order("created_at", { ascending: false });
   if (error) throw error;
-  const proposals = (data ?? []) as unknown as ProcProposal[];
-  const jobIds = [...new Set(proposals.map((p) => p.job_id))];
+  const rows = data ?? [];
+  const listingIds = [...new Set(rows.map((r) => r.listing_id))];
   const jobsById = new Map<string, ProcJob>();
-  if (jobIds.length) {
-    const { data: jobs } = await supabase.from("job_postings").select("*").in("id", jobIds);
-    for (const j of (jobs ?? []) as ProcJob[]) jobsById.set(j.id, j);
+  if (listingIds.length) {
+    const { data: listings } = await supabase
+      .from("procurement_listings")
+      .select("*")
+      .in("id", listingIds);
+    const listingRows = (listings ?? []) as ListingRow[];
+    const projectIds = [...new Set(listingRows.map((l) => l.project_id))];
+    const owners = new Map<string, string>();
+    if (projectIds.length) {
+      const { data: projects } = await supabase
+        .from("construction_projects")
+        .select("id, created_by")
+        .in("id", projectIds);
+      for (const p of (projects ?? []) as Array<{ id: string; created_by: string | null }>) {
+        if (p.created_by) owners.set(p.id, p.created_by);
+      }
+    }
+    for (const l of listingRows) {
+      jobsById.set(l.id, mapListing(l, owners.get(l.project_id) ?? ""));
+    }
   }
-  return proposals.map((p) => ({ ...p, job: jobsById.get(p.job_id) ?? null }));
+  return rows.map((r) => ({
+    ...mapProposal(r, byId.get(r.contractor_id)),
+    job: jobsById.get(r.listing_id) ?? null,
+  }));
 }
 
 export async function withdrawProposal(proposal: ProcProposal, job: ProcJob | null): Promise<void> {
-  await setProposalStatus(proposal, "withdrawn");
+  // The single system's RLS lets a contractor delete their own proposal but
+  // only ever keep its status at 'pending', so withdrawing removes the row.
+  const { error } = await supabase.from("procurement_proposals").delete().eq("id", proposal.id);
+  if (error) throw error;
   if (job) {
     await notifyUser(
       job.business_id,
@@ -236,8 +383,11 @@ export async function withdrawProposal(proposal: ProcProposal, job: ProcJob | nu
 
 /* ------------------------------ messaging ------------------------------ */
 /* Threads are per (job, supplier): the buyer and one bidder talk privately. */
-/* Backed by the job_messages table (migration 20261029120000). Until that   */
-/* SQL is applied, reads return { ready: false } and the UI explains.        */
+/* Backed by the legacy job_messages table (migration 20261029120000),      */
+/* keyed by job id — for single-system jobs that id is now the listing id,  */
+/* so threads for new jobs simply start empty; legacy threads keep reading  */
+/* the same table. Until that SQL is applied, reads return                  */
+/* { ready: false } and the UI explains.                                    */
 
 export interface JobMessage {
   id: string;
