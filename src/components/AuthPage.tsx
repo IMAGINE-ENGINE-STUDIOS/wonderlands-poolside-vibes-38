@@ -22,12 +22,32 @@ const PORTALS: { id: PortalId; label: string; note: string; path: string }[] = [
 /** Investor demo account — sees the Command Center layout with no company data. */
 const INVESTOR_DEMO_EMAIL = 'investor.admin@wonderlandsworld.com';
 
-export const destinationFor = (role: string | undefined, email: string | undefined, requested?: string) => {
+/**
+ * A campaign / deep-link destination carried as ?next= on /auth (e.g. the
+ * homeowner campaign link …/auth?mode=signup&type=consumer&next=/procurement?post=1).
+ * Strictly a local path: must start with '/', never protocol-relative ('//'),
+ * never a scheme or backslash, and never into /admin. Anything else is ignored.
+ * The full value (path + query, e.g. '/procurement?post=1') is preserved so the
+ * landing page can read the intent it carries.
+ */
+export const validateNext = (raw: string | null | undefined): string | undefined => {
+  if (!raw) return undefined;
+  if (!raw.startsWith('/')) return undefined;
+  if (raw.startsWith('//')) return undefined;
+  if (raw.includes('\\')) return undefined;
+  if (/^[a-z][a-z0-9+.-]*:/i.test(raw)) return undefined;
+  const path = raw.split(/[?#]/)[0];
+  if (path === '/admin' || path.startsWith('/admin/')) return undefined;
+  return raw;
+};
+
+export const destinationFor = (role: string | undefined, email: string | undefined, requested?: string, next?: string) => {
   if (email?.toLowerCase() === INVESTOR_DEMO_EMAIL) return '/demo/command-center';
   if (role === 'sales_rep') return '/sales-rep';
   if (role === 'main_admin') return requested || '/admin';
-  if (role === 'supplier' || role === 'installer') return requested && !requested.startsWith('/admin') ? requested : '/workspace';
-  return requested && !requested.startsWith('/admin') ? requested : '/account';
+  const dest = requested ?? next;
+  if (role === 'supplier' || role === 'installer') return dest && !dest.startsWith('/admin') ? dest : '/workspace';
+  return dest && !dest.startsWith('/admin') ? dest : '/account';
 };
 
 const AuthPage = () => {
@@ -40,6 +60,9 @@ const AuthPage = () => {
 
   // Intended destination (set by ProtectedRoute). Without one, staff go to /admin and customers home.
   const requested: string | undefined = location.state?.from?.pathname;
+  // Campaign destination carried in the URL (?next=…), strictly validated.
+  // Router state (ProtectedRoute) keeps precedence; next is the fallback.
+  const next: string | undefined = validateNext(new URLSearchParams(location.search).get('next'));
 
   const [portal, setPortal] = useState<PortalId>(() => {
     const t = new URLSearchParams(window.location.search).get('portal') as PortalId | null;
@@ -51,7 +74,7 @@ const AuthPage = () => {
   // Redirect once the profile is loaded — by role, so customers never land on the staff-only /admin.
   useEffect(() => {
     if (!loading && user && profile) {
-      const dest = destinationFor(profile.role as string, user.email, requested);
+      const dest = destinationFor(profile.role as string, user.email, requested, next);
       if (justSignedIn) {
         const picked = PORTALS.find(p => p.id === portal)!;
         if (!dest.startsWith(picked.path)) {
@@ -143,7 +166,8 @@ const AuthPage = () => {
       toast({ title: 'Account created', description: 'Taking you to your account…' });
       // If no session came back (email confirmation on), sign in directly so the user lands on their page.
       await signIn(email, signUpData.password);
-      const dest = signUpData.role === 'consumer' ? (requested && !requested.startsWith('/admin') ? requested : '/account') : '/workspace';
+      const wanted = requested ?? next;
+      const dest = signUpData.role === 'consumer' ? (wanted && !wanted.startsWith('/admin') ? wanted : '/account') : '/workspace';
       navigate(dest, { replace: true });
     } catch {
       setSignUpError('Something went wrong. Please try again.');
@@ -155,9 +179,14 @@ const AuthPage = () => {
   const handleOAuthSignIn = async (provider: 'google' | 'microsoft') => {
     setIsLoading(true);
     try {
+      // Return to /auth (not the site root) with the campaign destination
+      // still attached, so the post-OAuth destination logic above lands the
+      // user exactly where the link promised. Without a next, keep the
+      // historical root redirect untouched.
+      const oauthReturn = next ? `/auth?next=${encodeURIComponent(next)}` : undefined;
       const { error } = provider === 'google' ?
-      await signInWithGoogle() :
-      await signInWithMicrosoft();
+      await signInWithGoogle(oauthReturn) :
+      await signInWithMicrosoft(oauthReturn);
 
       if (error) {
         toast({
@@ -202,7 +231,7 @@ const AuthPage = () => {
             </p>
             <div className="flex flex-col gap-2">
               <Button onClick={() => {
-                const dest = destinationFor(profile?.role as string, user.email, requested);
+                const dest = destinationFor(profile?.role as string, user.email, requested, next);
                 navigate(dest, { replace: true });
               }}>
                 Go to Dashboard

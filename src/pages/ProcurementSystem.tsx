@@ -12,8 +12,8 @@
  * other side in private per-job threads (Messages).
  * Credits: Imagine Engine Studios Corp.
  */
-import React, { useCallback, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { PlusCircle, RefreshCw } from 'lucide-react';
@@ -85,8 +85,13 @@ const ProcurementSystem = () => {
   const isMainAdmin = profile?.role === 'main_admin';
   const [contractorAccount, setContractorAccount] = useState(false);
   const [contractorRecord, setContractorRecord] = useState<{ id: string; status: string } | null>(null);
+  // True once we know whether this account is a contractor — the publish
+  // intent below must wait for it, so a bidder never gets the posting form.
+  const [contractorChecked, setContractorChecked] = useState(false);
   useEffect(() => {
-    if (!user || isMainAdmin) return;
+    if (!user) { setContractorAccount(false); setContractorRecord(null); setContractorChecked(true); return; }
+    if (isMainAdmin) { setContractorChecked(true); return; }
+    setContractorChecked(false);
     let on = true;
     (async () => {
       const byId = await supabase.from('contractors').select('id, status').eq('user_id', user.id).maybeSingle();
@@ -98,12 +103,32 @@ const ProcurementSystem = () => {
       if (on) {
         setContractorAccount(!!record);
         setContractorRecord(record);
+        setContractorChecked(true);
       }
     })();
     return () => { on = false; };
   }, [user, isMainAdmin]);
   const bidderView = !!user && !isMainAdmin && contractorAccount;
   const effectiveView: View = bidderView && view === 'postings' ? 'marketplace' : view;
+
+  /* ------------- publish intent: /procurement?post=1 (carried through /auth) ------------- */
+  // The homeowner campaign link and the page's own "Publish your project"
+  // entry both land here with ?post=1 after signup/login. A signed-in
+  // non-bidder gets the posting form open in front of them; the intent is
+  // then stripped from the URL so a refresh does not reopen it. Contractors
+  // in bidder view never get the form — their intent is stripped silently.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const postIntentHandled = useRef(false);
+  useEffect(() => {
+    if (postIntentHandled.current) return;
+    if (searchParams.get('post') !== '1') return;
+    if (!user || !contractorChecked) return;
+    postIntentHandled.current = true;
+    if (!bidderView) setShowJobForm(true);
+    const rest = new URLSearchParams(searchParams);
+    rest.delete('post');
+    setSearchParams(rest, { replace: true });
+  }, [searchParams, user, contractorChecked, bidderView, setSearchParams]);
 
   const loadMine = useCallback(async () => {
     if (!user) return;
@@ -220,10 +245,12 @@ const ProcurementSystem = () => {
     toast.info('Bids on project areas are placed from an approved contractor account. Your contractor dashboard shows the same projects with the bid form on each area.');
   };
 
-  const requireAuth = (action: () => void, actionName: string) => {
+  const requireAuth = (action: () => void, actionName: string, returnTo = '/procurement') => {
     if (!user) {
       toast.error(`Please sign in to ${actionName}`);
-      navigate('/auth');
+      // Carry the destination through /auth (?next=) so signup/login lands
+      // the visitor right back here — with the publish intent when posting.
+      navigate(`/auth?next=${encodeURIComponent(returnTo)}`);
       return;
     }
     action();
@@ -237,7 +264,7 @@ const ProcurementSystem = () => {
   const handlePostJobClick = () => {
     requireAuth(() => {
       setShowJobForm(true);
-    }, 'post jobs');
+    }, 'post jobs', '/procurement?post=1');
   };
   const handleRefresh = () => {
     void loadProjects();
@@ -281,7 +308,7 @@ const ProcurementSystem = () => {
       <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
         Your postings, bids and messages live under your Wonderlands account.
       </p>
-      <Button className="mt-5 bg-neutral-900 text-white hover:bg-neutral-800" onClick={() => navigate('/auth')}>
+      <Button className="mt-5 bg-neutral-900 text-white hover:bg-neutral-800" onClick={() => navigate(`/auth?next=${encodeURIComponent('/procurement')}`)}>
         Sign in
       </Button>
     </div>
@@ -301,7 +328,7 @@ const ProcurementSystem = () => {
           <div className="flex flex-wrap gap-3 pb-1">
             {!bidderView && (
               <Button onClick={handlePostJobClick} className="bg-neutral-900 text-white hover:bg-neutral-800">
-                <PlusCircle className="mr-2 h-4 w-4" /> Post a requirement
+                <PlusCircle className="mr-2 h-4 w-4" /> Publish your project — free
               </Button>
             )}
             <Button variant="outline" onClick={handleRefresh} className="gap-2">
@@ -314,6 +341,15 @@ const ProcurementSystem = () => {
             ? 'Wonderlands posts its projects here. Open a project to see its slides, scope and requirements, place your bid, and coordinate with the team in chat.'
             : 'Post what your project needs, receive proposals from approved contractors and suppliers, compare them side by side and award — with both sides notified at every step.'}
         </p>
+        {!user && (
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-foreground">
+            Are you a homeowner?{' '}
+            <button onClick={handlePostJobClick} className="font-semibold underline underline-offset-4 hover:text-neutral-600">
+              Publish your project for free
+            </button>{' '}
+            — create a free account and approved contractors will bid on your project.
+          </p>
+        )}
         <div className="mt-8 h-px w-24 bg-foreground/30" />
 
         {/* Stats */}

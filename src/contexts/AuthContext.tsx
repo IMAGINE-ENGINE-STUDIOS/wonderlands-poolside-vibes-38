@@ -23,8 +23,8 @@ interface AuthContextType {
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (email: string, password: string, userData?: any) => Promise<{ error: any }>;
-  signInWithGoogle: () => Promise<{ error: any }>;
-  signInWithMicrosoft: () => Promise<{ error: any }>;
+  signInWithGoogle: (redirectPath?: string) => Promise<{ error: any }>;
+  signInWithMicrosoft: (redirectPath?: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -148,21 +148,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { error };
   };
 
-  const signInWithGoogle = async () => {
+  const signInWithGoogle = async (redirectPath?: string) => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/`,
+        redirectTo: redirectPath ? `${window.location.origin}${redirectPath}` : `${window.location.origin}/`,
       }
     });
     return { error };
   };
 
-  const signInWithMicrosoft = async () => {
+  const signInWithMicrosoft = async (redirectPath?: string) => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'azure',
       options: {
-        redirectTo: `${window.location.origin}/`,
+        redirectTo: redirectPath ? `${window.location.origin}${redirectPath}` : `${window.location.origin}/`,
         scopes: 'email profile',
       }
     });
