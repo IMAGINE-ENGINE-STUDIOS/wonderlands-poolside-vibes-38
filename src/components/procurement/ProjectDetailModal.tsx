@@ -9,10 +9,13 @@
  * Credits: Imagine Engine Studios Corp.
  */
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calendar, DollarSign, FileText, MapPin, Send } from 'lucide-react';
+import { Calendar, DollarSign, FileText, MapPin, MessageSquare, Send, X } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { ListingMessageThread } from '@/components/procurement/ListingMessageThread';
 import {
   areaListingsOf,
   projectListingOf,
@@ -43,7 +46,23 @@ const isImageDoc = (fileType?: string | null, fileUrl?: string | null, fileName?
   (fileType || '').startsWith('image') || /\.(png|jpe?g|webp|gif|avif)$/i.test(fileUrl || fileName || '');
 
 const ProjectDetailModal = ({ project, isOpen, onClose, onBid }: ProjectDetailModalProps) => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [messageListing, setMessageListing] = React.useState<PublicProjectListing | null>(null);
+
   if (!project) return null;
+
+  React.useEffect(() => {
+    if (!isOpen) setMessageListing(null);
+  }, [isOpen]);
+
+  const openMessages = (listing: PublicProjectListing) => {
+    if (!user) {
+      navigate(`/auth?next=${encodeURIComponent('/procurement')}`);
+      return;
+    }
+    setMessageListing(listing);
+  };
 
   const projectListing = projectListingOf(project);
   const areas = areaListingsOf(project);
@@ -103,12 +122,21 @@ const ProjectDetailModal = ({ project, isOpen, onClose, onBid }: ProjectDetailMo
                 <p className="mt-4 break-words leading-relaxed text-neutral-700">{projectListing.description}</p>
               )}
               {projectListing && (
-                <Button
-                  className="mt-5 w-full bg-neutral-900 text-white hover:bg-neutral-800 sm:w-auto"
-                  onClick={() => onBid(projectListing)}
-                >
-                  <Send className="mr-2 h-4 w-4" /> Bid on the whole project
-                </Button>
+                <div className="mt-5 flex flex-wrap gap-2">
+                  <Button
+                    className="w-full bg-neutral-900 text-white hover:bg-neutral-800 sm:w-auto"
+                    onClick={() => onBid(projectListing)}
+                  >
+                    <Send className="mr-2 h-4 w-4" /> Bid on the whole project
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full sm:w-auto"
+                    onClick={() => openMessages(projectListing)}
+                  >
+                    <MessageSquare className="mr-2 h-4 w-4" /> Message the project owner
+                  </Button>
+                </div>
               )}
             </CardContent>
           </Card>
@@ -208,12 +236,21 @@ const ProjectDetailModal = ({ project, isOpen, onClose, onBid }: ProjectDetailMo
                             </p>
                           )}
                         </div>
-                        <Button
-                          className="w-full shrink-0 bg-neutral-900 text-white hover:bg-neutral-800 sm:w-auto"
-                          onClick={() => onBid(area)}
-                        >
-                          <Send className="mr-2 h-4 w-4" /> Place your bid
-                        </Button>
+                        <div className="flex w-full flex-col gap-2 sm:w-auto">
+                          <Button
+                            className="w-full shrink-0 bg-neutral-900 text-white hover:bg-neutral-800 sm:w-auto"
+                            onClick={() => onBid(area)}
+                          >
+                            <Send className="mr-2 h-4 w-4" /> Place your bid
+                          </Button>
+                          <Button
+                            variant="outline"
+                            className="w-full shrink-0 sm:w-auto"
+                            onClick={() => openMessages(area)}
+                          >
+                            <MessageSquare className="mr-2 h-4 w-4" /> Message the owner
+                          </Button>
+                        </div>
                       </div>
                       {(area.documents?.length ?? 0) > 0 && (
                         <div className="mt-3 space-y-2">
@@ -264,6 +301,31 @@ const ProjectDetailModal = ({ project, isOpen, onClose, onBid }: ProjectDetailMo
               </div>
             </CardContent>
           </Card>
+
+          {messageListing && user && (
+            <div>
+              <div className="mb-2 flex items-center justify-between">
+                <p className="text-sm font-medium text-neutral-900">
+                  Your conversation with the project owner about {messageListing.title}
+                </p>
+                <button
+                  onClick={() => setMessageListing(null)}
+                  className="rounded-full p-1 text-neutral-500 transition hover:bg-neutral-100"
+                  aria-label="Close messages"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <ListingMessageThread
+                listingId={messageListing.id}
+                projectId={project.project_id}
+                bidderId={user.id}
+                currentUserId={user.id}
+                heading={messageListing.title}
+                subheading="Private thread with the project owner"
+              />
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

@@ -28,9 +28,11 @@ import ProcurementProposalForm from '@/components/contractor/ProcurementProposal
 import JobSearchEnhanced from '@/components/procurement/JobSearchEnhanced';
 import { BidComparison } from '@/components/procurement/BidComparison';
 import { ProcurementMessages } from '@/components/procurement/ProcurementMessages';
+import { ListingMessageThread } from '@/components/procurement/ListingMessageThread';
 import {
   areaListingsOf,
   fetchJobProposals,
+  fetchListingThreadBidders,
   fetchMyJobs,
   fetchMyProposals,
   fetchPublicProjects,
@@ -162,6 +164,33 @@ const ProcurementSystem = () => {
   const refreshOpenProposals = async (job: ProcJob) => {
     setOpenProposals(await fetchJobProposals(job.id).catch(() => []));
     void loadMine();
+  };
+
+  /* Owner side threads on a posting: one per bidder who wrote. */
+  const [messageJobId, setMessageJobId] = useState<string>('');
+  const [threadBidders, setThreadBidders] = useState<string[]>([]);
+  const [threadNames, setThreadNames] = useState<Record<string, string>>({});
+
+  const toggleJobMessages = async (job: ProcJob) => {
+    if (messageJobId === job.id) {
+      setMessageJobId('');
+      return;
+    }
+    setMessageJobId(job.id);
+    setThreadBidders([]);
+    const [threads, proposals] = await Promise.all([
+      fetchListingThreadBidders(job.id).catch(() => ({ ready: false, bidderIds: [] as string[] })),
+      fetchJobProposals(job.id).catch(() => [] as ProcProposal[]),
+    ]);
+    const names: Record<string, string> = {};
+    for (const p of proposals) {
+      const label =
+        p.profiles?.company_name ||
+        [p.profiles?.first_name, p.profiles?.last_name].filter(Boolean).join(' ');
+      if (label) names[p.supplier_id] = label;
+    }
+    setThreadNames(names);
+    setThreadBidders(threads.bidderIds);
   };
 
   /* ------------------------------ the board: projects of the single system ------------------------------ */
@@ -486,6 +515,12 @@ const ProcurementSystem = () => {
                     >
                       {openJobId === job.id ? 'Hide bids' : `Compare bids (${job.proposal_count ?? 0})`}
                     </button>
+                    <button
+                      onClick={() => void toggleJobMessages(job)}
+                      className="rounded-full bg-white px-4 py-2 text-xs font-medium text-neutral-700 ring-1 ring-neutral-300 transition hover:bg-neutral-50"
+                    >
+                      {messageJobId === job.id ? 'Hide messages' : 'Messages'}
+                    </button>
                     {job.status === 'open' && (
                       <button
                         onClick={() => void setJobStatus(job.id, 'closed').then(loadMine)}
@@ -506,6 +541,27 @@ const ProcurementSystem = () => {
                   {openJobId === job.id && (
                     <div className="mt-4 border-t border-border pt-4">
                       <BidComparison job={job} proposals={openProposals} onChanged={() => void refreshOpenProposals(job)} />
+                    </div>
+                  )}
+                  {messageJobId === job.id && user && (
+                    <div className="mt-4 space-y-4 border-t border-border pt-4">
+                      {threadBidders.length === 0 ? (
+                        <p className="text-sm text-neutral-500">
+                          No messages on this posting yet. When a contractor writes to you about it, the conversation appears here.
+                        </p>
+                      ) : (
+                        threadBidders.map((bidderId) => (
+                          <ListingMessageThread
+                            key={bidderId}
+                            listingId={job.id}
+                            projectId={job.project_id ?? ''}
+                            bidderId={bidderId}
+                            currentUserId={user.id}
+                            heading={job.title}
+                            subheading={`Private thread with ${threadNames[bidderId] ?? 'a bidder'}`}
+                          />
+                        ))
+                      )}
                     </div>
                   )}
                 </div>

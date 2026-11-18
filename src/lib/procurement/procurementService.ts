@@ -584,6 +584,69 @@ export async function sendThreadMessage(
   return !error;
 }
 
+/* ---------------- messages with the project owner ---------------- */
+/* Single system threads: one private thread per (listing, bidder) between
+ * the project owner and a bidder, backed by listing_messages (migration
+ * 20261118160000). Until that SQL is applied, reads return
+ * { ready: false } and the UI explains, the same pattern as job_messages. */
+
+export interface ListingMessage {
+  id: string;
+  listing_id: string;
+  project_id: string;
+  bidder_id: string;
+  sender_id: string;
+  body: string;
+  created_at: string;
+}
+
+// listing_messages is created by migration 20261118160000, so it is not in
+// the generated Supabase types yet — untyped handle for this table only.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const listingMessages = () => (supabase as any).from("listing_messages");
+
+export async function fetchListingThread(
+  listingId: string,
+  bidderId: string,
+): Promise<{ ready: boolean; messages: ListingMessage[] }> {
+  const { data, error } = await listingMessages()
+    .select("*")
+    .eq("listing_id", listingId)
+    .eq("bidder_id", bidderId)
+    .order("created_at", { ascending: true })
+    .limit(300);
+  if (error) return { ready: false, messages: [] };
+  return { ready: true, messages: (data ?? []) as ListingMessage[] };
+}
+
+export async function sendListingMessage(
+  listingId: string,
+  projectId: string,
+  bidderId: string,
+  senderId: string,
+  body: string,
+): Promise<boolean> {
+  const { error } = await listingMessages().insert({
+    listing_id: listingId,
+    project_id: projectId,
+    bidder_id: bidderId,
+    sender_id: senderId,
+    body,
+  });
+  return !error;
+}
+
+/** Distinct bidder user ids that have a thread on this listing (owner side). */
+export async function fetchListingThreadBidders(listingId: string): Promise<{ ready: boolean; bidderIds: string[] }> {
+  const { data, error } = await listingMessages()
+    .select("bidder_id")
+    .eq("listing_id", listingId)
+    .limit(500);
+  if (error) return { ready: false, bidderIds: [] };
+  const ids = [...new Set(((data ?? []) as Array<{ bidder_id: string }>).map((r) => r.bidder_id))];
+  return { ready: true, bidderIds: ids };
+}
+
 /* -------------------- public project exchange -------------------- */
 /* Wonderlands projects live in construction_projects, procurement_listings
  * and procurement_documents. Those tables are not readable by signed out
