@@ -50,4 +50,4 @@ WITH CHECK (EXISTS (SELECT 1 FROM public.procurement_listings pl JOIN public.con
 -- Documents: creators attach documents to their own projects
 DROP POLICY IF EXISTS "Creators insert own project documents" ON public.procurement_documents;
 CREATE POLICY "Creators insert own project documents" ON public.procurement_documents FOR INSERT TO authenticated
-WITH CHECK (uploaded_by = auth.uid() AND EXISTS (SELECT 1 FROM public.construction_projects cp WHERE cp.id = project_id AND cp.created_by = auth.uid()));
+WITH CHECK (uploaded_by = auth.uid()::text AND EXISTS (SELECT 1 FROM public.construction_projects cp WHERE cp.id = project_id AND cp.created_by = auth.uid()));
