@@ -23,7 +23,7 @@
  */
 import { HOMEOWNER_MANAGEMENT_FEE_PERCENT, feeAmountFor } from "./feeConfig";
 
-export const MANAGEMENT_AGREEMENT_VERSION = "2026-11-18-v1";
+export const MANAGEMENT_AGREEMENT_VERSION = "2026-11-18-v2";
 
 export const MANAGEMENT_AGREEMENT_TITLE = "Management agreement with Wonderlands";
 
@@ -44,8 +44,8 @@ export function buildManagementAgreement(contractAmount: number): BuiltManagemen
   const paragraphs = [
     "Posting your project on Wonderlands is free. Looking at the proposals you receive is free too.",
     "If you do not accept any proposal, and nobody is hired for your project, you pay Wonderlands nothing at all.",
-    "When you click “I accept”, you hire Wonderlands World Experience LLC to manage this project for you. Wonderlands is your representative. Wonderlands finds the subcontractors, stands between you and them, and manages the contracts with them. You communicate only with Wonderlands — Wonderlands deals with the rest.",
-    `Your accepted budget for this work is ${money(contractAmount)} — the price in the proposal you are accepting. Wonderlands charges a management fee of ${feePercent}% of that amount, which is ${money(feeAmount)}. This fee is included in your first payment.`,
+    "When you click “I accept”, you hire Wonderlands World Experience LLC to manage this project for you. Wonderlands is your representative. Wonderlands finds the subcontractors, stands between you and them, and manages the contracts with them. You communicate only with Wonderlands. Wonderlands deals with the rest.",
+    `Your accepted budget for this work is ${money(contractAmount)}. That is the price in the proposal you are accepting. Wonderlands charges a management fee of ${feePercent}% of that amount, which is ${money(feeAmount)}. This fee is included in your first payment.`,
     "Wonderlands does not do the construction work itself, and Wonderlands is not responsible for the work the subcontractors are hired to do.",
     "If a subcontractor fails and you need to hire somebody else, any extra cost of the replacement is yours to pay.",
     "This is what Wonderlands does for you: Wonderlands runs and manages the project; makes sure every contractor on the project is licensed and vetted; makes sure the contractors do the work they were hired to do; hires a replacement if one of them fails; arranges the permits for the project through a third-party company that expedites permits; and, if the project needs it, puts its general contractor license on the project. If a subcontractor has its own general contractor license, that subcontractor uses its own license instead.",
