@@ -36,6 +36,8 @@ import {
   fetchPublicProjects,
   jobStatusLabel,
   projectListingOf,
+  projectProposalTotal,
+  proposalCountLabel,
   proposalStatusLabel,
   setJobStatus,
   withdrawProposal,
@@ -419,6 +421,7 @@ const ProcurementSystem = () => {
                               {start && <span>Work starts {start}</span>}
                               <span>{areas.length} areas open for bids</span>
                               <span>{p.documents.length} documents</span>
+                              <span>{proposalCountLabel(projectProposalTotal(p))}</span>
                             </div>
                             {listing?.description && (
                               <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-neutral-600">{listing.description}</p>

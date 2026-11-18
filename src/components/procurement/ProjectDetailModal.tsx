@@ -16,6 +16,8 @@ import { Calendar, DollarSign, FileText, MapPin, Send } from 'lucide-react';
 import {
   areaListingsOf,
   projectListingOf,
+  projectProposalTotal,
+  proposalCountLabel,
   type PublicProject,
   type PublicProjectListing,
 } from '@/lib/procurement/procurementService';
@@ -95,6 +97,7 @@ const ProjectDetailModal = ({ project, isOpen, onClose, onBid }: ProjectDetailMo
                   </span>
                 )}
                 <span>{areas.length} areas open for bids</span>
+                <span>{proposalCountLabel(projectProposalTotal(project))} on this project</span>
               </div>
               {projectListing?.description && (
                 <p className="mt-4 break-words leading-relaxed text-neutral-700">{projectListing.description}</p>
@@ -197,6 +200,7 @@ const ProjectDetailModal = ({ project, isOpen, onClose, onBid }: ProjectDetailMo
                                 <DollarSign className="h-3.5 w-3.5 shrink-0" /> Budget {areaBudget}
                               </span>
                             )}
+                            <span>{proposalCountLabel(area.proposal_count)}</span>
                           </div>
                           {area.description && (
                             <p className="mt-2 break-words text-sm leading-relaxed text-neutral-600">

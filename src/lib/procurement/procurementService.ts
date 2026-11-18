@@ -606,9 +606,22 @@ export interface PublicProjectListing {
   phase_item_id: string | null;
   item_order: number | null;
   created_at: string;
+  /** Bids received on this listing. Present once migration 20261118150000 runs; absent before. */
+  proposal_count?: number;
   /** Documents attached to the phase item behind this listing (item_documents). */
   documents: PublicProjectDocument[];
 }
+
+/** Plain words for a proposal count: "No proposals yet", "1 proposal", "3 proposals". */
+export const proposalCountLabel = (count: number | null | undefined): string => {
+  const n = count ?? 0;
+  if (n <= 0) return "No proposals yet";
+  return n === 1 ? "1 proposal" : `${n} proposals`;
+};
+
+/** Total proposals across every listing of a public project. */
+export const projectProposalTotal = (p: PublicProject): number =>
+  p.listings.reduce((sum, l) => sum + (l.proposal_count ?? 0), 0);
 
 export interface PublicProjectDocument {
   id: string;
