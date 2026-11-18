@@ -259,11 +259,11 @@ const EnhancedJobPostingForm = ({ onJobCreated }: EnhancedJobPostingFormProps) =
   ];
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full min-w-0 overflow-y-auto">
       {/* Left Side - Form */}
       <div className="space-y-6">
         {/* Progress Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-teal bg-clip-text text-transparent">
             Create Job Posting
           </h2>
@@ -290,7 +290,7 @@ const EnhancedJobPostingForm = ({ onJobCreated }: EnhancedJobPostingFormProps) =
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4 glass-card">
+          <TabsList className="grid w-full grid-cols-4 glass-card [&_[role=tab]]:px-1.5 min-[420px]:[&_[role=tab]]:px-3">
             <TabsTrigger value="details" className="flex items-center gap-1 text-xs">
               <Settings className="h-3 w-3" />
               Details
@@ -431,13 +431,14 @@ const EnhancedJobPostingForm = ({ onJobCreated }: EnhancedJobPostingFormProps) =
                     <div className="space-y-2">
                       {requirements.map((requirement) => (
                         <div key={requirement.id} className="flex items-center gap-2 p-3 bg-muted/30 rounded-lg">
-                          <Badge variant={requirement.mandatory ? "default" : "secondary"}>
+                          <Badge variant={requirement.mandatory ? "default" : "secondary"} className="shrink-0">
                             {requirement.mandatory ? 'Required' : 'Optional'}
                           </Badge>
-                          <span className="flex-1">{requirement.text}</span>
+                          <span className="min-w-0 flex-1 break-words">{requirement.text}</span>
                           <Button
                             variant="ghost"
                             size="sm"
+                            className="shrink-0"
                             onClick={() => removeRequirement(requirement.id)}
                           >
                             <X className="h-4 w-4" />

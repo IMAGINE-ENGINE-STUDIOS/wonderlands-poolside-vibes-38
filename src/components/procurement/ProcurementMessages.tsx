@@ -143,7 +143,7 @@ export function ProcurementMessages() {
         ))}
       </div>
 
-      <div className="flex min-h-[420px] flex-col rounded-2xl border border-neutral-200 bg-white">
+      <div className="flex min-h-[420px] min-w-0 flex-col rounded-2xl border border-neutral-200 bg-white">
         {!active ? (
           <div className="flex flex-1 items-center justify-center p-8 text-center text-sm text-neutral-400">
             Pick a conversation to start.
@@ -151,7 +151,7 @@ export function ProcurementMessages() {
         ) : (
           <>
             <div className="border-b border-neutral-100 px-4 py-3">
-              <div className="text-sm font-semibold text-neutral-900">{active.job.title}</div>
+              <div className="break-words text-sm font-semibold text-neutral-900">{active.job.title}</div>
               <div className="text-xs text-neutral-500">
                 {active.mine ? "Private thread with the buyer" : `Private thread with ${active.supplierName}`}
               </div>
@@ -171,7 +171,7 @@ export function ProcurementMessages() {
               {messages.map((m) => (
                 <div key={m.id} className={m.sender_id === user.id ? "text-right" : "text-left"}>
                   <div
-                    className={`inline-block max-w-[80%] rounded-2xl px-3.5 py-2 text-sm ${
+                    className={`inline-block max-w-[80%] break-words rounded-2xl px-3.5 py-2 text-left text-sm ${
                       m.sender_id === user.id ? "bg-neutral-900 text-white" : "bg-neutral-100 text-neutral-800"
                     }`}
                   >

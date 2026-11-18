@@ -97,7 +97,7 @@ const JobPostCard = ({ job, onJobClick, onQuickProposal, onProfileClick, variant
       <Card className="w-full hover:shadow-md transition-all duration-200 cursor-pointer border-border/50"
             onClick={() => onJobClick(job)}>
         <CardContent className="p-4">
-          <div className="flex items-start justify-between">
+          <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
               <h3 className="font-semibold text-sm line-clamp-1 mb-1">{job.title}</h3>
               <div className="flex items-center gap-2 mb-2">
@@ -110,7 +110,7 @@ const JobPostCard = ({ job, onJobClick, onQuickProposal, onProfileClick, variant
                 {formatBudget(job.budget_min, job.budget_max)}
               </div>
             </div>
-            <Button size="sm" variant="outline">View</Button>
+            <Button size="sm" variant="outline" className="shrink-0">View</Button>
           </div>
         </CardContent>
       </Card>
@@ -141,10 +141,10 @@ const JobPostCard = ({ job, onJobClick, onQuickProposal, onProfileClick, variant
       )}
 
       <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <div className="flex items-start space-x-4 flex-1">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex min-w-0 flex-1 items-start space-x-4">
             <Avatar 
-              className="h-12 w-12 border-2 border-primary/20 cursor-pointer hover:scale-105 transition-transform"
+              className="h-12 w-12 shrink-0 border-2 border-primary/20 cursor-pointer hover:scale-105 transition-transform"
               onClick={(e) => {
                 e.stopPropagation();
                 onProfileClick?.(job.business_id);
@@ -165,7 +165,7 @@ const JobPostCard = ({ job, onJobClick, onQuickProposal, onProfileClick, variant
                 {job.title}
               </CardTitle>
               
-              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+              <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground mb-2">
                 <span className="font-medium">
                   {job.profiles?.company_name || 
                    `${job.profiles?.first_name} ${job.profiles?.last_name}`.trim() || 
@@ -199,24 +199,24 @@ const JobPostCard = ({ job, onJobClick, onQuickProposal, onProfileClick, variant
                 )}
                 
                 {job.location && (
-                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                    <MapPin className="h-3 w-3" />
-                    {job.location}
+                  <div className="flex min-w-0 items-center gap-1 text-sm text-muted-foreground">
+                    <MapPin className="h-3 w-3 shrink-0" />
+                    <span className="break-words">{job.location}</span>
                   </div>
                 )}
               </div>
             </div>
           </div>
 
-          <div className="text-right ml-4">
-            <div className="flex items-center gap-1 text-sm font-medium text-primary mb-1">
-              <DollarSign className="h-4 w-4" />
+          <div className="ml-auto shrink-0 text-right sm:ml-4">
+            <div className="flex items-center justify-end gap-1 text-sm font-medium text-primary mb-1">
+              <DollarSign className="h-4 w-4 shrink-0" />
               {formatBudget(job.budget_min, job.budget_max)}
             </div>
-            
+
             {job.deadline && (
-              <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                <Calendar className="h-3 w-3" />
+              <div className="flex items-center justify-end gap-1 text-sm text-muted-foreground">
+                <Calendar className="h-3 w-3 shrink-0" />
                 {new Date(job.deadline).toLocaleDateString()}
               </div>
             )}
@@ -231,8 +231,8 @@ const JobPostCard = ({ job, onJobClick, onQuickProposal, onProfileClick, variant
           </p>
         )}
         
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
             <div className="flex items-center gap-1 text-sm text-muted-foreground">
               <Users className="h-4 w-4" />
               <span className="font-medium">{proposalCount}</span> proposals
@@ -258,7 +258,7 @@ const JobPostCard = ({ job, onJobClick, onQuickProposal, onProfileClick, variant
             </Button>
           </div>
           
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {onQuickProposal && (
               <Button 
                 variant="outline" 

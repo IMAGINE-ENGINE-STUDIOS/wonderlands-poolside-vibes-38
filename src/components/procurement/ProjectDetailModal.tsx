@@ -56,15 +56,15 @@ const ProjectDetailModal = ({ project, isOpen, onClose, onBid }: ProjectDetailMo
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[calc(100vw-2rem)] max-w-4xl max-h-[90vh] overflow-y-auto p-4 sm:p-6 [&>*]:min-w-0">
         <DialogHeader>
-          <DialogTitle className="font-serif text-2xl font-light">{title}</DialogTitle>
+          <DialogTitle className="break-words pr-8 font-serif text-2xl font-light">{title}</DialogTitle>
           {projectListing && project.project_name && project.project_name !== title && (
             <p className="text-sm text-muted-foreground">Project: {project.project_name}</p>
           )}
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-6">
           {project.cover_image_url && (
             <div className="overflow-hidden rounded-xl ring-1 ring-neutral-200">
               <img
@@ -80,28 +80,28 @@ const ProjectDetailModal = ({ project, isOpen, onClose, onBid }: ProjectDetailMo
             <CardContent className="pt-6">
               <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
                 {location && (
-                  <span className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4" /> {location}
+                  <span className="flex min-w-0 items-center gap-2 break-words">
+                    <MapPin className="h-4 w-4 shrink-0" /> {location}
                   </span>
                 )}
                 {startDate && (
-                  <span className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4" /> Work starts {startDate}
+                  <span className="flex min-w-0 items-center gap-2 break-words">
+                    <Calendar className="h-4 w-4 shrink-0" /> Work starts {startDate}
                   </span>
                 )}
                 {budget && (
-                  <span className="flex items-center gap-2">
-                    <DollarSign className="h-4 w-4" /> Budget {budget}
+                  <span className="flex min-w-0 items-center gap-2 break-words">
+                    <DollarSign className="h-4 w-4 shrink-0" /> Budget {budget}
                   </span>
                 )}
                 <span>{areas.length} areas open for bids</span>
               </div>
               {projectListing?.description && (
-                <p className="mt-4 leading-relaxed text-neutral-700">{projectListing.description}</p>
+                <p className="mt-4 break-words leading-relaxed text-neutral-700">{projectListing.description}</p>
               )}
               {projectListing && (
                 <Button
-                  className="mt-5 bg-neutral-900 text-white hover:bg-neutral-800"
+                  className="mt-5 w-full bg-neutral-900 text-white hover:bg-neutral-800 sm:w-auto"
                   onClick={() => onBid(projectListing)}
                 >
                   <Send className="mr-2 h-4 w-4" /> Bid on the whole project
@@ -140,13 +140,13 @@ const ProjectDetailModal = ({ project, isOpen, onClose, onBid }: ProjectDetailMo
                   {project.documents.map((doc) => (
                     <div key={doc.id} className="flex items-center gap-2 rounded border p-2">
                       <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
-                      <span className="flex-1 truncate text-sm">{doc.file_name}</span>
+                      <span className="min-w-0 flex-1 truncate text-sm">{doc.file_name}</span>
                       {doc.file_size != null && (
-                        <span className="text-xs text-muted-foreground">
+                        <span className="shrink-0 text-xs text-muted-foreground">
                           {(doc.file_size / 1024).toFixed(0)} KB
                         </span>
                       )}
-                      <Button variant="outline" size="sm" asChild>
+                      <Button variant="outline" size="sm" asChild className="shrink-0">
                         <a href={doc.file_url} target="_blank" rel="noopener noreferrer">
                           Open
                         </a>
@@ -178,34 +178,34 @@ const ProjectDetailModal = ({ project, isOpen, onClose, onBid }: ProjectDetailMo
                     <div key={area.id} className="rounded-xl border border-border p-4">
                       <div className="flex flex-wrap items-start gap-3">
                         <div className="min-w-0 flex-1">
-                          <h4 className="font-serif text-lg font-normal text-foreground">
+                          <h4 className="break-words font-serif text-lg font-normal text-foreground">
                             {index + 1}. {area.title}
                           </h4>
                           <div className="mt-1 flex flex-wrap gap-x-5 gap-y-1 text-sm text-muted-foreground">
                             {area.location && (
-                              <span className="flex items-center gap-1.5">
-                                <MapPin className="h-3.5 w-3.5" /> {area.location}
+                              <span className="flex min-w-0 items-center gap-1.5 break-words">
+                                <MapPin className="h-3.5 w-3.5 shrink-0" /> {area.location}
                               </span>
                             )}
                             {areaStart && (
-                              <span className="flex items-center gap-1.5">
-                                <Calendar className="h-3.5 w-3.5" /> Work starts {areaStart}
+                              <span className="flex min-w-0 items-center gap-1.5 break-words">
+                                <Calendar className="h-3.5 w-3.5 shrink-0" /> Work starts {areaStart}
                               </span>
                             )}
                             {areaBudget && (
-                              <span className="flex items-center gap-1.5">
-                                <DollarSign className="h-3.5 w-3.5" /> Budget {areaBudget}
+                              <span className="flex min-w-0 items-center gap-1.5 break-words">
+                                <DollarSign className="h-3.5 w-3.5 shrink-0" /> Budget {areaBudget}
                               </span>
                             )}
                           </div>
                           {area.description && (
-                            <p className="mt-2 text-sm leading-relaxed text-neutral-600">
+                            <p className="mt-2 break-words text-sm leading-relaxed text-neutral-600">
                               {area.description}
                             </p>
                           )}
                         </div>
                         <Button
-                          className="shrink-0 bg-neutral-900 text-white hover:bg-neutral-800"
+                          className="w-full shrink-0 bg-neutral-900 text-white hover:bg-neutral-800 sm:w-auto"
                           onClick={() => onBid(area)}
                         >
                           <Send className="mr-2 h-4 w-4" /> Place your bid
@@ -239,8 +239,8 @@ const ProjectDetailModal = ({ project, isOpen, onClose, onBid }: ProjectDetailMo
                             .map((doc) => (
                               <div key={doc.id} className="flex items-center gap-2 rounded border p-2">
                                 <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
-                                <span className="flex-1 truncate text-sm">{doc.file_name}</span>
-                                <Button variant="outline" size="sm" asChild>
+                                <span className="min-w-0 flex-1 truncate text-sm">{doc.file_name}</span>
+                                <Button variant="outline" size="sm" asChild className="shrink-0">
                                   <a href={doc.file_url} target="_blank" rel="noopener noreferrer">
                                     Open
                                   </a>

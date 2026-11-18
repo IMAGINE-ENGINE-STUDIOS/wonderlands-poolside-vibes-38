@@ -206,18 +206,18 @@ const JobDetailModal = ({ job, isOpen, onClose, onProposalSubmitted }: JobDetail
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[calc(100vw-2rem)] max-w-4xl max-h-[90vh] overflow-y-auto p-4 sm:p-6 [&>*]:min-w-0">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold">{job.title}</DialogTitle>
+          <DialogTitle className="break-words pr-8 text-xl font-bold">{job.title}</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-6">
           {/* Job Header */}
           <Card>
             <CardHeader>
-              <div className="flex items-start justify-between">
-                <div className="flex items-start space-x-4">
-                  <Avatar className="h-12 w-12 border-2 border-primary/20">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="flex min-w-0 flex-1 items-start space-x-4">
+                  <Avatar className="h-12 w-12 shrink-0 border-2 border-primary/20">
                     <AvatarFallback className="bg-gradient-to-br from-primary to-teal text-white font-semibold">
                       {getInitials(
                         job.profiles?.first_name || '',
@@ -227,20 +227,20 @@ const JobDetailModal = ({ job, isOpen, onClose, onProposalSubmitted }: JobDetail
                     </AvatarFallback>
                   </Avatar>
                   
-                  <div>
-                    <h3 className="font-semibold text-lg">
-                      {job.profiles?.company_name || 
-                       `${job.profiles?.first_name} ${job.profiles?.last_name}`.trim() || 
+                  <div className="min-w-0">
+                    <h3 className="break-words font-semibold text-lg">
+                      {job.profiles?.company_name ||
+                       `${job.profiles?.first_name} ${job.profiles?.last_name}`.trim() ||
                        'Anonymous'}
                     </h3>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Clock className="h-3 w-3" />
+                    <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                      <Clock className="h-3 w-3 shrink-0" />
                       Posted {formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}
                     </div>
                   </div>
                 </div>
-                
-                <Badge className="bg-primary/10 text-primary">
+
+                <Badge className="shrink-0 bg-primary/10 text-primary">
                   {job.category.charAt(0).toUpperCase() + job.category.slice(1)}
                 </Badge>
               </div>
@@ -248,34 +248,34 @@ const JobDetailModal = ({ job, isOpen, onClose, onProposalSubmitted }: JobDetail
             
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                <div className="flex items-center gap-2">
-                  <DollarSign className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-medium">{formatBudget(job.budget_min, job.budget_max)}</span>
+                <div className="flex min-w-0 items-center gap-2">
+                  <DollarSign className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  <span className="break-words font-medium">{formatBudget(job.budget_min, job.budget_max)}</span>
                 </div>
-                
+
                 {job.location && (
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-muted-foreground" />
-                    <span>{job.location}</span>
+                  <div className="flex min-w-0 items-center gap-2">
+                    <MapPin className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <span className="break-words">{job.location}</span>
                   </div>
                 )}
-                
+
                 {job.deadline && (
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span>Due {new Date(job.deadline).toLocaleDateString()}</span>
+                  <div className="flex min-w-0 items-center gap-2">
+                    <Calendar className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <span className="break-words">Due {new Date(job.deadline).toLocaleDateString()}</span>
                   </div>
                 )}
               </div>
               
               {job.description && (
-                <p className="text-muted-foreground">{job.description}</p>
+                <p className="break-words text-muted-foreground">{job.description}</p>
               )}
             </CardContent>
           </Card>
 
           <Tabs defaultValue="details" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-3 [&_[role=tab]]:px-2 [&_[role=tab]]:text-xs sm:[&_[role=tab]]:px-3 sm:[&_[role=tab]]:text-sm">
               <TabsTrigger value="details">Project Details</TabsTrigger>
               <TabsTrigger value="proposals">Proposals ({proposals.length})</TabsTrigger>
               {canSubmitProposal && <TabsTrigger value="submit">Submit Proposal</TabsTrigger>}
@@ -305,8 +305,8 @@ const JobDetailModal = ({ job, isOpen, onClose, onProposalSubmitted }: JobDetail
                       {requirements.map((requirement) => (
                         <div key={requirement.id} className="flex items-start gap-2">
                           <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                          <div className="flex-1">
-                            <span className="text-sm">{requirement.requirement_text}</span>
+                          <div className="min-w-0 flex-1">
+                            <span className="break-words text-sm">{requirement.requirement_text}</span>
                             {requirement.is_mandatory && (
                               <Badge variant="secondary" className="ml-2 text-xs">Required</Badge>
                             )}
@@ -328,9 +328,9 @@ const JobDetailModal = ({ job, isOpen, onClose, onProposalSubmitted }: JobDetail
                     <div className="space-y-2">
                       {attachments.map((attachment) => (
                         <div key={attachment.id} className="flex items-center gap-2 p-2 border rounded">
-                          <Paperclip className="h-4 w-4 text-muted-foreground" />
-                          <span className="flex-1">{attachment.file_name}</span>
-                          <Button variant="outline" size="sm">Download</Button>
+                          <Paperclip className="h-4 w-4 shrink-0 text-muted-foreground" />
+                          <span className="min-w-0 flex-1 truncate">{attachment.file_name}</span>
+                          <Button variant="outline" size="sm" className="shrink-0">Download</Button>
                         </div>
                       ))}
                     </div>
@@ -360,9 +360,9 @@ const JobDetailModal = ({ job, isOpen, onClose, onProposalSubmitted }: JobDetail
                     proposals.map((proposal) => (
                       <Card key={proposal.id}>
                         <CardContent className="pt-4">
-                          <div className="flex items-start justify-between mb-3">
-                            <div className="flex items-center gap-3">
-                              <Avatar className="h-8 w-8">
+                          <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
+                            <div className="flex min-w-0 items-center gap-3">
+                              <Avatar className="h-8 w-8 shrink-0">
                                 <AvatarFallback>
                                   {getInitials(
                                     proposal.profiles?.first_name || '',
@@ -371,10 +371,10 @@ const JobDetailModal = ({ job, isOpen, onClose, onProposalSubmitted }: JobDetail
                                   )}
                                 </AvatarFallback>
                               </Avatar>
-                              <div>
-                                <h4 className="font-medium">
-                                  {proposal.profiles?.company_name || 
-                                   `${proposal.profiles?.first_name} ${proposal.profiles?.last_name}`.trim() || 
+                              <div className="min-w-0">
+                                <h4 className="break-words font-medium">
+                                  {proposal.profiles?.company_name ||
+                                   `${proposal.profiles?.first_name} ${proposal.profiles?.last_name}`.trim() ||
                                    'Anonymous'}
                                 </h4>
                                 <span className="text-sm text-muted-foreground">
@@ -382,8 +382,8 @@ const JobDetailModal = ({ job, isOpen, onClose, onProposalSubmitted }: JobDetail
                                 </span>
                               </div>
                             </div>
-                            
-                            <div className="text-right">
+
+                            <div className="shrink-0 text-right">
                               {proposal.proposed_price && (
                                 <div className="font-semibold text-primary">
                                   ${proposal.proposed_price.toLocaleString()}
@@ -397,7 +397,7 @@ const JobDetailModal = ({ job, isOpen, onClose, onProposalSubmitted }: JobDetail
                             </div>
                           </div>
                           
-                          <p className="text-sm text-muted-foreground">{proposal.proposal_text}</p>
+                          <p className="break-words text-sm text-muted-foreground">{proposal.proposal_text}</p>
                         </CardContent>
                       </Card>
                     ))

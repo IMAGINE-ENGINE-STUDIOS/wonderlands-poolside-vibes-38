@@ -132,17 +132,17 @@ const ProcurementProposalForm: React.FC<ProcurementProposalFormProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
+      <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-lg max-h-[85vh] overflow-y-auto p-4 sm:p-6 [&>*]:min-w-0">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-sm">
-            <Send className="h-4 w-4" /> Apply — {listing.title}
+          <DialogTitle className="flex items-start gap-2 pr-8 text-sm">
+            <Send className="mt-0.5 h-4 w-4 shrink-0" /> <span className="min-w-0 break-words">Apply — {listing.title}</span>
           </DialogTitle>
         </DialogHeader>
-        <div className="space-y-4">
+        <div className="min-w-0 space-y-4">
           {/* Proposal Type */}
           <div>
             <Label className="text-xs text-muted-foreground">Proposal Type</Label>
-            <RadioGroup value={proposalType} onValueChange={(v) => setProposalType(v as any)} className="flex gap-4 mt-1">
+            <RadioGroup value={proposalType} onValueChange={(v) => setProposalType(v as any)} className="mt-1 flex flex-wrap gap-x-4 gap-y-2">
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="existing_service" id="existing" disabled={services.length === 0} />
                 <Label htmlFor="existing" className={`text-sm cursor-pointer ${services.length === 0 ? 'text-muted-foreground' : ''}`}>
@@ -180,17 +180,17 @@ const ProcurementProposalForm: React.FC<ProcurementProposalFormProps> = ({
                                 isSelected ? 'border-primary bg-primary/5 ring-1 ring-primary/20' : 'border-border hover:bg-muted/50'
                               }`}
                             >
-                              <div className="flex items-center justify-between">
-                                <span className="font-medium text-foreground">{s.service_name}</span>
-                                {isSelected && <Check className="h-3.5 w-3.5 text-primary" />}
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="min-w-0 break-words font-medium text-foreground">{s.service_name}</span>
+                                {isSelected && <Check className="h-3.5 w-3.5 shrink-0 text-primary" />}
                               </div>
                               {isSelected && (
-                                <div className="mt-2 flex gap-2">
+                                <div className="mt-2 flex flex-wrap gap-2">
                                   {s.labor_price != null && (
                                     <button
                                       type="button"
                                       onClick={(e) => { e.stopPropagation(); setSelectedPriceType('labor'); }}
-                                      className={`flex-1 text-xs rounded px-2 py-1.5 border transition-colors ${
+                                      className={`min-w-[8rem] flex-1 text-xs rounded px-2 py-1.5 border transition-colors ${
                                         selectedPriceType === 'labor'
                                           ? 'border-primary bg-primary/10 text-primary font-semibold'
                                           : 'border-border text-muted-foreground hover:bg-muted/50'
@@ -203,7 +203,7 @@ const ProcurementProposalForm: React.FC<ProcurementProposalFormProps> = ({
                                     <button
                                       type="button"
                                       onClick={(e) => { e.stopPropagation(); setSelectedPriceType('with_materials'); }}
-                                      className={`flex-1 text-xs rounded px-2 py-1.5 border transition-colors ${
+                                      className={`min-w-[8rem] flex-1 text-xs rounded px-2 py-1.5 border transition-colors ${
                                         selectedPriceType === 'with_materials'
                                           ? 'border-primary bg-primary/10 text-primary font-semibold'
                                           : 'border-border text-muted-foreground hover:bg-muted/50'
@@ -223,8 +223,8 @@ const ProcurementProposalForm: React.FC<ProcurementProposalFormProps> = ({
                 </div>
               )}
               {selectedPrice && (
-                <div className="flex items-center gap-2 p-2 rounded bg-primary/5 border border-primary/20">
-                  <DollarSign className="h-4 w-4 text-primary" />
+                <div className="flex flex-wrap items-center gap-2 p-2 rounded bg-primary/5 border border-primary/20">
+                  <DollarSign className="h-4 w-4 shrink-0 text-primary" />
                   <span className="text-sm font-semibold text-foreground">
                     Selected Price: ${selectedPrice.toLocaleString()}
                   </span>
@@ -279,9 +279,9 @@ const ProcurementProposalForm: React.FC<ProcurementProposalFormProps> = ({
             <div className="mt-1">
               {quotationFile ? (
                 <div className="flex items-center gap-2 p-2 rounded border border-primary/30 bg-primary/5 text-sm">
-                  <FileText className="h-4 w-4 text-primary" />
-                  <span className="flex-1 truncate text-foreground">{quotationFile.name}</span>
-                  <Button variant="ghost" size="sm" onClick={() => setQuotationFile(null)} className="text-destructive h-6 text-xs">
+                  <FileText className="h-4 w-4 shrink-0 text-primary" />
+                  <span className="min-w-0 flex-1 truncate text-foreground">{quotationFile.name}</span>
+                  <Button variant="ghost" size="sm" onClick={() => setQuotationFile(null)} className="h-6 shrink-0 text-xs text-destructive">
                     Remove
                   </Button>
                 </div>

@@ -123,7 +123,7 @@ const JobSearchEnhanced = ({ onFiltersChange, totalJobs }: JobSearchEnhancedProp
       {/* Quick Filters */}
       <div className="flex flex-wrap items-center gap-3">
         <Select value={filters.category} onValueChange={(value) => updateFilter('category', value)}>
-          <SelectTrigger className="w-48">
+          <SelectTrigger className="w-full min-[480px]:w-48">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -136,7 +136,7 @@ const JobSearchEnhanced = ({ onFiltersChange, totalJobs }: JobSearchEnhancedProp
         </Select>
 
         <Select value={filters.sortBy} onValueChange={(value) => updateFilter('sortBy', value)}>
-          <SelectTrigger className="w-40">
+          <SelectTrigger className="w-full min-[480px]:w-40">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

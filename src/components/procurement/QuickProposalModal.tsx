@@ -244,46 +244,46 @@ const QuickProposalModal = ({ job, isOpen, onClose, onSubmit }: QuickProposalMod
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[calc(100vw-2rem)] max-w-2xl max-h-[90vh] overflow-y-auto p-4 sm:p-6 [&>*]:min-w-0">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold">Quick Proposal</DialogTitle>
+          <DialogTitle className="break-words pr-8 text-xl font-bold">Quick Proposal</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-6">
           {/* Job Summary */}
           <Card>
             <CardContent className="p-4">
               <div className="space-y-3">
                 <h3 className="font-semibold text-lg line-clamp-2">{job.title}</h3>
                 
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-1">
-                    <DollarSign className="h-4 w-4" />
-                    <span className="font-medium text-primary">
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
+                  <div className="flex min-w-0 items-center gap-1">
+                    <DollarSign className="h-4 w-4 shrink-0" />
+                    <span className="break-words font-medium text-primary">
                       {formatBudget(job.budget_min, job.budget_max)}
                     </span>
                   </div>
-                  
+
                   {job.location && (
-                    <div className="flex items-center gap-1">
-                      <MapPin className="h-3 w-3" />
-                      {job.location}
+                    <div className="flex min-w-0 items-center gap-1">
+                      <MapPin className="h-3 w-3 shrink-0" />
+                      <span className="break-words">{job.location}</span>
                     </div>
                   )}
-                  
+
                   {job.deadline && (
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-3 w-3" />
+                    <div className="flex min-w-0 items-center gap-1">
+                      <Calendar className="h-3 w-3 shrink-0" />
                       {new Date(job.deadline).toLocaleDateString()}
                     </div>
                   )}
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <Badge variant="secondary">{job.category}</Badge>
-                  <span className="text-sm text-muted-foreground">
-                    by {job.profiles?.company_name || 
-                        `${job.profiles?.first_name} ${job.profiles?.last_name}`.trim() || 
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="secondary" className="shrink-0">{job.category}</Badge>
+                  <span className="min-w-0 break-words text-sm text-muted-foreground">
+                    by {job.profiles?.company_name ||
+                        `${job.profiles?.first_name} ${job.profiles?.last_name}`.trim() ||
                         'Anonymous'}
                   </span>
                 </div>
@@ -365,7 +365,7 @@ const QuickProposalModal = ({ job, isOpen, onClose, onSubmit }: QuickProposalMod
               <div className="space-y-2">
                 <Label htmlFor="attachments">Attachments</Label>
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Input
                       type="file"
                       multiple
@@ -390,19 +390,19 @@ const QuickProposalModal = ({ job, isOpen, onClose, onSubmit }: QuickProposalMod
                     <div className="space-y-2">
                       {uploadedFiles.map((file, index) => (
                         <div key={index} className="flex items-center gap-2 p-2 bg-accent/50 rounded-lg">
-                          <div className="flex items-center gap-2 flex-1">
+                          <div className="flex min-w-0 items-center gap-2 flex-1">
                             {file.type.startsWith('image/') ? (
-                              <ImageIcon className="h-4 w-4 text-blue-500" />
+                              <ImageIcon className="h-4 w-4 shrink-0 text-blue-500" />
                             ) : (
-                              <FileText className="h-4 w-4 text-green-500" />
+                              <FileText className="h-4 w-4 shrink-0 text-green-500" />
                             )}
-                            <span className="text-sm font-medium">{file.name}</span>
-                            <span className="text-xs text-muted-foreground">
+                            <span className="min-w-0 truncate text-sm font-medium">{file.name}</span>
+                            <span className="shrink-0 whitespace-nowrap text-xs text-muted-foreground">
                               ({(file.size / 1024 / 1024).toFixed(2)} MB)
                             </span>
                           </div>
                           {uploadProgress[file.name] !== undefined && uploadProgress[file.name] < 100 && (
-                            <div className="w-16 bg-gray-200 rounded-full h-2">
+                            <div className="w-16 shrink-0 bg-gray-200 rounded-full h-2">
                               <div 
                                 className="bg-primary h-2 rounded-full transition-all duration-300"
                                 style={{ width: `${uploadProgress[file.name]}%` }}
@@ -414,7 +414,7 @@ const QuickProposalModal = ({ job, isOpen, onClose, onSubmit }: QuickProposalMod
                             variant="ghost"
                             size="sm"
                             onClick={() => removeFile(index)}
-                            className="h-6 w-6 p-0"
+                            className="h-6 w-6 shrink-0 p-0"
                           >
                             <X className="h-3 w-3" />
                           </Button>

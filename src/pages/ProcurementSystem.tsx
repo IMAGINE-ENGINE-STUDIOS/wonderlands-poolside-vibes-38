@@ -317,7 +317,7 @@ const ProcurementSystem = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="mx-auto max-w-7xl px-6 py-14 md:px-10 md:py-20">
+      <main className="mx-auto max-w-7xl px-4 py-14 sm:px-6 md:px-10 md:py-20">
         <p className="text-[10px] uppercase tracking-[0.42em] text-muted-foreground">
           Wonderlands — Procurement Exchange
         </p>
@@ -355,8 +355,8 @@ const ProcurementSystem = () => {
         {/* Stats */}
         <div className="mt-10 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-border bg-border lg:grid-cols-3 xl:grid-cols-6">
           {stats.map(s => (
-            <div key={s.label} className="bg-card p-5">
-              <div className="font-serif text-3xl font-light text-foreground">{s.value}</div>
+            <div key={s.label} className="bg-card p-4 sm:p-5">
+              <div className="break-words font-serif text-2xl font-light text-foreground min-[420px]:text-3xl">{s.value}</div>
               <div className="mt-1 text-[11px] uppercase tracking-[0.16em] text-muted-foreground">{s.label}</div>
             </div>
           ))}
@@ -407,7 +407,7 @@ const ProcurementSystem = () => {
                           )}
                           <div className="p-5">
                             <div className="flex flex-wrap items-center gap-2">
-                              <h3 className="min-w-0 flex-1 font-serif text-2xl font-normal text-foreground">
+                              <h3 className="min-w-0 flex-1 break-words font-serif text-2xl font-normal text-foreground">
                                 {listing?.title || p.project_name}
                               </h3>
                               <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium ring-1 ${jobPill.open}`}>
@@ -573,7 +573,7 @@ const ProcurementSystem = () => {
       {/* Modals */}
       {user && (
         <Dialog open={showJobForm} onOpenChange={setShowJobForm}>
-          <DialogContent className="max-w-7xl max-h-[95vh] overflow-hidden">
+          <DialogContent className="w-[calc(100vw-2rem)] max-w-7xl max-h-[95vh] overflow-hidden p-4 sm:p-6 [&>*]:min-w-0">
             <EnhancedJobPostingForm onJobCreated={handleJobCreated} />
           </DialogContent>
         </Dialog>
