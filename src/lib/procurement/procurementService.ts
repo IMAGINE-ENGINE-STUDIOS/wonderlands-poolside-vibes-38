@@ -12,6 +12,7 @@
  * Credits: Imagine Engine Studios Corp.
  */
 import { supabase } from "@/integrations/supabase/client";
+import { CONTRACTOR_AWARD_FEE_PERCENT, feeAmountFor } from "./feeConfig";
 
 /**
  * A "job" in the single system is a project-level procurement listing.
@@ -35,6 +36,10 @@ export interface ProcJob {
   business_id: string;
   view_count?: number | null;
   proposal_count?: number | null;
+  /** The owner's own management fee, once an award on this job recorded a
+   * management agreement (owner-facing: this is the homeowner's own 10%). */
+  management_fee_percent?: number | null;
+  management_fee_amount?: number | null;
   last_activity?: string | null;
   profiles?: { first_name: string | null; last_name: string | null; company_name: string | null } | null;
 }
@@ -49,6 +54,11 @@ export interface ProcProposal {
   estimated_timeline: string | null;
   status: string; // pending | shortlisted | accepted | rejected | withdrawn
   created_at: string;
+  /** Contractor-side only: the platform fee recorded on this proposal when
+   * it won. Populated only in the bidder's own views (fetchMyProposals) —
+   * never in owner-facing lists (fetchJobProposals leaves these unset). */
+  contractor_fee_percent?: number | null;
+  contractor_fee_amount?: number | null;
   profiles?: { first_name: string | null; last_name: string | null; company_name: string | null } | null;
 }
 
@@ -221,6 +231,17 @@ export async function fetchMyJobs(userId: string): Promise<ProcJob[]> {
       counts.set(p.listing_id, (counts.get(p.listing_id) ?? 0) + 1);
     }
     for (const j of jobs) j.proposal_count = counts.get(j.id) ?? 0;
+    // The owner's own management fee, where an award recorded an agreement.
+    const { data: agreements } = await managementAgreements()
+      .select("listing_id, fee_percent, fee_amount")
+      .in("listing_id", jobs.map((j) => j.id));
+    for (const a of (agreements ?? []) as Array<{ listing_id: string; fee_percent: number; fee_amount: number }>) {
+      const job = jobs.find((j) => j.id === a.listing_id);
+      if (job) {
+        job.management_fee_percent = Number(a.fee_percent);
+        job.management_fee_amount = Number(a.fee_amount);
+      }
+    }
   }
   return jobs;
 }
@@ -272,12 +293,133 @@ export async function rejectProposal(proposal: ProcProposal, job: ProcJob): Prom
   );
 }
 
+/* --------------------- award records: agreement + fees -------------------- */
+/* management_agreements and contractor_award_fees are created by migration
+ * 20261118140000, so they are not in the generated Supabase types yet — use
+ * untyped handles for these two tables only, like job_messages below. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const managementAgreements = () => (supabase as any).from("management_agreements");
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const contractorAwardFees = () => (supabase as any).from("contractor_award_fees");
+
+export interface AwardAgreementAcceptance {
+  /** The project owner accepting the agreement (the signed-in user). */
+  acceptedBy: string;
+  /** The exact agreement text shown to the owner in the dialog. */
+  agreementText: string;
+  agreementVersion: string;
+  feePercent: number;
+  feeAmount: number;
+}
+
+/**
+ * Record the owner's click acceptance of the management agreement. This is
+ * part of the award itself: if the write fails the award must NOT proceed,
+ * so errors throw. A retry after a partial failure finds the existing
+ * record (one per winning proposal) and reuses it instead of duplicating.
+ */
+async function recordManagementAgreement(
+  job: ProcJob,
+  winner: ProcProposal,
+  contractAmount: number,
+  acceptance: AwardAgreementAcceptance,
+): Promise<void> {
+  const { data: existing } = await managementAgreements()
+    .select("id")
+    .eq("proposal_id", winner.id)
+    .maybeSingle();
+  if (existing) return;
+  const { error } = await managementAgreements().insert({
+    project_id: job.project_id ?? null,
+    listing_id: job.id,
+    proposal_id: winner.id,
+    accepted_by: acceptance.acceptedBy,
+    contract_amount: contractAmount,
+    fee_percent: acceptance.feePercent,
+    fee_amount: acceptance.feeAmount,
+    agreement_version: acceptance.agreementVersion,
+    agreement_text: acceptance.agreementText,
+  });
+  if (error) throw error;
+}
+
+/**
+ * Record the platform fee the HIRED contractor owes Wonderlands on this
+ * award (percent from feeConfig — one configurable value, founder range
+ * 8–10%, not finally fixed). The values are frozen onto the record so a
+ * later rate change never rewrites history. Contractor-side only: the row
+ * lives in contractor_award_fees, whose read policy admits only the
+ * winning contractor and admins — never the project owner.
+ */
+async function recordContractorAwardFee(
+  job: ProcJob,
+  winner: ProcProposal,
+  contractAmount: number,
+  recordedBy: string,
+  failHard: boolean,
+): Promise<{ feePercent: number; feeAmount: number } | null> {
+  const feePercent = CONTRACTOR_AWARD_FEE_PERCENT;
+  const feeAmount = feeAmountFor(contractAmount, feePercent);
+  if (!winner.contractor_id) return null;
+  try {
+    const { data: existing } = await contractorAwardFees()
+      .select("id")
+      .eq("proposal_id", winner.id)
+      .maybeSingle();
+    // The owner cannot read this table back, so "existing" is only visible
+    // to admins/contractors; a duplicate insert is stopped by the unique
+    // proposal_id and treated as already-recorded below.
+    if (!existing) {
+      const { error } = await contractorAwardFees().insert({
+        listing_id: job.id,
+        proposal_id: winner.id,
+        contractor_id: winner.contractor_id,
+        contract_amount: contractAmount,
+        fee_percent: feePercent,
+        fee_amount: feeAmount,
+        created_by: recordedBy,
+      });
+      if (error && !/duplicate|unique/i.test(error.message ?? "")) throw error;
+    }
+    return { feePercent, feeAmount };
+  } catch (err) {
+    if (failHard) throw err;
+    // Non-gated awards (Wonderlands staff awarding their own projects) keep
+    // working exactly as before until migration 20261118140000 is run in
+    // the dashboard; the fee records from then on.
+    console.warn("Contractor award fee could not be recorded:", err);
+    return null;
+  }
+}
+
 /**
  * Award a job to one proposal: winner → accepted, every other live proposal
  * → rejected, the listing → assigned to the winning contractor (the status
  * vocabulary the single system already uses), and both sides are notified.
+ *
+ * When the awarding owner accepted the management agreement (the gated
+ * owner path — see BidComparison), pass `agreement`: the acceptance is
+ * recorded FIRST and the award refuses to proceed if that write fails.
+ * The contractor-side award fee is recorded on every award.
  */
-export async function awardProposal(job: ProcJob, winner: ProcProposal, all: ProcProposal[]): Promise<void> {
+export async function awardProposal(
+  job: ProcJob,
+  winner: ProcProposal,
+  all: ProcProposal[],
+  options?: { agreement?: AwardAgreementAcceptance },
+): Promise<void> {
+  const contractAmount = Number(winner.proposed_price ?? 0);
+  const agreement = options?.agreement;
+  if (agreement) {
+    await recordManagementAgreement(job, winner, contractAmount, agreement);
+  }
+  const contractorFee = await recordContractorAwardFee(
+    job,
+    winner,
+    contractAmount,
+    agreement?.acceptedBy ?? job.business_id,
+    !!agreement,
+  );
   const losers = all.filter(
     (p) => p.id !== winner.id && !["rejected", "withdrawn"].includes(p.status),
   );
@@ -294,7 +436,7 @@ export async function awardProposal(job: ProcJob, winner: ProcProposal, all: Pro
   await notifyUser(
     winner.supplier_id,
     "You won the job 🎉",
-    `Your proposal for "${job.title}" was accepted${winner.proposed_price ? ` at $${Number(winner.proposed_price).toLocaleString()}` : ""}. Open Procurement → My Bids to coordinate next steps.`,
+    `Your proposal for "${job.title}" was accepted${winner.proposed_price ? ` at $${Number(winner.proposed_price).toLocaleString()}` : ""}. Open Procurement → My Bids to coordinate next steps.${contractorFee ? ` A platform fee of ${contractorFee.feePercent}% ($${contractorFee.feeAmount.toLocaleString()}) applies to this contract, payable to Wonderlands.` : ""}`,
     "success",
     winner.id,
   );
@@ -359,10 +501,27 @@ export async function fetchMyProposals(userId: string): Promise<Array<ProcPropos
       jobsById.set(l.id, mapListing(l, owners.get(l.project_id) ?? ""));
     }
   }
-  return rows.map((r) => ({
+  const proposals = rows.map((r) => ({
     ...mapProposal(r, byId.get(r.contractor_id)),
     job: jobsById.get(r.listing_id) ?? null,
   }));
+  // Contractor-side only: attach the platform fee recorded on the bids this
+  // contractor won. RLS on contractor_award_fees admits only the winning
+  // contractor and admins, so this can only ever return the caller's own.
+  const wonIds = proposals.filter((p) => p.status === "accepted").map((p) => p.id);
+  if (wonIds.length) {
+    const { data: fees } = await contractorAwardFees()
+      .select("proposal_id, fee_percent, fee_amount")
+      .in("proposal_id", wonIds);
+    for (const f of (fees ?? []) as Array<{ proposal_id: string; fee_percent: number; fee_amount: number }>) {
+      const p = proposals.find((x) => x.id === f.proposal_id);
+      if (p) {
+        p.contractor_fee_percent = Number(f.fee_percent);
+        p.contractor_fee_amount = Number(f.fee_amount);
+      }
+    }
+  }
+  return proposals;
 }
 
 export async function withdrawProposal(proposal: ProcProposal, job: ProcJob | null): Promise<void> {

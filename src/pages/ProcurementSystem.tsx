@@ -469,6 +469,12 @@ const ProcurementSystem = () => {
                     {job.deadline && <span>Deadline {new Date(job.deadline).toLocaleDateString()}</span>}
                     <span>{job.proposal_count ?? 0} proposals</span>
                   </div>
+                  {job.status === 'awarded' && job.management_fee_amount != null && (
+                    <p className="mt-2 text-sm text-neutral-600">
+                      Management fee ({job.management_fee_percent ?? 10}%):{' '}
+                      <strong className="text-neutral-900">{money(job.management_fee_amount)}</strong> — due with first payment
+                    </p>
+                  )}
                   {job.description && <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-neutral-600">{job.description}</p>}
                   <div className="mt-4 flex flex-wrap gap-2">
                     <button
@@ -547,6 +553,11 @@ const ProcurementSystem = () => {
                   {p.status === 'accepted' && (
                     <p className="mt-3 text-sm font-medium text-emerald-700">
                       You won this job — the buyer has your details and you've both been notified. Coordinate in Messages.
+                    </p>
+                  )}
+                  {p.status === 'accepted' && p.contractor_fee_amount != null && (
+                    <p className="mt-1 text-sm text-neutral-600">
+                      A platform fee of {p.contractor_fee_percent}% ({money(p.contractor_fee_amount)}) applies to this contract, payable to Wonderlands.
                     </p>
                   )}
                 </div>
