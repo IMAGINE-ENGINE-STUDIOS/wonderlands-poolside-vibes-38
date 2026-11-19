@@ -36,6 +36,7 @@ import { mergeCartIntoExtras } from "@/lib/cartQuoteLines";
 import { resolveDiscipline, getDisciplineConfig } from "@/lib/quoteDisciplines";
 import { findProductInfo } from "@/data/poolProductLookup";
 import { quoteLineImage, CUSTOM_POOL_IMAGE } from "@/lib/design/sceneQuoteCatalog";
+import { getPaverDisplayInfoByName, paverDisplaySummary } from "@/lib/paverDisplay";
 
 // Every photo the platform holds for a pool model, from the model's own
 // asset set (its main shot plus gallery, specs, installed and alternate
@@ -2026,7 +2027,8 @@ const SurveyQuoteTool = ({
                                     'Tremron Pavers': '/media/87fbe0eb-0a2f-4101-b01c-d0a02fe350f7.webp',
                                     'Cambridge Pavers': '/media/8033278d-a737-4b1d-84bf-fd0ac9126406.webp'
                                   };
-                                  const paverImage = paverItem.image || paverImages[selectedPaverName] || paverImages['Premier Pavers'];
+                                  const paverInfo = getPaverDisplayInfoByName(selectedPaverName);
+                                  const paverImage = paverInfo?.faceImage || paverItem.image || paverImages[selectedPaverName] || paverImages['Premier Pavers'];
                                   
                                   return (
                                     <div className="border-b border-teal-300 dark:border-gray-600 pb-4">
@@ -2044,6 +2046,12 @@ const SurveyQuoteTool = ({
                                         </div>
                                         <div className="flex-1 space-y-1">
                                           <p className="font-semibold text-sm text-foreground">{selectedPaverName}</p>
+                                          {paverInfo && paverInfo.sizes.length > 0 && (
+                                            <p className="text-sm text-muted-foreground">Printed sizes (in): {paverInfo.sizes.join(", ")}</p>
+                                          )}
+                                          {paverInfo && paverInfo.patternNames.length > 0 && (
+                                            <p className="text-sm text-muted-foreground">Laying patterns: {paverInfo.patternNames.join(", ")}</p>
+                                          )}
                                           <p className="text-sm text-muted-foreground">
                                             <span className="font-medium">Area:</span> {isEditMode ? (
                                               <PriceInput value={editablePrices['paver-area'] ?? paverArea} onCommit={(n) => setEditablePrices(prev => ({...prev, 'paver-area': n}))} className="w-20 px-1 py-0.5 border rounded text-right inline-block ml-1" />
@@ -2288,12 +2296,26 @@ const SurveyQuoteTool = ({
                         if (displayName.toLowerCase().includes('premium screen enclosure') && !displayName.includes('2 Story')) {
                           displayName = displayName.replace(/premium screen enclosure/i, 'Premium Screen Enclosure - 2 Story');
                         }
+                        // Paver line enrichment (display only): the chosen paver's
+                        // printed sizes, laying patterns and own unit face,
+                        // resolved from the ported Belgard data.
+                        const isPaverLine = item.name.includes('sq ft') && !item.name.includes('Screen Enclosure');
+                        const paverInfo = isPaverLine ? getPaverDisplayInfoByName((item.name.split(' (')[0] || '').trim()) : null;
+                        const paverSummary = paverDisplaySummary(paverInfo);
                         
                         return <div key={index} className="border border-coral-200 dark:border-gray-600 rounded-lg p-3 bg-gradient-to-br from-coral-50 to-orange-50 dark:from-gray-800 dark:to-gray-700 avoid-break">
                           {/* Display item image - use actual image if available or fallback based on type */}
                           {(() => {
                     // Enclosure line items are technical scope rows — no product photo
                     if (extras?.enclosure) return null;
+                    // Paver line: show the chosen paver's own unit face first
+                    if (paverInfo?.faceImage) {
+                      return <div className="mb-3">
+                                 <ImageUploadOverlay imageKey={`extra-img-${index}`} isEditMode={isEditMode} imageOverrides={imageOverrides} onImageOverride={handleImageOverride} cropSettings={imageCropSettings} onCropChange={handleCropChange}>
+                                   <ImageCard src={imageOverrides[`extra-img-${index}`] || paverInfo.faceImage} alt={displayName} className="w-full h-auto max-h-60 rounded-md border border-coral-200" objectFit="contain" enableZoom={false} />
+                                 </ImageUploadOverlay>
+                               </div>;
+                    }
                     // First check if item has its own image property
                     if (item.image) {
                       return <div className="mb-3">
@@ -2410,6 +2432,7 @@ const SurveyQuoteTool = ({
                             <input type="text" value={editableTexts[`extra-name-${index}`] ?? displayName} onChange={(e) => setEditableTexts(prev => ({...prev, [`extra-name-${index}`]: e.target.value}))} className="w-full px-1 py-0.5 border rounded text-sm font-semibold" />
                           ) : (editableTexts[`extra-name-${index}`] ?? displayName)}</h5>
                           {item.description && <p className="text-xs text-muted-foreground mt-1">{item.description}</p>}
+                          {paverSummary && <p className="text-xs text-muted-foreground mt-1">{paverSummary}</p>}
                           <div className="flex justify-between text-sm mt-2">
                             <span>Price:</span>
                             {isEditMode ? (
