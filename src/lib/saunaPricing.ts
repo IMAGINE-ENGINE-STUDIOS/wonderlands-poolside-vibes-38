@@ -1,8 +1,12 @@
 /**
  * Internal Wonderlands sauna pricing model.
  *
- * Supplier (Almost Heaven) cost -> customer retail price, including freight,
- * professional installation, electrical hookup, company overhead and profit.
+ * Supplier (Almost Heaven) cost -> customer retail price. Every real cost is
+ * carried as its own line first (unit, freight, local delivery, installation
+ * crew, electrician, electrical equipment, permits, site prep, overhead) and
+ * the published price is the full 2x on that true total cost (founder ruling
+ * 2026-11-19), so the price starts at the maximum earning and any discount
+ * comes off the top.
  *
  * Customers only ever see `retail`. The full breakdown is exposed exclusively
  * through the passcode-protected sales panel.
@@ -19,14 +23,22 @@ export const SAUNA_PRICING_MODEL = {
   installBase: 1150,
   /** Installation labor as a share of unit cost (assembly complexity) */
   installCostRate: 0.14,
-  /** Licensed electrician: 240V dedicated circuit, disconnect and bonding */
-  electrical: 1250,
+  /** Licensed electrician labor: 240V dedicated circuit, disconnect and bonding */
+  electrician: 1500,
+  /** Electrical equipment: panel/board, breakers, cable and wire, disconnect, conduit */
+  electricalEquipment: 450,
+  /** Permits: building and electrical permit fees */
+  permits: 450,
   /** Pad / base prep (gravel or paver pad, leveling) */
   sitePrep: 650,
   /** Company overhead (office, insurance, warranty reserve, financing fees) */
   overheadRate: 0.11,
-  /** Target gross profit on total delivered cost */
-  profitRate: 0.40,
+  /**
+   * Published price basis (founder ruling 2026-11-19): the full 2x on the
+   * true total cost. The starting price is the maximum earning; negotiation
+   * discounts come off this price, never below a 30% earnings floor.
+   */
+  retailMultiple: 2,
   /**
    * Markup applied to accessories and upgrade options. General-contractor
    * basis (founder ruling 2026-11-19): every option retails at no less than
@@ -40,7 +52,9 @@ export interface SaunaPriceBreakdown {
   freight: number;
   localDelivery: number;
   installation: number;
-  electrical: number;
+  electrician: number;
+  electricalEquipment: number;
+  permits: number;
   sitePrep: number;
   overhead: number;
   totalCost: number;
@@ -73,19 +87,24 @@ export function getSaunaPriceBreakdown(
       : m.freightBase + Math.max(0, seats - 2) * m.freightPerSeat;
   const localDelivery = m.localDelivery;
   const installation = roundTo(m.installBase + unitCost * m.installCostRate, 5);
-  const electrical = m.electrical;
+  const electrician = m.electrician;
+  const electricalEquipment = m.electricalEquipment;
+  const permits = m.permits;
   const sitePrep = m.sitePrep;
 
-  const directCost = unitCost + freight + localDelivery + installation + electrical + sitePrep;
+  const directCost =
+    unitCost + freight + localDelivery + installation + electrician + electricalEquipment + permits + sitePrep;
   const overhead = roundTo(directCost * m.overheadRate, 5);
   const totalCost = directCost + overhead;
 
-  const formulaRetail = roundTo(totalCost * (1 + m.profitRate), 25);
+  // Published price: the full 2x on the true total cost (founder ruling
+  // 2026-11-19), rounded up to the nearest $25 so the multiple always holds.
+  const priceBasis = Math.ceil((m.retailMultiple * totalCost) / 25) * 25;
   // General-contractor basis floor (founder ruling 2026-11-19): the retail
   // price never falls below 2x (unit cost + installation cost), rounded up
-  // to the nearest $25 so the floor always holds.
+  // to the nearest $25 so the floor always holds. Kept as a max() guard.
   const basisFloor = Math.ceil((2 * (unitCost + installation)) / 25) * 25;
-  const retail = Math.max(formulaRetail, basisFloor);
+  const retail = Math.max(priceBasis, basisFloor);
   const profit = retail - totalCost;
 
   return {
@@ -93,7 +112,9 @@ export function getSaunaPriceBreakdown(
     freight,
     localDelivery,
     installation,
-    electrical,
+    electrician,
+    electricalEquipment,
+    permits,
     sitePrep,
     overhead,
     totalCost,

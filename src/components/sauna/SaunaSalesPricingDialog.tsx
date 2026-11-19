@@ -51,7 +51,9 @@ const SaunaSalesPricingDialog = ({
     ["Freight to warehouse", breakdown.freight],
     ["Local delivery & handling", breakdown.localDelivery],
     ["Installation labor", breakdown.installation],
-    ["Electrical (240V circuit)", breakdown.electrical],
+    ["Electrician (240V circuit)", breakdown.electrician],
+    ["Electrical equipment", breakdown.electricalEquipment],
+    ["Permits", breakdown.permits],
     ["Pad / site prep", breakdown.sitePrep],
     ["Overhead & warranty reserve", breakdown.overhead],
   ];
