@@ -351,10 +351,20 @@ const NaturalPoolCard = () => (
 );
 
 const SOFTWARE_TIERS = [
-  { name: "Starter Studio", price: "$5,000 / year" },
-  { name: "Pro Business", price: "$15,000 / year" },
-  { name: "Enterprise GC", price: "$50,000 / year" },
-  { name: "Setup (mandatory)", price: "$5,000" },
+  { name: "Full Suite — every tool included", price: "$1,500 / month" },
+  {
+    name: "Design Studio, Design Boards, Quote Atelier, Wonderlands Studio, Suites, Blueprint Builder and Solar Genius, bought separately",
+    price: "from $499 / month each",
+  },
+  {
+    name: "FLIP Catalogue, Live Video, Company CRM, Socialite and Pool Calculator, bought separately",
+    price: "$50–$150 / month each",
+  },
+  {
+    name: "Genius, bought separately",
+    price:
+      "$50 / month plus credits — 1 Credit = $0.06, at no more than twice the provider cost; failed runs are never charged.",
+  },
 ];
 
 const Licenses = () => {
@@ -540,9 +550,9 @@ const Licenses = () => {
                   </p>
                   <ul className="mt-2 list-disc space-y-1 pl-5">
                     <li>
-                      The license fee for the tier that matches the use, for the{" "}
-                      <strong className="text-foreground">entire period</strong> the material was
-                      used or displayed, plus the setup fee;
+                      The license fee for the entire period the material was used or displayed, at
+                      the published monthly rate — $1,500 per month for the Full Suite, or the
+                      product's own published monthly price;
                     </li>
                     <li>
                       The applicable royalties (on the proprietary models: 5% on sales made under
