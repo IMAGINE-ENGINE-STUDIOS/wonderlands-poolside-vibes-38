@@ -1681,7 +1681,9 @@ const SurveyQuoteTool = ({
                   const isPoolProduct = pool || (customProduct && isPoolType(customProduct.type));
                   const isLanaiProduct = extras?.productType === 'lanai';
                   const isSaunaProduct = customProduct?.type === 'Sauna' || extras?.productType === 'sauna';
-                  
+                  const isPoolItself = !!pool || String(customProduct?.type || '').toLowerCase() === 'pool';
+                  const isConcreteConstruction = !!(extras?.concreteConstruction || (!pool && isPoolType(customProduct?.type)) || (pool?.model && ['Madre Perla', 'Winderview', 'Pacific Ridge', 'Maxima', 'Cape Coral'].includes(pool.model)));
+
                   return (
                     <>
                       <h3 className="font-bold text-xl mb-4 text-orange-600">
@@ -1779,6 +1781,9 @@ const SurveyQuoteTool = ({
                                   <input type="text" value={editableTexts['product-name'] ?? (pool?.model || customProduct?.name)} onChange={(e) => setEditableTexts(prev => ({...prev, 'product-name': e.target.value}))} className="px-1 py-0.5 border rounded inline-block" />
                                 ) : (editableTexts['product-name'] ?? pool?.model ?? customProduct?.name)}
                               </h4>
+                              {isPoolItself && (
+                                <p className="text-base font-bold mb-1">Construction: {isConcreteConstruction ? 'Concrete pool' : 'Fiberglass pool'}</p>
+                              )}
                               {pool?.dimensions && <p className="text-sm">Dimensions: {isEditMode ? (
                                 <input type="text" value={editableTexts['product-dims'] ?? pool.dimensions} onChange={(e) => setEditableTexts(prev => ({...prev, 'product-dims': e.target.value}))} className="px-1 py-0.5 border rounded inline-block" />
                               ) : (editableTexts['product-dims'] ?? pool.dimensions)}</p>}
