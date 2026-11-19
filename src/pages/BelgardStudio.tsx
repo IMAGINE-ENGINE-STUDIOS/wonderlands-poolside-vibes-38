@@ -1,5 +1,5 @@
 import * as React from "react";
-const { useState, useEffect } = React;
+const { useState, useEffect, useRef } = React;
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,9 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import SurveyQuoteTool from '@/components/SurveyQuoteTool';
 import { useShoppingCart } from '@/components/ShoppingCartProvider';
-import { Belgard3DVisualizer } from '@/components/Belgard3DVisualizer';
+import PaverCutVisualizer from '@/components/pavers/PaverCutVisualizer';
+import { UNIT_VISUALIZER_PRODUCTS } from '@/lib/visual/unitVisualizerSpecs';
+import type { PaverCutSpec } from '@/lib/visual/paverCut3d';
 
 // Helper function to get product price
 const getProductPrice = (product: BelgardProduct) => {
@@ -42,6 +44,71 @@ interface BelgardExtras {
   dimensions: { [productId: string]: { length: number; width: number; area: number } };
   notes: string;
 }
+
+/** Lazy mount for one visualizer card (the same wrapper the Belgard
+ *  file page uses on its 3D Paver Files tab, /belgard-products). The
+ *  real visualizer mounts when the card comes within 800px of the
+ *  viewport and unmounts when it leaves that band, which disposes the
+ *  renderer and force loses the WebGL context (see
+ *  PaverCutVisualizer). Off screen the card shows a lightweight
+ *  placeholder with the same 16 by 10 footprint as the visualizer
+ *  canvas. A forceMount card mounts at once and stays mounted. */
+const LazyPaverVisualizer = ({
+  spec,
+  forceMount,
+}: {
+  spec: PaverCutSpec;
+  forceMount?: boolean;
+}) => {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const [mounted, setMounted] = useState(!!forceMount);
+  useEffect(() => {
+    if (forceMount) {
+      setMounted(true);
+      return;
+    }
+    const el = ref.current;
+    if (!el) return;
+    if (typeof IntersectionObserver === "undefined") {
+      setMounted(true);
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        setMounted(entries.some((e) => e.isIntersecting));
+      },
+      { rootMargin: "800px 0px" }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [forceMount]);
+  return (
+    <div ref={ref}>
+      {mounted ? (
+        <PaverCutVisualizer spec={spec} />
+      ) : (
+        <div
+          className="flex w-full items-center justify-center rounded-xl border border-dashed border-zinc-300 bg-zinc-50"
+          style={{ aspectRatio: "16 / 10" }}
+          aria-label={`3D model of ${spec.name}, ${spec.size} inches. It loads as you scroll to it.`}
+        >
+          <p className="px-4 text-center text-xs text-zinc-400">
+            3D visualizer. It loads as you scroll to it.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+/** The one visualizer card on this page's Scene view (paver port
+ *  wiring Job 11): the Catalina per unit entry from the ported spec
+ *  factory, the same card the file page's 3D Paver Files tab renders
+ *  for it. Selected by slug so the card is stable as the factory's
+ *  product order changes. */
+const STUDIO_VISUALIZER_ENTRY =
+  UNIT_VISUALIZER_PRODUCTS.find((e) => e.spec.slug === "unit-catalina") ??
+  UNIT_VISUALIZER_PRODUCTS[0];
 
 const BelgardStudio = () => {
   const [searchParams] = useSearchParams();
@@ -452,7 +519,27 @@ const BelgardStudio = () => {
           {/* Main Content */}
           <div className="lg:col-span-3">
             {selectedCategory === 'scene' ? (
-              <Belgard3DVisualizer />
+              <article className="rounded-2xl border border-zinc-200 p-5">
+                <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                  <h3 className="text-2xl font-semibold tracking-tight">{STUDIO_VISUALIZER_ENTRY.productName}</h3>
+                  <span className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-medium text-zinc-600">
+                    {STUDIO_VISUALIZER_ENTRY.spec.size} in
+                  </span>
+                </div>
+                <p className="mt-2 text-sm font-medium text-zinc-700">
+                  Per unit textures: {STUDIO_VISUALIZER_ENTRY.setCount} colors
+                </p>
+                <p className="mt-1 text-xs leading-relaxed text-zinc-500">
+                  Primary pattern: {STUDIO_VISUALIZER_ENTRY.primaryPatternName} · Spec derived from Belgard pattern data
+                  (belgardPatterns.ts). No dimensions invented.
+                </p>
+                {STUDIO_VISUALIZER_ENTRY.note && (
+                  <p className="mt-1 text-xs leading-relaxed text-zinc-500">{STUDIO_VISUALIZER_ENTRY.note}</p>
+                )}
+                <div className="mt-4">
+                  <LazyPaverVisualizer spec={STUDIO_VISUALIZER_ENTRY.spec} forceMount />
+                </div>
+              </article>
             ) : (
               <>
                 {/* Search */}

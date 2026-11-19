@@ -50,6 +50,7 @@ const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
 const ProcurementSystem = lazy(() => import("./pages/ProcurementSystem"));
 const WonderlandsStudio = lazy(() => import("./pages/WonderlandsStudio"));
 const BelgardProductsFolder = lazy(() => import("./pages/BelgardProductsFolder"));
+const BelgardStudio = lazy(() => import("./pages/BelgardStudio"));
 const ContentEditor = lazy(() => import("./pages/ContentEditor"));
 const ReferralPortal = lazy(() => import("./pages/ReferralPortal"));
 const QuoteDetailPage = lazy(() => import("./pages/QuoteDetailPage"));
@@ -211,6 +212,7 @@ const App = () => {
             <Route path="/pool-calculator" element={<PoolCalculatorPage />} />
             <Route path="/wonderlands-studio" element={<WonderlandsStudio />} />
             <Route path="/belgard-products" element={<BelgardProductsFolder />} />
+            <Route path="/belgard-studio" element={<BelgardStudio />} />
             <Route path="/sales-rep-register" element={<SalesRepRegister />} />
             <Route path="/sales-rep-login" element={<Navigate to="/auth?redirect=/sales-rep" replace />} />
             <Route 
