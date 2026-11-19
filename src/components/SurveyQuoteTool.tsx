@@ -2543,9 +2543,20 @@ const SurveyQuoteTool = ({
                             rows={2}
                           />
                         ) : (
-                          <p className="text-sm">
-                            {editableTexts['includes-content'] || getIncludedItems().filter(item => !item.startsWith("FREE")).join(", ")}
-                          </p>
+                          <ul className="text-sm space-y-1">
+                            {(() => {
+                              const items = editableTexts['includes-content']
+                                ? editableTexts['includes-content'].split(',').map((s: string) => s.trim()).filter(Boolean)
+                                : [...getIncludedItems().filter(item => !item.startsWith("FREE"))];
+                              if (isPoolProduct && !disciplineCfg) {
+                                const has = (word: string) => items.some((i: string) => i.toLowerCase().includes(word));
+                                if (!has('design')) items.push('Architectural design');
+                                if (!has('construction')) items.push('Construction');
+                                if (!has('permit')) items.push('Permitting');
+                              }
+                              return items.map((item: string, idx: number) => <li key={idx}>• {item}</li>);
+                            })()}
+                          </ul>
                         )}
                         <p className="text-xs mt-2 opacity-80">
                           {isEditMode ? (
