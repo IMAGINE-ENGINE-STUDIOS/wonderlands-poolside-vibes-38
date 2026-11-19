@@ -255,6 +255,7 @@ const SurveyQuoteTool = ({
   const [editableTexts, setEditableTexts] = useState<Record<string, string>>({});
   const [editablePrices, setEditablePrices] = useState<Record<string, number>>({});
   const [isGeneratingInvoice, setIsGeneratingInvoice] = useState(false);
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
   const [imageOverrides, setImageOverrides] = useState<Record<string, string>>({});
   const [imageCropSettings, setImageCropSettings] = useState<Record<string, ImageCropSettings>>({});
 
@@ -448,31 +449,41 @@ const SurveyQuoteTool = ({
   };
 
   const handleDownloadPDF = async () => {
-    // Print / PDF = the browser's own print of the quote exactly as it is
-    // shown on screen: same layout, same picture sizes, nothing re-drawn,
-    // re-scaled or sliced by a separate PDF engine. The quote is cloned
-    // into a print-only container in this same page (see print.css), so
-    // every style is the app's own and blocks never split across pages.
-    const quoteElement = document.querySelector('[data-quote-content]');
-    if (!quoteElement) return;
-    const clone = quoteElement.cloneNode(true) as HTMLElement;
-    clone.classList.add('print-clone');
-    clone.querySelectorAll('img').forEach((img) => {
-      img.removeAttribute('loading');
-      img.setAttribute('loading', 'eager');
-    });
-    document.body.appendChild(clone);
-    const cleanup = () => {
-      clone.remove();
-      window.removeEventListener('afterprint', cleanup);
-    };
-    window.addEventListener('afterprint', cleanup);
-    window.setTimeout(cleanup, 60000);
-    toast({
-      title: "Print / Save as PDF",
-      description: "In the print sheet, choose Save as PDF — the quote prints exactly as shown."
-    });
-    window.setTimeout(() => window.print(), 60);
+    // Real one-click PDF download: the composed quote is rendered to a PDF
+    // file in the browser from the on-screen document itself and downloaded
+    // directly. No print sheet is involved (the print sheet's save channel
+    // is unreliable), and the PDF carries the document exactly as shown:
+    // same layout, same images, blocks kept whole by the page-break rules.
+    const quoteElement = document.querySelector('[data-quote-content]') as HTMLElement | null;
+    if (!quoteElement || isDownloadingPdf) return;
+    setIsDownloadingPdf(true);
+    try {
+      const html2pdf = (await import("html2pdf.js")).default;
+      const rawName = (displayPool?.model || pool?.model || customProduct?.name || "Quote")
+        .replace(/[^\w\- ]+/g, "").trim().replace(/\s+/g, "-");
+      const opt = {
+        margin: 0,
+        filename: `Wonderlands-Quote-${rawName}.pdf`,
+        image: { type: "jpeg" as const, quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff" },
+        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" as const },
+        pagebreak: { mode: ["css", "legacy"] },
+      };
+      await html2pdf().set(opt).from(quoteElement).save();
+      toast({
+        title: "PDF downloaded",
+        description: "The quote was saved as a PDF file, exactly as shown."
+      });
+    } catch (error) {
+      console.error("PDF download failed:", error);
+      toast({
+        title: "PDF failed",
+        description: "The PDF could not be generated. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsDownloadingPdf(false);
+    }
   };
 
   const [emailAddress, setEmailAddress] = useState("");
@@ -2973,10 +2984,11 @@ const SurveyQuoteTool = ({
                   
                   <Button 
                     onClick={handleDownloadPDF}
-                    className="h-11 flex flex-col items-center justify-center gap-0.5 bg-blue-500 hover:bg-blue-600 text-white border-0 shadow-sm"
+                    disabled={isDownloadingPdf}
+                    className="h-11 flex flex-col items-center justify-center gap-0.5 bg-blue-500 hover:bg-blue-600 text-white border-0 shadow-sm disabled:opacity-50"
                   >
                     <Download className="h-4 w-4" />
-                    <span className="text-[10px] font-medium">PDF</span>
+                    <span className="text-[10px] font-medium">{isDownloadingPdf ? "Saving…" : "PDF"}</span>
                   </Button>
                   
                   <Button 
