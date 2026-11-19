@@ -94,6 +94,7 @@ const FlipBookPublished = lazy(() => import("./pages/FlipBookPublished"));
 /* Per-category configuration suites (dropdown + carousel options + board) */
 const SaunaSuite = lazy(() => import("./pages/suites/SaunaSuite"));
 const CategorySuite = lazy(() => import("./pages/suites/CategorySuite"));
+const FloorDecorCatalogue = lazy(() => import("./pages/FloorDecorCatalogue"));
 const SpaSuite = lazy(() => import("./pages/suites/SpaSuite"));
 const PoolAndSpaSuite = lazy(() => import("./pages/suites/PoolAndSpaSuite"));
 const GlobalDesignBoardV2 = lazy(() => import("./pages/GlobalDesignBoardV2"));
@@ -288,6 +289,7 @@ const App = () => {
             <Route path="/suites/enclosures" element={<EnclosureSuite />} />
             <Route path="/suites/lanai" element={<EnclosureSuite />} />
             <Route path="/suites/fencing" element={<EnclosureSuite />} />
+            <Route path="/suites/flooring" element={<FloorDecorCatalogue />} />
             <Route path="/suites/:category" element={<CategorySuite />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

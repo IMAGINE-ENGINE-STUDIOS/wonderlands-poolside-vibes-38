@@ -146,6 +146,19 @@ export const ITEMS: Item[] = [
     notes: ["Travertine & porcelain", "Coralina at $25/sqft", "Coping edge detailing"],
   },
   {
+    id: "flooring",
+    label: "Floor & Decor",
+    tagline: "The Flooring Registry",
+    layout: "duo",
+    images: [
+      "/app/floor-and-decor/duralux-performance/alamo-oak/face-top-a.jpg",
+      "/textures/floor-decor/alto-bianco-matte-porcelain-tile/variant-0.png",
+    ],
+    description:
+      "Luxury vinyl plank and porcelain tile from the Floor & Decor registry: every floor at its printed size, with its own dimension-true faces. Where a single-piece model is not yet built, the record names the gap instead of showing a substitute.",
+    notes: ["26 flooring products", "Printed dimensions & own faces", "Named gaps shown as gaps"],
+  },
+  {
     id: "artificial-grass",
     label: "Artificial Grass",
     tagline: "Effortless Green",

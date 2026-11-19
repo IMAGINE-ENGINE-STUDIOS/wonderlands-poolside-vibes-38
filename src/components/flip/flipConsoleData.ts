@@ -212,6 +212,24 @@ async function resolveCategoryEntries(categoryId: string): Promise<ConsoleEntry[
           undefined,
       }));
     }
+    /* Floor & Decor flooring — the ported registry's 26 flooring
+       products (paver port wiring Job 9): printed dimensions, spec
+       attributes, face counts and named model gaps, each entry imaged
+       with the product's own cut face. DISPLAY ONLY: the registry's
+       figures are F&D retail with unstated bases, not WW prices, so
+       entries carry hidePrice and no price field (Job B5, blocked). */
+    case "flooring": {
+      const display = await import("@/lib/floorDecorDisplay");
+      return display.FLOORING_PRODUCTS.map((p) => ({
+        id: p.slug,
+        name: p.name,
+        image: display.flooringFaceImage(p),
+        brand: p.brand,
+        meta: display.flooringMeta(p),
+        detail: display.flooringDetailSummary(p),
+        hidePrice: true,
+      }));
+    }
     case "artificial-grass": {
       const { artificialGrassOptions, getGrassPricePerSqFt } = await import(
         "@/data/artificialGrassData"

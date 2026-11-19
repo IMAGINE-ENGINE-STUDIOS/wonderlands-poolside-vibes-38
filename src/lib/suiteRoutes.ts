@@ -5,6 +5,10 @@
  * page (CategorySuite), which carries the same model picker, drawing board and quote.
  */
 export const DEDICATED_SUITES: Record<string, string> = {
+  /* Flooring is a display-only catalogue (the Floor & Decor registry
+     carries no Wonderlands prices), so its dedicated page is the
+     registry catalogue, never the priced generic suite. */
+  flooring: "/suites/flooring",
   saunas: "/suites/saunas",
   spas: "/suites/spas",
   "pools-and-spas": "/suites/pools-and-spas",
