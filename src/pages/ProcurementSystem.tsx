@@ -31,6 +31,7 @@ import { ProcurementMessages } from '@/components/procurement/ProcurementMessage
 import { ListingMessageThread } from '@/components/procurement/ListingMessageThread';
 import {
   areaListingsOf,
+  claimProject,
   fetchJobProposals,
   fetchListingThreadBidders,
   fetchMyJobs,
@@ -219,6 +220,39 @@ const ProcurementSystem = () => {
 
   useEffect(() => { void loadProjects(); }, [loadProjects]);
 
+  /* ------------- claim intent: /procurement?claim=<share token> ------------- */
+  // Outreach messages carry a link with the share token of a project that
+  // Wonderlands created from a homeowner post. A signed out visitor is
+  // sent to /auth with this page as the next destination, so signing in or
+  // creating an account lands them right back here with the token intact.
+  // A signed in visitor gets the claim panel below. The claim itself runs
+  // through claim_procurement_project, which only accepts a project that
+  // still has no owner, so a claimed or unknown link cannot be reused.
+  const claimToken = searchParams.get('claim');
+  const [claimState, setClaimState] = useState<'ready' | 'claiming' | 'done' | 'failed'>('ready');
+  const claimRedirected = useRef(false);
+  useEffect(() => {
+    if (!claimToken || user || !contractorChecked || claimRedirected.current) return;
+    claimRedirected.current = true;
+    navigate(`/auth?next=${encodeURIComponent(`/procurement?claim=${claimToken}`)}`);
+  }, [claimToken, user, contractorChecked, navigate]);
+
+  const handleClaim = async () => {
+    if (!claimToken || claimState === 'claiming') return;
+    setClaimState('claiming');
+    try {
+      await claimProject(claimToken);
+      setClaimState('done');
+      const rest = new URLSearchParams(searchParams);
+      rest.delete('claim');
+      setSearchParams(rest, { replace: true });
+      void loadProjects();
+      void loadMine();
+    } catch {
+      setClaimState('failed');
+    }
+  };
+
   // Filters run against the projects and their listings. Projects carry no
   // category of their own, so choosing a category filters the board out;
   // search, location, budget and deadline all match on listing fields.
@@ -382,6 +416,47 @@ const ProcurementSystem = () => {
           </p>
         )}
         <div className="mt-8 h-px w-24 bg-foreground/30" />
+
+        {/* Claim panel: shown when a claim link brought a signed in visitor here */}
+        {user && (claimToken || claimState === 'done') && (
+          <div className="mt-10 rounded-2xl border border-neutral-300 bg-white p-6 sm:p-8">
+            {claimState === 'done' ? (
+              <>
+                <p className="font-serif text-2xl font-light text-foreground">The project is yours</p>
+                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+                  Your project is now open for bids. You can follow proposals and manage everything from your postings.
+                </p>
+                <Button className="mt-5 bg-neutral-900 text-white hover:bg-neutral-800" onClick={() => setView('postings')}>
+                  View my postings
+                </Button>
+              </>
+            ) : claimState === 'failed' ? (
+              <>
+                <p className="font-serif text-2xl font-light text-foreground">This project could not be claimed</p>
+                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+                  It may already belong to an account, or the link may not be complete. If you posted about this project and need a hand, call us at 239 257 0637 and we will sort it out with you.
+                </p>
+                <Button variant="outline" className="mt-5" onClick={() => setClaimState('ready')}>
+                  Try again
+                </Button>
+              </>
+            ) : (
+              <>
+                <p className="font-serif text-2xl font-light text-foreground">This project was made for you</p>
+                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+                  We created this project from your post so contractors can bid on it area by area. Claim it to make it yours. Once you claim it, the project opens for bids and appears in your postings, where you can compare proposals side by side and follow every step.
+                </p>
+                <Button
+                  className="mt-5 bg-neutral-900 text-white hover:bg-neutral-800"
+                  onClick={handleClaim}
+                  disabled={claimState === 'claiming'}
+                >
+                  {claimState === 'claiming' ? 'Claiming your project, please wait' : 'Claim this project'}
+                </Button>
+              </>
+            )}
+          </div>
+        )}
 
         {/* Stats */}
         <div className="mt-10 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-border bg-border lg:grid-cols-3 xl:grid-cols-6">

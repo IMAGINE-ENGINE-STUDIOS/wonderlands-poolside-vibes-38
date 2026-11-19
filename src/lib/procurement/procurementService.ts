@@ -719,3 +719,17 @@ export async function fetchPublicProjects(): Promise<PublicProject[]> {
   if (error) throw error;
   return (data ?? []) as PublicProject[];
 }
+
+// The claim function is created by migration 20261118170000, so it is not
+// in the generated Supabase types yet, so use an untyped handle, like
+// get_public_procurement_projects above. It resolves the project by its
+// share token only while the project still has no owner, makes the signed
+// in caller the owner, and opens the project's listings for bids.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const claimProjectRpc = (token: string) => (supabase as any).rpc("claim_procurement_project", { p_token: token });
+
+export async function claimProject(token: string): Promise<string> {
+  const { data, error } = await claimProjectRpc(token);
+  if (error) throw error;
+  return data as string;
+}
