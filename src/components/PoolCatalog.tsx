@@ -24,6 +24,7 @@ import madrePerlaImage from "@/assets/pools/wonderlands/madre-perla.webp";
 import pacificRidgeImage from "@/assets/pools/wonderlands/pacific-ridge-new.webp";
 import cancunDeluxeImage from "@/assets/pools/latham/cancun-deluxe.webp";
 import maximaImage from "@/assets/pools/wonderlands/maxima-pool.webp";
+import royalLakeImage from "@/assets/pools/wonderlands/royal-lake.webp";
 import wonderPalaceImage from "@/assets/pools/wonderlands/wonderpalace.webp";
 
 // Import Axiom 14 Deluxe images
@@ -176,7 +177,7 @@ const pools: Pool[] = [
   model: "Royal Lake",
   price: 41999,
   category: 'premium',
-  image: maximaImage,
+  image: royalLakeImage,
   dimensions: "12' × 18'",
   depth: "5.6'",
   installationTimeWeeks: 18,
@@ -193,7 +194,7 @@ const pools: Pool[] = [
   model: "Royal Lake 8.10",
   price: 33000,
   category: 'premium',
-  image: maximaImage,
+  image: royalLakeImage,
   dimensions: "8' × 10'",
   depth: "5.6'",
   installationTimeWeeks: 18,
@@ -208,9 +209,9 @@ const pools: Pool[] = [
 // Royal Lake 10.16 Concrete Pool by Wonderlands - FLORIDA (NO SURCHARGE)
 {
   model: "Royal Lake 10.16",
-  price: 38000,
+  price: 41000,
   category: 'premium',
-  image: maximaImage,
+  image: royalLakeImage,
   dimensions: "10' × 16'",
   depth: "5.6'",
   installationTimeWeeks: 18,
