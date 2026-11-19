@@ -74,7 +74,7 @@ export const generatedQuotes: GeneratedQuote[] = [
     ...royalLake12,
     quoteDate: '2026-11-19',
     pdfFile: 'james-boydston-quote.pdf',
-    status: 'Prepared; letter held for the new master letter',
+    status: 'Prepared; package message built from the master letter',
   },
       { name: 'Pool Heater: Pentair MasterTemp 125 (125K BTU)', price: 3450 },
       { name: 'Deck Pavers: Appian Rio (276 sq ft)', price: 4140 },
