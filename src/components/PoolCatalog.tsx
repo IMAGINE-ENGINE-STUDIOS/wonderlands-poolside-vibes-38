@@ -171,6 +171,57 @@ const pools: Pool[] = [
   carbonFiber: false,
   type: "Concrete Pool"
 },
+// Royal Lake Concrete Pool by Wonderlands - FLORIDA (NO SURCHARGE)
+{
+  model: "Royal Lake",
+  price: 41999,
+  category: 'premium',
+  image: maximaImage,
+  dimensions: "12' × 18'",
+  depth: "5.6'",
+  installationTimeWeeks: 18,
+  warrantyYears: 10,
+  features: ["Integrated Bar", "Concrete Construction", "Custom Finish Options"],
+  heater: false,
+  saltSystem: false,
+  description: "Royal Lake concrete pool with integrated bar. Premium concrete construction with a Black Pearl finish and paver deck, permits included.",
+  carbonFiber: false,
+  type: "Concrete Pool"
+},
+// Royal Lake 8.10 Concrete Pool by Wonderlands - FLORIDA (NO SURCHARGE)
+{
+  model: "Royal Lake 8.10",
+  price: 33000,
+  category: 'premium',
+  image: maximaImage,
+  dimensions: "8' × 10'",
+  depth: "5.6'",
+  installationTimeWeeks: 18,
+  warrantyYears: 10,
+  features: ["Concrete Construction", "Custom Finish Options"],
+  heater: false,
+  saltSystem: false,
+  description: "Royal Lake concrete pool in the compact 8 by 10 size. Premium concrete construction with customizable finishes.",
+  carbonFiber: false,
+  type: "Concrete Pool"
+},
+// Royal Lake 10.16 Concrete Pool by Wonderlands - FLORIDA (NO SURCHARGE)
+{
+  model: "Royal Lake 10.16",
+  price: 38000,
+  category: 'premium',
+  image: maximaImage,
+  dimensions: "10' × 16'",
+  depth: "5.6'",
+  installationTimeWeeks: 18,
+  warrantyYears: 10,
+  features: ["Concrete Construction", "Custom Finish Options"],
+  heater: false,
+  saltSystem: false,
+  description: "Royal Lake concrete pool in the 10 by 16 size. Premium concrete construction with customizable finishes.",
+  carbonFiber: false,
+  type: "Concrete Pool"
+},
 // Cancún Deluxe - Latham Pool with Integrated Spa
 {
   model: "Cancún Deluxe",
@@ -983,7 +1034,7 @@ const PoolCatalog = () => {
 
               <ProductScrollRow>
                 <NaturalPoolCard />
-                {pools.filter(pool => pool.model === 'Madre Perla' || pool.model === 'Pacific Ridge' || pool.model === 'Maxima' || pool.model === 'Winderview' || pool.model === 'Cape Coral').sort((a, b) => a.price - b.price).map(pool => {
+                {pools.filter(pool => pool.model === 'Madre Perla' || pool.model === 'Pacific Ridge' || pool.model === 'Maxima' || pool.model === 'Winderview' || pool.model === 'Cape Coral' || pool.model === 'Royal Lake' || pool.model === 'Royal Lake 8.10' || pool.model === 'Royal Lake 10.16').sort((a, b) => a.price - b.price).map(pool => {
                   // Override some props for Winderview since it's concrete
                   const poolProps = pool.model === 'Winderview' 
                     ? { ...pool, type: 'Concrete Pool', features: [...(pool.features || []), 'Concrete Construction'] }
@@ -1020,7 +1071,7 @@ const PoolCatalog = () => {
 
 
           <ProductScrollRow className="mb-16">
-            {filteredPools.filter(pool => pool.model !== 'Madre Perla' && pool.model !== 'Pacific Ridge' && pool.model !== 'Maxima' && pool.model !== 'Winderview' && pool.model !== 'Cape Coral').map(pool => <PoolProductCard key={pool.model} pool={pool} onViewDetails={handleViewDetails} onRequestQuote={handleRequestQuote} />)}
+            {filteredPools.filter(pool => pool.model !== 'Madre Perla' && pool.model !== 'Pacific Ridge' && pool.model !== 'Maxima' && pool.model !== 'Winderview' && pool.model !== 'Cape Coral' && pool.model !== 'Royal Lake' && pool.model !== 'Royal Lake 8.10' && pool.model !== 'Royal Lake 10.16').map(pool => <PoolProductCard key={pool.model} pool={pool} onViewDetails={handleViewDetails} onRequestQuote={handleRequestQuote} />)}
           </ProductScrollRow>
         </div>
       </section>

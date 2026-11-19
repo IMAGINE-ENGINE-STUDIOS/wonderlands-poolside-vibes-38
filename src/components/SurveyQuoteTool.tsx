@@ -539,7 +539,7 @@ const SurveyQuoteTool = ({
       return `Arrives ${deliveryDate} • Installation same day`;
     }
     
-    if ((extras?.concreteConstruction || (!pool && isPoolType(customProduct?.type))) || pool?.model === "Madre Perla" || pool?.model === "Winderview" || pool?.model === "Pacific Ridge" || pool?.model === "Maxima" || pool?.model === "Cape Coral") {
+    if ((extras?.concreteConstruction || (!pool && isPoolType(customProduct?.type))) || pool?.model === "Madre Perla" || pool?.model === "Winderview" || pool?.model === "Pacific Ridge" || pool?.model === "Maxima" || pool?.model === "Cape Coral" || pool?.model === "Royal Lake" || pool?.model === "Royal Lake 8.10" || pool?.model === "Royal Lake 10.16") {
       return "18+ weeks";
     }
     
@@ -1710,7 +1710,7 @@ const SurveyQuoteTool = ({
                   const isLanaiProduct = extras?.productType === 'lanai';
                   const isSaunaProduct = customProduct?.type === 'Sauna' || extras?.productType === 'sauna';
                   const isPoolItself = !!pool || String(customProduct?.type || '').toLowerCase() === 'pool';
-                  const isConcreteConstruction = !!(extras?.concreteConstruction || (!pool && isPoolType(customProduct?.type)) || (pool?.model && ['Madre Perla', 'Winderview', 'Pacific Ridge', 'Maxima', 'Cape Coral'].includes(pool.model)));
+                  const isConcreteConstruction = !!(extras?.concreteConstruction || (!pool && isPoolType(customProduct?.type)) || (pool?.model && ['Madre Perla', 'Winderview', 'Pacific Ridge', 'Maxima', 'Cape Coral', 'Royal Lake', 'Royal Lake 8.10', 'Royal Lake 10.16'].includes(pool.model)));
 
                   return (
                     <>
@@ -2772,7 +2772,7 @@ const SurveyQuoteTool = ({
                       
                       if (!isPoolProduct) return null;
                       
-                      if ((extras?.concreteConstruction || (!pool && isPoolType(customProduct?.type))) || pool?.model === "Madre Perla" || pool?.model === "Winderview" || pool?.model === "Pacific Ridge" || pool?.model === "Maxima" || pool?.model === "Cape Coral") {
+                      if ((extras?.concreteConstruction || (!pool && isPoolType(customProduct?.type))) || pool?.model === "Madre Perla" || pool?.model === "Winderview" || pool?.model === "Pacific Ridge" || pool?.model === "Maxima" || pool?.model === "Cape Coral" || pool?.model === "Royal Lake" || pool?.model === "Royal Lake 8.10" || pool?.model === "Royal Lake 10.16") {
                         return (
                           <p className="text-xs mt-1 text-muted-foreground">
                             Extended timeline due to custom concrete construction and engineering requirements

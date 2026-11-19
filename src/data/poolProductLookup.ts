@@ -109,6 +109,9 @@ export const poolProductLookup: Record<string, PoolProductInfo> = {
   // WONDERLANDS CONCRETE POOLS
   // ============================================
   "cape coral": { name: "Cape Coral", dimensions: "14' × 28'", depth: "6'", price: 85000, image: wonderPalaceImage, category: "Pool", brand: "Wonderlands" },
+  "royal lake": { name: "Royal Lake", dimensions: "12' × 18'", depth: "5.6'", price: 41999, image: maximaImage, category: "Pool", brand: "Wonderlands" },
+  "royal lake 8.10": { name: "Royal Lake 8.10", dimensions: "8' × 10'", depth: "5.6'", price: 33000, image: maximaImage, category: "Pool", brand: "Wonderlands" },
+  "royal lake 10.16": { name: "Royal Lake 10.16", dimensions: "10' × 16'", depth: "5.6'", price: 38000, image: maximaImage, category: "Pool", brand: "Wonderlands" },
   "madre perla": { name: "Madre Perla", dimensions: "20' × 40'", depth: "3'11\" - 9'", price: 168438, image: madrePerlaImage, category: "Pool", brand: "Wonderlands" },
   "maxima": { name: "Maxima", dimensions: "16' × 40'", depth: "3'9\" - 8'6\"", price: 144375, image: maximaImage, category: "Pool", brand: "Wonderlands" },
   "pacific ridge": { name: "Pacific Ridge", dimensions: "14' × 32'", depth: "3'6\" - 6'", price: 96250, image: pacificRidgeImage, category: "Pool", brand: "Wonderlands" },
