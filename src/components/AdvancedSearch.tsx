@@ -179,7 +179,7 @@ const AdvancedSearch = ({ variant = 'default', externalQuery, onOpenChange }: Ad
       { id: 'maxima', name: 'Maxima', category: 'Pool', price: 144375, image: maximaImage, keywords: ['pool', 'premium', 'fiberglass', '16x40'] },
       { id: 'pacific-ridge', name: 'Pacific Ridge', category: 'Pool', price: 96250, image: pacificRidgeImage, keywords: ['pool', 'premium', 'concrete', '14x32'] },
       { id: 'winderview', name: 'Winderview', category: 'Pool', price: 91875, image: '/media/winderview-pool.webp', keywords: ['pool', 'premium', 'concrete', 'tanning', '15x31'] },
-      { id: 'royal-lake', name: 'Royal Lake', category: 'Pool', price: 41999, image: royalLakeImage, keywords: ['pool', 'premium', 'concrete', 'royal', 'lake', '12x18'] },
+      { id: 'royal-lake', name: 'Royal Lake', category: 'Pool', price: 43200, image: royalLakeImage, keywords: ['pool', 'premium', 'concrete', 'royal', 'lake', '12x18'] },
       { id: 'royal-lake-810', name: 'Royal Lake 8.10', category: 'Pool', price: 33000, image: royalLakeImage, keywords: ['pool', 'premium', 'concrete', 'royal', 'lake', '8x10'] },
       { id: 'royal-lake-1016', name: 'Royal Lake 10.16', category: 'Pool', price: 41000, image: royalLakeImage, keywords: ['pool', 'premium', 'concrete', 'royal', 'lake', '10x16'] },
       { id: 'cancun-deluxe', name: 'Cancún Deluxe', category: 'Pool', price: 112875, image: cancunDeluxeImage, keywords: ['pool', 'deluxe', 'spa', 'integrated', '16x35'] },

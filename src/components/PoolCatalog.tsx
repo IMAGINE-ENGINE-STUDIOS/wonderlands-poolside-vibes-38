@@ -175,7 +175,7 @@ const pools: Pool[] = [
 // Royal Lake Concrete Pool by Wonderlands - FLORIDA (NO SURCHARGE)
 {
   model: "Royal Lake",
-  price: 41999,
+  price: 43200,
   category: 'premium',
   image: royalLakeImage,
   dimensions: "12' × 18'",
