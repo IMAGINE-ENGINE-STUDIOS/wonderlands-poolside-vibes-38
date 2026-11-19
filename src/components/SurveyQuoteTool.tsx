@@ -2518,7 +2518,7 @@ const SurveyQuoteTool = ({
                           </svg>
                         </button>
                       )}
-                      <div className="bg-gradient-to-br from-teal-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 p-6 rounded-lg">
+                      <div className="bg-gradient-to-br from-teal-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 p-6 rounded-lg avoid-break">
                         <h4 className="font-bold text-lg mb-3 text-orange-600">
                           {isEditMode ? (
                             <input
@@ -2594,7 +2594,7 @@ const SurveyQuoteTool = ({
                           </svg>
                         </button>
                       )}
-                      <div className="bg-gradient-to-br from-blue-100 to-purple-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg border border-blue-200">
+                      <div className="bg-gradient-to-br from-blue-100 to-purple-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg border border-blue-200 avoid-break">
                         <h4 className="font-bold text-lg mb-2 text-blue-600">
                           {isEditMode ? (
                             <input
@@ -2634,7 +2634,7 @@ const SurveyQuoteTool = ({
                             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                           </button>
                         )}
-                        <div className="bg-gradient-to-br from-green-100 to-blue-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg border border-green-200">
+                        <div className="bg-gradient-to-br from-green-100 to-blue-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg border border-green-200 avoid-break">
                           <p className="font-semibold mb-2">Warranty</p>
                           <div className="text-sm space-y-2">
                             {disciplineCfg.warranties.map((w, i) => (
@@ -2667,7 +2667,7 @@ const SurveyQuoteTool = ({
                           </svg>
                         </button>
                       )}
-                      <div className="bg-gradient-to-br from-green-100 to-blue-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg border border-green-200">
+                      <div className="bg-gradient-to-br from-green-100 to-blue-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg border border-green-200 avoid-break">
                         <div className="text-sm space-y-2">
                           {(extras?.concreteConstruction || (!pool && isPoolType(customProduct?.type))) ? <div>
                               <p className="font-semibold">Concrete Pool Construction:</p>
@@ -2702,7 +2702,7 @@ const SurveyQuoteTool = ({
                       </svg>
                     </button>
                   )}
-                  <div className="bg-gradient-to-br from-blue-100 to-green-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg">
+                  <div className="bg-gradient-to-br from-blue-100 to-green-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg avoid-break">
                     {isEditMode ? (
                       <Input
                         value={editableTexts['installation-time-title'] || 'Installation Time'}

@@ -94,4 +94,21 @@
     width: 100% !important;
     max-width: 100% !important;
   }
+
+  /* Quote pagination: a section heading never strands alone at the bottom
+     of a page, and print spacing tightens so pages read full instead of
+     half empty. Screen layout is untouched. */
+  .print-clone [data-quote-content] h3,
+  .print-clone [data-quote-content] h4 {
+    break-after: avoid !important;
+    page-break-after: avoid !important;
+  }
+
+  .print-clone [data-quote-content] .p-6 {
+    padding: 16px !important;
+  }
+
+  .print-clone [data-quote-content] .mb-6 {
+    margin-bottom: 14px !important;
+  }
 }
