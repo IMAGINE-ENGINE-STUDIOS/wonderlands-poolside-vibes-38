@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Flame, Users, Zap, Clock, ShieldCheck, ChevronDown, ChevronUp, Lock } from "lucide-react";
+import { Flame, Users, Zap, Clock, ShieldCheck, ChevronDown, ChevronUp, Lock, Box } from "lucide-react";
 import { OptimizedImage } from "./OptimizedImage";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import { DynamicFeatureRenderer } from "./DynamicFeatureRenderer";
@@ -175,6 +175,20 @@ const SaunaProductCard = ({ sauna }: SaunaProductCardProps) => {
           >
             Get Instant Quote
           </Button>
+          {sauna.threeDUrl && (
+            <Button
+              asChild
+              className="rounded-none text-[10px] uppercase tracking-[0.3em]"
+              variant="outline"
+              size="sm"
+              title="Open the manufacturer's 3D experience for this sauna"
+            >
+              <a href={sauna.threeDUrl} target="_blank" rel="noopener noreferrer">
+                <Box className="h-4 w-4 mr-1.5" />
+                View in 3D
+              </a>
+            </Button>
+          )}
           <Button
             className="rounded-none"
             variant="outline"

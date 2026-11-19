@@ -7,6 +7,7 @@ const saunaCatalog = [
   {
     id: 'salem-2-person-barrel-sauna',
     name: 'Salem 2 Person Barrel Sauna',
+    threeDUrl: 'https://almostheaven.com/products/salem-2-person-barrel-sauna',
     model: 'Salem 2 Person Barrel',
     price: 3446,
     shipping: 699,
@@ -36,6 +37,7 @@ const saunaCatalog = [
   {
     id: 'vienna-2-person-canopy-barrel-sauna',
     name: 'Vienna 2 Person Canopy Barrel Sauna',
+    threeDUrl: 'https://almostheaven.com/products/vienna-2-person-canopy-barrel-sauna',
     model: 'Vienna 2 Person Canopy Barrel',
     price: 3995,
     shipping: 699,
@@ -65,6 +67,7 @@ const saunaCatalog = [
   {
     id: 'watoga-2-4-person-barrel-sauna',
     name: 'Watoga 2-4 Person Barrel Sauna',
+    threeDUrl: 'https://almostheaven.com/products/watoga-2-4-person-barrel-sauna',
     model: 'Watoga 2-4 Person Barrel',
     price: 3995,
     shipping: 699,
@@ -94,6 +97,7 @@ const saunaCatalog = [
   {
     id: 'pinnacle-4-person-barrel-sauna',
     name: 'Pinnacle 4 Person Barrel Sauna',
+    threeDUrl: 'https://almostheaven.com/products/pinnacle-4-person-barrel-sauna',
     model: 'Pinnacle 4 Person Barrel',
     price: 4294,
     shipping: 699,
@@ -123,6 +127,7 @@ const saunaCatalog = [
   {
     id: 'salem-2-person-barrel-sauna-kit',
     name: 'Salem 2 Person Barrel Sauna Kit',
+    threeDUrl: 'https://almostheaven.com/products/quick-ship-salem-2-person-barrel-sauna',
     model: 'Salem 2 Person Barrel',
     price: 3999,
     shipping: 699,
@@ -152,6 +157,7 @@ const saunaCatalog = [
   {
     id: 'blackwater-mini-cube-sauna',
     name: 'Blackwater 1-2 Person Mini-Cube Sauna',
+    threeDUrl: 'https://almostheaven.com/products/blackwater-mini-cube-sauna',
     model: 'Blackwater 1-2 Person Mini-Cube',
     price: 4410,
     shipping: 1999,
@@ -181,6 +187,7 @@ const saunaCatalog = [
   {
     id: 'audra-2-4-person-canopy-barrel-sauna',
     name: 'Audra 2-4 Person Canopy Barrel Sauna',
+    threeDUrl: 'https://almostheaven.com/products/audra-2-4-person-canopy-barrel-sauna',
     model: 'Audra 2-4 Person Canopy Barrel',
     price: 4294,
     shipping: 699,
@@ -239,6 +246,7 @@ const saunaCatalog = [
   {
     id: 'huntington-4-6-person-canopy-barrel-sauna',
     name: 'Huntington 4-6 Person Canopy Barrel Sauna',
+    threeDUrl: 'https://almostheaven.com/products/huntington-4-6-person-canopy-barrel-sauna',
     model: 'Huntington 4-6 Person Canopy Barrel',
     price: 5178,
     shipping: 999,
@@ -268,6 +276,7 @@ const saunaCatalog = [
   {
     id: 'grandview-4-6-person-canopy-barrel-sauna',
     name: 'Grandview 4-6 Person Canopy Barrel Sauna',
+    threeDUrl: 'https://almostheaven.com/products/grandview-4-6-person-canopy-barrel-sauna',
     model: 'Grandview 4-6 Person Canopy Barrel',
     price: 5269,
     shipping: 999,
@@ -297,6 +306,7 @@ const saunaCatalog = [
   {
     id: 'lewisburg-6-8-person-barrel-sauna',
     name: 'Lewisburg 6-8 Person Barrel Sauna',
+    threeDUrl: 'https://almostheaven.com/products/lewisburg-6-8-person-barrel-sauna',
     model: 'Lewisburg 6-8 Person Barrel',
     price: 5269,
     shipping: 999,
@@ -355,6 +365,7 @@ const saunaCatalog = [
   {
     id: 'essex-barrel-sauna',
     name: 'Essex 4 Person Barrel Sauna',
+    threeDUrl: 'https://almostheaven.com/products/essex-barrel-sauna',
     model: 'Essex 4 Person Barrel',
     price: 4994,
     shipping: 699,
@@ -384,6 +395,7 @@ const saunaCatalog = [
   {
     id: 'seneca',
     name: 'Seneca 6 Person Barrel Sauna',
+    threeDUrl: 'https://almostheaven.com/products/seneca',
     model: 'Seneca 6 Person Barrel',
     price: 5170,
     shipping: 699,
@@ -442,6 +454,7 @@ const saunaCatalog = [
   {
     id: 'charleston-4-person-canopy-barrel-sauna',
     name: 'Charleston 4 Person Canopy Barrel Sauna',
+    threeDUrl: 'https://almostheaven.com/products/charleston-4-person-canopy-barrel-sauna',
     model: 'Charleston 4 Person Canopy Barrel',
     price: 5178,
     shipping: 999,
@@ -471,6 +484,7 @@ const saunaCatalog = [
   {
     id: 'princeton-6-person-barrel-sauna',
     name: 'Princeton 6 Person Barrel Sauna',
+    threeDUrl: 'https://almostheaven.com/products/princeton-6-person-barrel-sauna',
     model: 'Princeton 6 Person Barrel',
     price: 5178,
     shipping: 999,
@@ -500,6 +514,7 @@ const saunaCatalog = [
   {
     id: 'blackwater-4-6-person-cube-sauna',
     name: 'BlackWater 4 Person Cube Sauna',
+    threeDUrl: 'https://almostheaven.com/products/blackwater-4-6-person-cube-sauna',
     model: 'BlackWater 4 Person Cube',
     price: 7395,
     shipping: 1999,
@@ -529,6 +544,7 @@ const saunaCatalog = [
   {
     id: 'timberline-outdoor-sauna-heritage-collection',
     name: 'Timberline Outdoor Sauna — Harvia Collection',
+    threeDUrl: 'https://almostheaven.com/products/timberline-outdoor-sauna-heritage-collection',
     model: 'Timberline Outdoor',
     price: 7470,
     shipping: 999,
@@ -557,6 +573,7 @@ const saunaCatalog = [
   {
     id: 'shenandoah-4-person-barrel',
     name: 'Shenandoah 4 Person Barrel Sauna',
+    threeDUrl: 'https://almostheaven.com/products/shenandoah-4-person-barrel',
     model: 'Shenandoah 4 Person Barrel',
     price: 7990,
     shipping: 999,
@@ -728,6 +745,7 @@ const saunaCatalog = [
   {
     id: 'saddle-mountain-sauna',
     name: 'Saddle Mountain Outdoor Sauna — Harvia Collection',
+    threeDUrl: 'https://almostheaven.com/products/saddle-mountain-sauna',
     model: 'Saddle Mountain Outdoor',
     price: 8396,
     shipping: 1999,
@@ -754,6 +772,7 @@ const saunaCatalog = [
   {
     id: 'view-outdoor-sauna',
     name: 'View Outdoor Sauna — Harvia Collection',
+    threeDUrl: 'https://almostheaven.com/products/view-outdoor-sauna',
     model: 'View Outdoor',
     price: 8740,
     shipping: 1999,
@@ -781,6 +800,7 @@ const saunaCatalog = [
   {
     id: 'alpina-outdoor-saunas',
     name: 'Alpina Outdoor Sauna — Harvia Collection',
+    threeDUrl: 'https://almostheaven.com/products/alpina-outdoor-saunas',
     model: 'Alpina Outdoor',
     price: 19267,
     shipping: 1999,
