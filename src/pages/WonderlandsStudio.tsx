@@ -2875,7 +2875,7 @@ const WonderlandsStudio = () => {
                               {finishOptions
                                 .filter((finish) => {
                                   // Define pool type categories
-                                  const wonderlandsWorldModels = ["Madre Perla", "Pacific Ridge", "Winderview", "Maxima", "Cape Coral"];
+                                  const wonderlandsWorldModels = ["Madre Perla", "Pacific Ridge", "Winderview", "Maxima", "Cape Coral", "Royal Lake", "Royal Lake 8.10", "Royal Lake 10.16"];
                                   const lathamBaseNames = ["Astoria", "Milan", "Jamaica", "Aruba", "St. Croix", "Rio", "Apollo", "Enchantment", "Cancún Deluxe", "Cancun Deluxe", "Genesis", "Claremont", "Axiom", "Bay Isle", "Laguna", "Vista Isle", "Olympia", "Corinthian", "Key West", "Valencia", "Bermuda", "Java", "Pleasant Cove", "St. Lucia", "Delray", "Cape Cod", "Tuscan", "Synergy", "Coronado"];
                                   
                                   const modelName = selectedProduct?.model || "";
@@ -3792,7 +3792,7 @@ const WonderlandsStudio = () => {
                         </div>
 
                         {/* Concrete Construction - Hidden for Wonderlands World pools */}
-                        {!["Madre Perla", "Pacific Ridge", "Winderview", "Maxima"].includes(selectedProduct?.model || "") && (
+                        {!["Madre Perla", "Pacific Ridge", "Winderview", "Maxima", "Royal Lake", "Royal Lake 8.10", "Royal Lake 10.16"].includes(selectedProduct?.model || "") && (
                           <div className="space-y-3 rounded-3xl border border-black/5 bg-white p-5 dark:border-white/10 dark:bg-zinc-900 sm:p-6">
                             <div className="flex items-center justify-between rounded-2xl border border-black/5 p-4 dark:border-white/10">
                               <label className="flex items-center space-x-2 cursor-pointer flex-1">

@@ -70,7 +70,7 @@ const money = (n: number) => `$${Math.round(n).toLocaleString()}`;
  * shows a finish the model cannot actually be ordered in.
  * ------------------------------------------------------------------ */
 
-const WONDERLANDS_MODELS = ["Madre Perla", "Pacific Ridge", "Winderview", "Maxima", "Cape Coral"];
+const WONDERLANDS_MODELS = ["Madre Perla", "Pacific Ridge", "Winderview", "Maxima", "Cape Coral", "Royal Lake", "Royal Lake 8.10", "Royal Lake 10.16"];
 const LATHAM_MODELS = [
   "Astoria", "Milan", "Jamaica", "Aruba", "St. Croix", "Rio", "Apollo", "Enchantment",
   "Cancún Deluxe", "Cancun Deluxe", "Genesis", "Claremont", "Axiom", "Bay Isle", "Laguna",

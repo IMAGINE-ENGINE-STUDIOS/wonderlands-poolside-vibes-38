@@ -1390,7 +1390,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                   </div>
                 )}
 
-                {pool.model !== "Madre Perla" && pool.model !== "Pacific Ridge" && pool.model !== "Maxima" && pool.model !== "Winderview" && (
+                {pool.model !== "Madre Perla" && pool.model !== "Pacific Ridge" && pool.model !== "Maxima" && pool.model !== "Winderview" && pool.model !== "Royal Lake" && pool.model !== "Royal Lake 8.10" && pool.model !== "Royal Lake 10.16" && (
                   <>
                     <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-none hover:bg-muted/50 transition-colors">
                       <Checkbox
