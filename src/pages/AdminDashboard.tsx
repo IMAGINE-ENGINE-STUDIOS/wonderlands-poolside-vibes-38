@@ -15,6 +15,7 @@ import LathamPoolsData from '@/components/LathamPoolsData';
 import StandardizedProductManager from '@/components/StandardizedProductManager';
 import AdminUserManagement from '@/components/AdminUserManagement';
 import AdminQuotesManager from '@/components/AdminQuotesManager';
+import AdminGeneratedQuotes from '@/components/admin/AdminGeneratedQuotes';
 import AdminOrdersManager from '@/components/AdminOrdersManager';
 import AdminDashboardMetrics from '@/components/AdminDashboardMetrics';
 import AdminReferralsManager from '@/components/AdminReferralsManager';
@@ -495,6 +496,7 @@ const AdminDashboard = ({ previewMode = false }: { previewMode?: boolean }) => {
           {/* Quotes Tab */}
           {activeSection === "quotes" && <div className="space-y-6 animate-fade-in">
             <AdminQuotesManager />
+            <AdminGeneratedQuotes />
             </div>}
 
           {/* Quote Tool Tab */}
