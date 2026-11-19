@@ -39,6 +39,8 @@ import { gilmerSpas } from "@/data/gilmerSpas";
 import { gilmerPools } from "@/data/gilmerPools";
 import { tanningLedges } from "@/data/poolData";
 import { paverTypes, copingTypes } from "@/data/paverData";
+import { getPaverDisplayInfo } from "@/lib/paverDisplay";
+import { PaverDisplayLines } from "./PaverDisplayDetails";
 import { getPaverPricePerSqFt, calculatePaverCost, formatPaverCostDisplay, SCREEN_ENCLOSURE_PRICING } from "@/utils/paverPricing";
 import { useProjectType } from "@/contexts/ProjectTypeContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -318,8 +320,8 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
   ];
 
   const paverOptions = [
-    { name: "Concrete Deck", color: "#808080", price: 10, basePrice: 10, image: concreteDeckTexture, description: "Standard concrete deck", collection: "none" },
-    ...paverTypes.map((paver) => ({ name: paver.name, color: "#D3D3D3", price: 0, basePrice: paver.basePrice, image: paver.image || azureBlueFinish, description: paver.description, collection: paver.id.includes("appian") ? "appian" : paver.id.includes("catalina") ? "catalina" : "standard" })),
+    { name: "Concrete Deck", color: "#808080", price: 10, basePrice: 10, image: concreteDeckTexture, description: "Standard concrete deck", collection: "none", display: null },
+    ...paverTypes.map((paver) => ({ name: paver.name, color: "#D3D3D3", price: 0, basePrice: paver.basePrice, image: paver.image || azureBlueFinish, description: paver.description, collection: paver.id.includes("appian") ? "appian" : paver.id.includes("catalina") ? "catalina" : "standard", display: getPaverDisplayInfo(paver) })),
   ];
 
   const navigate = useNavigate();
@@ -1067,7 +1069,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                           }}
                         >
                           <OptimizedImage
-                            src={paver.image}
+                            src={paver.display?.faceImage ?? paver.image}
                             alt={paver.name}
                             className="w-full h-full object-cover"
                             sizeConfig="thumbnail"
@@ -1080,6 +1082,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                               +${paver.price.toLocaleString()}
                             </p>
                           )}
+                          <PaverDisplayLines info={paver.display} className="mt-1" />
                         </div>
                       </div>
                     </CarouselItem>

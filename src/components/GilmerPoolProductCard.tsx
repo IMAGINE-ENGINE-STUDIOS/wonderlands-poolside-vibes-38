@@ -27,6 +27,8 @@ import { useShoppingCart } from "@/components/ShoppingCartProvider";
 import { useToast } from "@/hooks/use-toast";
 import { gilmerSpas } from "@/data/gilmerSpas";
 import { paverTypes } from "@/data/paverData";
+import { getPaverDisplayInfoByName } from "@/lib/paverDisplay";
+import { PaverSelectedPreview } from "./PaverDisplayDetails";
 import { useProjectType } from "@/contexts/ProjectTypeContext";
 import sunsetGroveImage from "@/assets/water-features/waterfalls/sunset-grove-kit-pool.webp";
 import maldivesImage from "@/assets/water-features/waterfalls/maldiveskit-castlerock.webp";
@@ -465,6 +467,12 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
                       ))}
                     </SelectContent>
                   </Select>
+                  {extras.paverOption && (
+                    <PaverSelectedPreview
+                      info={getPaverDisplayInfoByName(extras.paverOption)}
+                      name={extras.paverOption}
+                    />
+                  )}
                   <div className="flex items-center space-x-2">
                     <Label className="text-xs">Surface Area (sq ft):</Label>
                     <Input

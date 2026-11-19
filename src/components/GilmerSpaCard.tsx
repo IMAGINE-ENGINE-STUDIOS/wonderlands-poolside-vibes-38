@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Waves, DollarSign, Thermometer, Zap, Droplets, Clock, Award, Cpu } from "lucide-react";
 import { GilmerSpa } from "@/data/gilmerSpas";
 import { paverTypes } from "@/data/paverData";
+import { getPaverDisplayInfoByName } from "@/lib/paverDisplay";
+import { PaverSelectedPreview } from "./PaverDisplayDetails";
 import { useProjectType } from "@/contexts/ProjectTypeContext";
 import azureBlueFinish from "@/assets/finishes/azure-blue-g2.webp";
 import concreteDeckTexture from "@/assets/textures/concrete-deck.avif";
@@ -406,6 +408,10 @@ const GilmerSpaCard = ({ spa, onRequestQuote }: GilmerSpaCardProps) => {
 
                   {extras.paverOption && extras.paverOption !== "No Pavers" &&
               <div className="space-y-2">
+                      <PaverSelectedPreview
+                        info={getPaverDisplayInfoByName(extras.paverOption)}
+                        name={extras.paverOption}
+                      />
                       <label className="text-sm text-muted-foreground">Surface Area (sq ft)</label>
                       <Input
                   type="number"

@@ -4,6 +4,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { poolTiles } from "@/data/poolData";
 import { paverTypes } from "@/data/paverData";
+import { getPaverDisplayInfo } from "@/lib/paverDisplay";
+import { PaverDisplayLines } from "./PaverDisplayDetails";
 import { getPaverPricePerSqFt, calculatePaverCost, SCREEN_ENCLOSURE_PRICING } from "@/utils/paverPricing";
 import { useProjectType } from "@/contexts/ProjectTypeContext";
 import { gilmerSpas } from "@/data/gilmerSpas";
@@ -156,7 +158,8 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
     price: 10,
     image: concreteDeckTexture,
     description: 'Standard concrete deck',
-    pricePerSqFt: 10
+    pricePerSqFt: 10,
+    display: null
   }, ...paverTypes
     .filter(paver => paver.category === 'paver')
     .map(paver => ({
@@ -164,7 +167,8 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
       price: 0,
       image: paver.image,
       description: paver.description,
-      pricePerSqFt: paver.basePrice
+      pricePerSqFt: paver.basePrice,
+      display: getPaverDisplayInfo(paver)
     }))];
 
   // Pool tile options
@@ -494,10 +498,10 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                         onClick={() => updateOption('paverOption', paver.name)}
                       >
                         <div className="w-full h-16 rounded-none mb-2 overflow-hidden flex-shrink-0">
-                          <OptimizedImage 
-                            src={paver.image} 
-                            alt={paver.name} 
-                            className="w-full h-full object-cover" 
+                          <OptimizedImage
+                            src={paver.display?.faceImage ?? paver.image}
+                            alt={paver.name}
+                            className="w-full h-full object-cover"
                             loading="lazy"
                           />
                         </div>
@@ -508,6 +512,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                               ${paver.pricePerSqFt}/sq ft
                             </p>
                           )}
+                          <PaverDisplayLines info={paver.display} className="mt-1" />
                         </div>
                       </div>
                     </CarouselItem>

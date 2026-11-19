@@ -5,6 +5,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { paverTypes } from "@/data/paverData";
+import { getPaverDisplayInfo } from "@/lib/paverDisplay";
+import { PaverDisplayLines, PaverSelectedPreview } from "./PaverDisplayDetails";
 import { useShoppingCart } from "./ShoppingCartProvider";
 import { toast } from "sonner";
 import SurveyQuoteTool from "./SurveyQuoteTool";
@@ -209,7 +211,7 @@ const PaversSection = () => {
                 <img
                   loading="lazy"
                   decoding="async"
-                  src={paver.image}
+                  src={getPaverDisplayInfo(paver).faceImage ?? paver.image}
                   alt={paver.name}
                   className="w-full h-full object-cover"
                 />
@@ -218,6 +220,7 @@ const PaversSection = () => {
                 {stripPrefixes.reduce((label, prefix) => label.replace(prefix, ""), paver.name)}
               </p>
               <p className="text-xs text-muted-foreground">${paver.basePrice}/sq ft</p>
+              <PaverDisplayLines info={getPaverDisplayInfo(paver)} className="mt-1" />
             </div>
           </CarouselItem>
         ))}
@@ -375,7 +378,7 @@ const PaversSection = () => {
                     <img
                       loading="lazy"
                       decoding="async"
-                      src={paver.image}
+                      src={getPaverDisplayInfo(paver).faceImage ?? paver.image}
                       alt={paver.name}
                       className="h-full w-full object-cover"
                     />
@@ -385,6 +388,13 @@ const PaversSection = () => {
                 </button>
               ))}
             </div>
+
+            {selectedPaverType && (
+              <PaverSelectedPreview
+                info={getPaverDisplayInfo(selectedPaverType)}
+                name={selectedPaverType.name}
+              />
+            )}
 
             <div className="space-y-2">
               <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">
