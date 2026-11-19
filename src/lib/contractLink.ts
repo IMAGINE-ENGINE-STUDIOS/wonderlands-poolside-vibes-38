@@ -141,6 +141,38 @@ export const readStashedQuoteLines = (invoiceId: string): ContractLineInput[] =>
   }
 };
 
+/**
+ * The contract page's `doc` param for a quote discipline. Sauna quotes open
+ * the sauna version of the agreement (public/contract.html renders its sauna
+ * sale and installation sections and drops the construction sections);
+ * every other discipline opens the standard version, which takes no param.
+ */
+export const contractDocForDiscipline = (discipline: string | null | undefined) =>
+  discipline === "sauna" ? "sauna" : undefined;
+
+/* The invoice record itself carries no product type, so the originating
+ * quote's contract doc type is stashed next to its lines. The invoice view
+ * then opens the same contract version the quote view would. Without a
+ * stash (e.g. the invoice is opened on another device) the invoice view
+ * cannot know the type and opens the standard version. */
+const docTypeStashKey = (invoiceId: string) => `contract_quote_doctype_${invoiceId}`;
+
+export const stashQuoteDocTypeForInvoice = (invoiceId: string, docType: string | undefined) => {
+  try {
+    if (docType) localStorage.setItem(docTypeStashKey(invoiceId), docType);
+  } catch {
+    /* storage full/blocked — the invoice view falls back to the standard version */
+  }
+};
+
+export const readStashedQuoteDocType = (invoiceId: string): string | undefined => {
+  try {
+    return localStorage.getItem(docTypeStashKey(invoiceId)) || undefined;
+  } catch {
+    return undefined;
+  }
+};
+
 /** Open the contract page (public/contract.html) with the given fields set. */
 export const openContractPage = (params: Record<string, string | undefined>) => {
   const qs = new URLSearchParams();

@@ -64,7 +64,7 @@ export function getPoolModelImages(model?: string | null, mainImage?: string): s
   }
   return out.slice(0, 4);
 }
-import { unionContractLines, splitEquipFeat, openContractPage, stashQuoteLinesForInvoice, contractLineKey } from "@/lib/contractLink";
+import { unionContractLines, splitEquipFeat, openContractPage, stashQuoteLinesForInvoice, contractLineKey, contractDocForDiscipline, stashQuoteDocTypeForInvoice } from "@/lib/contractLink";
 /** Pool-type products (case-insensitive: studios send "pool"). */
 const isPoolType = (t?: string) => ["pool", "spa", "tanning ledge"].includes(String(t || "").toLowerCase());
 import { DEFAULT_SOLAR_INPUTS, linesTotal, lineTotal, type SolarQuoteInputs, type SolarQuoteLine } from "@/lib/solar/solarQuote";
@@ -1099,6 +1099,9 @@ const SurveyQuoteTool = ({
       contractPrice: `$${Math.round(Number(total) || 0).toLocaleString()}`,
       equip,
       feat,
+      // Sauna quotes open the sauna version of the contract page; every
+      // other discipline passes no doc param and gets the standard version.
+      doc: contractDocForDiscipline(discipline),
     });
   };
 
@@ -1200,6 +1203,9 @@ const SurveyQuoteTool = ({
       // the contract from the union of quote + invoice items. Changes nothing
       // about the invoice itself.
       stashQuoteLinesForInvoice(invoiceId, lineItems);
+      // Same bookkeeping for the contract version: the invoice record has
+      // no product type, so the invoice view reads the doc type from here.
+      stashQuoteDocTypeForInvoice(invoiceId, contractDocForDiscipline(discipline));
       try {
         localStorage.setItem(`ww_invoice_${invoiceId}`, JSON.stringify({
           id: invoiceId,

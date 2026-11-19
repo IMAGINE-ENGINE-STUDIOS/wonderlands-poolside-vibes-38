@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Printer, Send, Edit2, Save, X, Plus, Trash2, Lock, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { unionContractLines, splitEquipFeat, openContractPage, readStashedQuoteLines } from "@/lib/contractLink";
+import { unionContractLines, splitEquipFeat, openContractPage, readStashedQuoteLines, readStashedQuoteDocType } from "@/lib/contractLink";
 import { useToast } from "@/hooks/use-toast";
 import {
   Dialog,
@@ -176,6 +176,10 @@ const InvoiceDetailPage = () => {
       contractPrice: `$${Math.round(Number(invoice.total_amount) || 0).toLocaleString()}`,
       equip,
       feat,
+      // The invoice record carries no product type; the doc type stashed
+      // when this invoice was generated from its quote decides the version.
+      // No stash (another device) → no param → the standard version.
+      doc: readStashedQuoteDocType(invoice.id),
     });
   };
   const handleSendEmail = async () => {
