@@ -446,7 +446,7 @@ export default function BelgardProductsFolder() {
         {/* Product list and detail */}
         {category && (
           <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,380px)_minmax(0,1fr)]">
-            <ul className="divide-y divide-zinc-100 overflow-hidden rounded-2xl border border-zinc-200 self-start">
+            <ul className="min-w-0 divide-y divide-zinc-100 overflow-hidden rounded-2xl border border-zinc-200 self-start">
               {category.products.map((p) => (
                 <li key={p.name}>
                   <button
@@ -476,7 +476,7 @@ export default function BelgardProductsFolder() {
               )}
             </ul>
 
-            <div>
+            <div className="min-w-0">
               {selected ? (
                 <article className="rounded-2xl border border-zinc-200 p-5">
                   <h3 className="text-2xl font-semibold tracking-tight">{selected.name}</h3>
