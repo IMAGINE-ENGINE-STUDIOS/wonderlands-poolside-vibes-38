@@ -2884,14 +2884,14 @@ const WonderlandsStudio = () => {
                                   const isLathamPool = lathamBaseNames.some(base => modelName.startsWith(base));
                                   
                                   if (isWonderlandsWorld) {
-                                    // Wonderlands World concrete pools: Only Mini Pebbles collection
-                                    return finish.collection === "Mini Pebbles";
+                                    // Wonderlands World concrete pools: Pebble Tec finishes only
+                                    return ["Pebble Tec", "PebbleSheen", "PebbleFina", "PebbleBrilliance", "PebbleQuartz", "PebbleBreeze"].includes(finish.collection);
                                   } else if (isLathamPool) {
                                     // Latham fiberglass pools: Crystite Crystal + Crystite Classic collections
                                     return finish.collection === "Crystite Crystal" || finish.collection === "Crystite Classic";
                                   } else {
-                                    // GlimmerGlass and other pools: Show all except the Crystite collections and Mini Pebbles
-                                    return finish.collection !== "Crystite Crystal" && finish.collection !== "Crystite Classic" && finish.collection !== "Mini Pebbles";
+                                    // GlimmerGlass and other pools: Show all except the Crystite collections and the Pebble Tec concrete finishes
+                                    return finish.collection !== "Crystite Crystal" && finish.collection !== "Crystite Classic" && !["Pebble Tec", "PebbleSheen", "PebbleFina", "PebbleBrilliance", "PebbleQuartz", "PebbleBreeze"].includes(finish.collection);
                                   }
                                 })
                                 .map((finish, idx) => (

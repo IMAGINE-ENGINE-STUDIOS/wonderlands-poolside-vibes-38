@@ -90,13 +90,13 @@ const LATHAM_LEDGE_MODELS = ["Hermosa", "Rectangle"];
 const finishAllowed = (option: FeatureOption, ctx: StudioContext) => {
   const collection = (option as any).collection as string | undefined;
   const model = ctx.modelName ?? "";
-  if (WONDERLANDS_MODELS.includes(model)) return collection === "Mini Pebbles";
+  if (WONDERLANDS_MODELS.includes(model)) return ["Pebble Tec", "PebbleSheen", "PebbleFina", "PebbleBrilliance", "PebbleQuartz", "PebbleBreeze"].includes(collection ?? "");
   /* GlimmerGlass is finished in its own gelcoat only — no Latham finish ranges */
   if (isGlimmerGlass(ctx)) return false;
   if (SPA_CATALOG_MODELS.includes(model)) return true;
   if (LATHAM_LEDGE_MODELS.some((b) => model.startsWith(b))) return true;
   if (LATHAM_MODELS.some((b) => model.startsWith(b))) return collection === "Crystite Crystal" || collection === "Crystite Classic";
-  return collection !== "Crystite Crystal" && collection !== "Crystite Classic" && collection !== "Mini Pebbles";
+  return collection !== "Crystite Crystal" && collection !== "Crystite Classic" && !["Pebble Tec", "PebbleSheen", "PebbleFina", "PebbleBrilliance", "PebbleQuartz", "PebbleBreeze"].includes(collection ?? "");
 };
 
 const GELCOAT: StudioOption[] = [
@@ -278,7 +278,7 @@ export const getStudioFeatureGroups = (categoryId: string, ctx: StudioContext = 
   if (cached) return cached;
 
   /* The concrete edition is the Wonderlands collection; without a model in
-     context its finishes still resolve to the Mini Pebbles range. */
+     context its finishes still resolve to the Pebble Tec range. */
   if (categoryId === "concrete-pools" && !ctx.modelName) {
     ctx = { ...ctx, modelName: WONDERLANDS_MODELS[0] };
   }
