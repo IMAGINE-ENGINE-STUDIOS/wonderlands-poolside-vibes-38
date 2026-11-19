@@ -7,7 +7,10 @@ import { saunas } from "@/data/saunaData";
 // flat figure (founder ruling 2026-11-19).
 const EXCLUSIVE_SAUNA_MODEL = saunas.find((s) => s.name.startsWith("Pinnacle"));
 const EXCLUSIVE_SAUNA_NAME = EXCLUSIVE_SAUNA_MODEL?.name ?? "Barrel Sauna";
-const EXCLUSIVE_SAUNA_PRICE = EXCLUSIVE_SAUNA_MODEL?.price ?? 0;
+// The offer price never drops below the $15,000 it carried before the offer was
+// named to this model: the 2x basis is a floor, never a reason to lower a price
+// (founder rule, 2026-11-19). Price = the greater of the model's retail and $15,000.
+const EXCLUSIVE_SAUNA_PRICE = Math.max(EXCLUSIVE_SAUNA_MODEL?.price ?? 0, 15000);
 const { useState, useEffect, useRef } = React;
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
