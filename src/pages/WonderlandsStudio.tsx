@@ -56,6 +56,7 @@ import { Box } from 'lucide-react';
 import StudioProductSearch, { type StudioSearchItem } from '@/components/studio/StudioProductSearch';
 import { motion } from 'framer-motion';
 import StudioLandingCanvas from '@/components/studio/StudioLandingCanvas';
+import FlooringDisplayPanel from '@/components/studio/FlooringDisplayPanel';
 import { studioScreenEnclosures, studioFencing, studioLanai, studioCovers } from '@/data/studioCategoryProducts';
 import FenceConfigurator from '@/components/fence/FenceConfigurator';
 import EnclosureConfigurator, { EnclosureEditApi } from '@/components/enclosure/EnclosureConfigurator';
@@ -79,7 +80,7 @@ const rockyWaterfallTiers = [
 ];
 const rockyWaterfallColors = ['Castle Rock', 'Gray', 'Brown'];
 
-type StudioTab = 'pools' | 'spas' | 'tanning-ledges' | 'saunas' | 'screen-enclosures' | 'patio-fencing' | 'lanai' | 'pavers' | 'artificial-grass' | 'landscaping' | 'covers' | 'driveway-gates' | 'finishes' | 'liners' | 'build-a-pool';
+type StudioTab = 'pools' | 'spas' | 'tanning-ledges' | 'saunas' | 'screen-enclosures' | 'patio-fencing' | 'lanai' | 'pavers' | 'flooring' | 'artificial-grass' | 'landscaping' | 'covers' | 'driveway-gates' | 'finishes' | 'liners' | 'build-a-pool';
 
 interface StudioCategory {
   value: StudioTab;
@@ -97,6 +98,7 @@ const STUDIO_CATEGORIES: StudioCategory[] = [
   { value: 'patio-fencing', label: 'Patio Fencing', icon: Layers, activeClass: 'bg-zinc-900 text-white' },
   { value: 'lanai', label: 'Lanai', icon: Sun, activeClass: 'bg-zinc-900 text-white' },
   { value: 'pavers', label: 'Pavers', icon: Package, activeClass: 'bg-zinc-900 text-white' },
+  { value: 'flooring', label: 'Floor & Decor', icon: Layers, activeClass: 'bg-zinc-900 text-white' },
   { value: 'artificial-grass', label: 'Artificial Grass', icon: Layers, activeClass: 'bg-zinc-900 text-white' },
   { value: 'landscaping', label: 'Landscaping', icon: Palette, activeClass: 'bg-zinc-900 text-white' },
   { value: 'covers', label: 'Covers', icon: Shield, activeClass: 'bg-zinc-900 text-white' },
@@ -432,7 +434,7 @@ const WonderlandsStudio = () => {
     toast
   } = useToast();
   const { priceMultiplier, projectType } = useProjectType();
-  const [activeTab, setActiveTab] = useState<'pools' | 'spas' | 'tanning-ledges' | 'saunas' | 'scenes' | 'build-a-pool' | 'screen-enclosures' | 'patio-fencing' | 'lanai' | 'pavers' | 'artificial-grass' | 'landscaping' | 'covers' | 'driveway-gates' | 'finishes' | 'liners'>('pools');
+  const [activeTab, setActiveTab] = useState<'pools' | 'spas' | 'tanning-ledges' | 'saunas' | 'scenes' | 'build-a-pool' | 'screen-enclosures' | 'patio-fencing' | 'lanai' | 'pavers' | 'flooring' | 'artificial-grass' | 'landscaping' | 'covers' | 'driveway-gates' | 'finishes' | 'liners'>('pools');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [searchQuery, setSearchQuery] = usePersistentState('studio_searchQuery', '');
   const [sceneFromBuilder, setSceneFromBuilder] = useState<any>(null);
@@ -953,6 +955,15 @@ const WonderlandsStudio = () => {
           type: 'paver' as const,
           category: 'per sq ft'
         }));
+        break;
+      case 'flooring':
+        // Floor & Decor is DISPLAY ONLY (paver port wiring Job 10): the
+        // registry's figures are F&D retail, not Wonderlands prices, and
+        // every Studio product flow renders a price and feeds the total,
+        // the cart and the quote. The 26 flooring products therefore
+        // never become Studio Products — the tab renders
+        // FlooringDisplayPanel instead (sidebar list and stage).
+        products = [];
         break;
       case 'artificial-grass':
         products = artificialGrassOptions.map(grass => ({
@@ -2228,7 +2239,7 @@ const WonderlandsStudio = () => {
 
 
                     <div className="mt-6 space-y-2 max-h-96 overflow-y-auto">
-                      {getFilteredProducts().map((product, index) => <div key={index} className={`p-3 rounded-2xl border border-black/5 bg-white cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-px dark:border-white/10 dark:bg-zinc-900 ${(product.model && selectedProduct?.model === product.model) || (product.name && selectedProduct?.name === product.name) ? 'ring-1 ring-zinc-900 dark:ring-zinc-50' : ''}`} onClick={() => {
+                      {activeTab === 'flooring' ? <FlooringDisplayPanel variant="sidebar" query={searchQuery} /> : getFilteredProducts().map((product, index) => <div key={index} className={`p-3 rounded-2xl border border-black/5 bg-white cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-px dark:border-white/10 dark:bg-zinc-900 ${(product.model && selectedProduct?.model === product.model) || (product.name && selectedProduct?.name === product.name) ? 'ring-1 ring-zinc-900 dark:ring-zinc-50' : ''}`} onClick={() => {
                     setSelectedProduct(product);
                     // Reset extras to default for this product type
                     if (product.type) {
@@ -3974,7 +3985,7 @@ const WonderlandsStudio = () => {
                     <div className="h-14 lg:hidden" />
                    </CardContent>
                  </Card>
-              </motion.div> : <StudioLandingCanvas
+              </motion.div> : activeTab === 'flooring' ? <FlooringDisplayPanel variant="stage" /> : <StudioLandingCanvas
                 products={getFilteredProducts()}
                 categories={STUDIO_CATEGORIES}
                 activeCategory={activeTab}
