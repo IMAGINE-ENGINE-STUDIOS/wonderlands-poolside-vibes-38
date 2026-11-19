@@ -23,6 +23,34 @@ import { useOptionalShoppingCart } from "@/components/ShoppingCartProvider";
 import { mergeCartIntoExtras } from "@/lib/cartQuoteLines";
 import { resolveDiscipline, getDisciplineConfig } from "@/lib/quoteDisciplines";
 import { quoteLineImage, CUSTOM_POOL_IMAGE } from "@/lib/design/sceneQuoteCatalog";
+
+// Every photo the platform holds for a pool model, from the model's own
+// asset set (its main shot plus gallery, specs, installed and alternate
+// views of that same model), so the quote prints a gallery of the
+// selected model and not only a single photo.
+const poolAssetUrls = import.meta.glob('/src/assets/pools/**/*.webp', { eager: true, query: '?url', import: 'default' }) as Record<string, string>;
+const GALLERY_VARIANT_SUFFIXES = ['new', 'main', 'gallery', 'specs', 'installed', 'perspective', 'optimized', 'pool'];
+const slugifyModelName = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+export function getPoolModelImages(model?: string | null, mainImage?: string): string[] {
+  const out: string[] = [];
+  const push = (u?: string) => { if (u && !out.includes(u)) out.push(u); };
+  push(mainImage);
+  if (model) {
+    const modelSlug = slugifyModelName(model);
+    const matches: { url: string; rank: number }[] = [];
+    for (const [path, url] of Object.entries(poolAssetUrls)) {
+      const stem = slugifyModelName((path.split('/').pop() || '').replace(/\.webp$/i, ''));
+      if (stem === modelSlug) { matches.push({ url, rank: 0 }); continue; }
+      if (stem.startsWith(modelSlug)) {
+        const rest = stem.slice(modelSlug.length);
+        const variantIdx = GALLERY_VARIANT_SUFFIXES.findIndex(v => rest.startsWith(v));
+        if (variantIdx >= 0) matches.push({ url, rank: 1 + variantIdx });
+      }
+    }
+    matches.sort((a, b) => a.rank - b.rank).forEach(m => push(m.url));
+  }
+  return out.slice(0, 4);
+}
 import { unionContractLines, splitEquipFeat, openContractPage, stashQuoteLinesForInvoice, contractLineKey } from "@/lib/contractLink";
 /** Pool-type products (case-insensitive: studios send "pool"). */
 const isPoolType = (t?: string) => ["pool", "spa", "tanning ledge"].includes(String(t || "").toLowerCase());
@@ -2030,6 +2058,17 @@ const SurveyQuoteTool = ({
                             <p className="text-xs text-center mt-1 text-muted-foreground">
                               {pool?.model || customProduct?.name}
                             </p>
+                            {(() => {
+                              const galleryImages = getPoolModelImages(pool?.model || customProduct?.name, imageOverrides['main-product'] || pool?.image || customProduct?.image);
+                              if (galleryImages.length < 2) return null;
+                              return (
+                                <div className="grid grid-cols-3 gap-2 mt-2 avoid-break">
+                                  {galleryImages.slice(1).map((src, i) => (
+                                    <ImageCard key={i} src={src} alt={`${pool?.model || customProduct?.name} photo ${i + 2}`} className="w-full h-24 rounded-md border border-orange-200" objectFit="cover" enableZoom={false} />
+                                  ))}
+                                </div>
+                              );
+                            })()}
                           </div>
                         </div>
                       </div>
