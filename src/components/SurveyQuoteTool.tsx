@@ -1,4 +1,13 @@
 import * as React from "react";
+import { saunas } from "@/data/saunaData";
+
+// The Exclusive Sauna Offer is one named, real model: the Pinnacle 4 Person
+// Barrel Sauna (4 persons, 6.0kW heater, 72"W barrel — the offer's own
+// published specs). Its price is that model's real platform retail, never a
+// flat figure (founder ruling 2026-11-19).
+const EXCLUSIVE_SAUNA_MODEL = saunas.find((s) => s.name.startsWith("Pinnacle"));
+const EXCLUSIVE_SAUNA_NAME = EXCLUSIVE_SAUNA_MODEL?.name ?? "Barrel Sauna";
+const EXCLUSIVE_SAUNA_PRICE = EXCLUSIVE_SAUNA_MODEL?.price ?? 0;
 const { useState, useEffect, useRef } = React;
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
@@ -781,7 +790,7 @@ const SurveyQuoteTool = ({
       const isSaunaIncluded = saunaIncludedModels.includes(poolModel);
       
       if (isEligible && !isSaunaIncluded) {
-        basePrice += 15000; // Sauna price for other models
+        basePrice += EXCLUSIVE_SAUNA_PRICE; // The named model's real retail price
       }
     }
 
@@ -900,7 +909,7 @@ const SurveyQuoteTool = ({
         const saunaPoolPrice = pool?.price || 0;
         if (eligibleModels.includes(saunaModel) && saunaPoolPrice >= 70000) {
           const saunaIncluded = saunaModel === "Extreme 38" || saunaModel === "Astoria";
-          pushLine(saunaIncluded ? "Barrel Sauna (INCLUDED)" : "Barrel Sauna (Exclusive Add-On)", '', saunaIncluded ? 0 : 15000);
+          pushLine(saunaIncluded ? `${EXCLUSIVE_SAUNA_NAME} (INCLUDED)` : `${EXCLUSIVE_SAUNA_NAME} (Exclusive Add-On)`, '', saunaIncluded ? 0 : EXCLUSIVE_SAUNA_PRICE);
         }
       }
       const quoteAmount = isEditMode && editableQuoteAmount > 0 ? editableQuoteAmount : calculateQuote();
@@ -1120,14 +1129,14 @@ const SurveyQuoteTool = ({
           const isIncluded = poolModel === "Extreme 38" || poolModel === "Astoria";
           if (!isIncluded) {
             lineItems.push({
-              description: "Barrel Sauna (Exclusive Add-On)",
+              description: `${EXCLUSIVE_SAUNA_NAME} (Exclusive Add-On)`,
               quantity: 1,
-              unit_price: 15000,
-              total: 15000
+              unit_price: EXCLUSIVE_SAUNA_PRICE,
+              total: EXCLUSIVE_SAUNA_PRICE
             });
           } else {
             lineItems.push({
-              description: "Barrel Sauna (INCLUDED)",
+              description: `${EXCLUSIVE_SAUNA_NAME} (INCLUDED)`,
               quantity: 1,
               unit_price: 0,
               total: 0

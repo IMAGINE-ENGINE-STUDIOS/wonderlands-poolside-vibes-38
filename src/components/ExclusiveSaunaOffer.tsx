@@ -44,6 +44,7 @@ const ExclusiveSaunaOffer: React.FC<ExclusiveSaunaOfferProps> = ({ poolModel, po
           <span className="text-lg">🔥</span>
           <div>
             <h4 className="font-semibold text-sm text-primary">Exclusive Sauna Offer</h4>
+            <p className="text-xs font-medium">Pinnacle 4 Person Barrel Sauna</p>
             <p className="text-xs text-muted-foreground">Available with {poolModel} $70,000+</p>
             {isSelected && <p className="text-xs text-primary font-medium">✓ Added to Quote</p>}
           </div>

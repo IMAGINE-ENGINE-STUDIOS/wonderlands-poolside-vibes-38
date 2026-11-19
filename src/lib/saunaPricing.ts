@@ -27,8 +27,12 @@ export const SAUNA_PRICING_MODEL = {
   overheadRate: 0.11,
   /** Target gross profit on total delivered cost */
   profitRate: 0.40,
-  /** Markup applied to accessories and upgrade options (freight + labor + profit) */
-  optionMarkup: 1.40,
+  /**
+   * Markup applied to accessories and upgrade options. General-contractor
+   * basis (founder ruling 2026-11-19): every option retails at no less than
+   * 2x its supplier cost.
+   */
+  optionMarkup: 2.00,
 } as const;
 
 export interface SaunaPriceBreakdown {
@@ -76,7 +80,12 @@ export function getSaunaPriceBreakdown(
   const overhead = roundTo(directCost * m.overheadRate, 5);
   const totalCost = directCost + overhead;
 
-  const retail = roundTo(totalCost * (1 + m.profitRate), 25);
+  const formulaRetail = roundTo(totalCost * (1 + m.profitRate), 25);
+  // General-contractor basis floor (founder ruling 2026-11-19): the retail
+  // price never falls below 2x (unit cost + installation cost), rounded up
+  // to the nearest $25 so the floor always holds.
+  const basisFloor = Math.ceil((2 * (unitCost + installation)) / 25) * 25;
+  const retail = Math.max(formulaRetail, basisFloor);
   const profit = retail - totalCost;
 
   return {
@@ -98,6 +107,8 @@ export function getSaunaPriceBreakdown(
 export const getSaunaRetailPrice = (unitCost: number, capacity?: string, freight?: number): number =>
   getSaunaPriceBreakdown(unitCost, capacity, freight).retail;
 
-/** Customer-facing price for a sauna accessory / upgrade option */
+/** Customer-facing price for a sauna accessory / upgrade option.
+ *  Rounded UP to the nearest $5 so the price never falls below the
+ *  general-contractor basis of 2x supplier cost. */
 export const getSaunaOptionRetail = (cost: number): number =>
-  cost <= 0 ? 0 : roundTo(cost * SAUNA_PRICING_MODEL.optionMarkup, 5);
+  cost <= 0 ? 0 : Math.ceil((cost * SAUNA_PRICING_MODEL.optionMarkup) / 5) * 5;
