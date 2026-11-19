@@ -490,7 +490,7 @@ export default function BelgardProductsFolder() {
                       chrome only when there is more than one image. */}
                   {galleryItems.length > 0 ? (
                     <div className="mt-5">
-                      <div className="flex items-center justify-between mb-4">
+                      <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
                         <div className="inline-flex rounded-full border border-black/5 bg-zinc-50 p-1 gap-1 dark:border-white/10 dark:bg-zinc-900">
                           <Button variant="secondary" size="sm" className="h-8 text-xs gap-1.5">
                             <Camera className="h-3.5 w-3.5" />
