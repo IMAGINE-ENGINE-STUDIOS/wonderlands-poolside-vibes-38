@@ -16,6 +16,7 @@ import { InlineCalculator } from '@/components/search/InlineCalculator';
 import { allProducts, getProductsByCategory } from '@/data/consolidatedProducts';
 import { poolLiners, poolTiles, tanningLedges } from '@/data/poolData';
 import { paverTypes, copingTypes } from '@/data/paverData';
+import { getPaverDisplayInfo, paverDisplaySummary } from '@/lib/paverDisplay';
 import { saunas } from '@/data/saunaData';
 import { drivewayGates } from '@/data/drivewayGates';
 import { gilmerPools } from '@/data/gilmerPools';
@@ -73,6 +74,9 @@ interface SearchResult {
   price: number;
   image?: string;
   type: 'pool' | 'product';
+  /** Extra display line under the result (paver printed sizes and
+   *  laying pattern names from the ported Belgard data). */
+  detail?: string;
 }
 
 interface AdvancedSearchProps {
@@ -315,15 +319,26 @@ const AdvancedSearch = ({ variant = 'default', externalQuery, onOpenChange }: Ad
       keywords: ['tanning', 'ledge', 'ledges', 'sun shelf', 'beach entry', 'shallow', ledge.name.toLowerCase()]
     }));
 
-    // Pavers from paverData
-    const paverData = paverTypes.map(paver => ({
-      id: paver.id,
-      name: paver.name,
-      category: 'Paver',
-      price: paver.basePrice,
-      image: paver.image,
-      keywords: ['paver', 'pavers', 'decking', 'flooring', 'deck', 'patio', 'stone', paver.name.toLowerCase()]
-    }));
+    // Pavers from paverData, enriched with the ported Belgard data:
+    // printed sizes and laying pattern names become searchable keywords
+    // and a visible detail line on the result. Price stays paver.basePrice.
+    const paverData = paverTypes.map(paver => {
+      const display = getPaverDisplayInfo(paver);
+      const sizeKeywords = display.sizes.flatMap(size => [
+        size.toLowerCase(),
+        size.toLowerCase().replace(/\s+/g, '')
+      ]);
+      const patternKeywords = display.patternNames.map(name => name.toLowerCase());
+      return {
+        id: paver.id,
+        name: paver.name,
+        category: 'Paver',
+        price: paver.basePrice,
+        image: paver.image,
+        detail: paverDisplaySummary(display) ?? undefined,
+        keywords: ['paver', 'pavers', 'decking', 'flooring', 'deck', 'patio', 'stone', paver.name.toLowerCase(), ...sizeKeywords, ...patternKeywords]
+      };
+    });
 
     // Coping from paverData
     const copingData = copingTypes.map(coping => ({
@@ -422,22 +437,26 @@ const AdvancedSearch = ({ variant = 'default', externalQuery, onOpenChange }: Ad
         const width = parseInt(measurementMatch[1]);
         const length = parseInt(measurementMatch[2]);
         
-        // Find products with closest dimensions (mainly pools, tanning ledges, and spas)
+        // Find products with closest dimensions (mainly pools, tanning ledges, and spas).
+        // Pavers join on an exact printed size match only, so a pool size
+        // search never fills with paver partial matches.
         results = allProducts
-          .filter(product => ['Pool', 'Spa', 'Tanning Ledge'].includes(product.category))
+          .filter(product => ['Pool', 'Spa', 'Tanning Ledge', 'Paver'].includes(product.category))
           .map(product => {
             let score = 0;
-            
+
             // Check keywords for measurement patterns
             const dimensionPatterns = [
               `${width}x${length}`, `${width} x ${length}`,
               `${length}x${width}`, `${length} x ${width}`
             ];
-            
-            if (product.keywords?.some(keyword => 
+
+            if (product.keywords?.some(keyword =>
               dimensionPatterns.some(pattern => keyword.includes(pattern))
             )) {
               score = 1000; // Perfect match
+            } else if (product.category === 'Paver') {
+              score = 0;
             } else {
               // Check for partial dimension matches
               if (product.keywords?.some(keyword => keyword.includes(width.toString()))) score += 300;
@@ -487,7 +506,8 @@ const AdvancedSearch = ({ variant = 'default', externalQuery, onOpenChange }: Ad
         category: product.category,
         price: product.price,
         image: product.image,
-        type: 'product' as const
+        type: 'product' as const,
+        detail: (product as { detail?: string }).detail
       }));
 
       setSearchResults(searchResults);
@@ -994,6 +1014,11 @@ const AdvancedSearch = ({ variant = 'default', externalQuery, onOpenChange }: Ad
                           ${result.price.toLocaleString()}
                         </span>
                       </div>
+                      {result.detail && (
+                        <div className="text-xs text-muted-foreground mt-0.5">
+                          {result.detail}
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}

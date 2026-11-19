@@ -142,3 +142,20 @@ export function getPaverDisplayInfoByName(name: string): PaverDisplayInfo | null
   const paver = paverTypes.find((p) => p.name === name);
   return paver ? getPaverDisplayInfo(paver) : null;
 }
+
+/**
+ * One line summary of the enrichment for search results and console
+ * entries (Paver Port Wiring Job 6): printed sizes and laying pattern
+ * names, or null when the reference data carries neither.
+ */
+export function paverDisplaySummary(
+  info: PaverDisplayInfo | null | undefined,
+): string | null {
+  if (!info) return null;
+  const parts: string[] = [];
+  if (info.sizes.length > 0)
+    parts.push(`Printed sizes (in): ${info.sizes.join(", ")}`);
+  if (info.patternNames.length > 0)
+    parts.push(`Laying patterns: ${info.patternNames.join(", ")}`);
+  return parts.length > 0 ? parts.join(" · ") : null;
+}

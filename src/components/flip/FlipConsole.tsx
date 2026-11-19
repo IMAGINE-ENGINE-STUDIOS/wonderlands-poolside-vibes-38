@@ -76,6 +76,7 @@ const FlipConsole: React.FC<FlipConsoleProps> = ({
       (e) =>
         e.name.toLowerCase().includes(q) ||
         (e.meta ?? "").toLowerCase().includes(q) ||
+        (e.detail ?? "").toLowerCase().includes(q) ||
         (e.brand ?? "").toLowerCase().includes(q),
     );
   }, [entries, query]);
@@ -259,6 +260,11 @@ const FlipConsole: React.FC<FlipConsoleProps> = ({
                       {e.meta && (
                         <p className="line-clamp-2 text-[10px] leading-relaxed text-muted-foreground">
                           {e.meta}
+                        </p>
+                      )}
+                      {e.detail && (
+                        <p className="line-clamp-2 text-[10px] leading-relaxed text-muted-foreground">
+                          {e.detail}
                         </p>
                       )}
                       {formatEntryPrice(e) && (

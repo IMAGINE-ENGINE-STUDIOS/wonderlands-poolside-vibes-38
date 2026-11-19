@@ -9,6 +9,9 @@ export type ConsoleEntry = {
   price?: number;
   unit?: "sqft" | "linear-ft" | "each";
   meta?: string;
+  /** Extra display line under meta, also searched (e.g. paver printed
+   *  sizes and laying pattern names from the ported Belgard data). */
+  detail?: string;
   brand?: string;
   /** Flat colour swatch when there is no photograph (e.g. gelcoat) */
   color?: string;
@@ -193,7 +196,10 @@ async function resolveCategoryEntries(categoryId: string): Promise<ConsoleEntry[
       }));
     }
     case "pavers": {
-      const { paverTypes } = await import("@/data/paverData");
+      const [{ paverTypes }, display] = await Promise.all([
+        import("@/data/paverData"),
+        import("@/lib/paverDisplay"),
+      ]);
       return paverTypes.map((p) => ({
         id: p.id,
         name: p.name,
@@ -201,6 +207,9 @@ async function resolveCategoryEntries(categoryId: string): Promise<ConsoleEntry[
         price: p.basePrice,
         unit: "sqft" as const,
         meta: p.description,
+        detail:
+          display.paverDisplaySummary(display.getPaverDisplayInfo(p)) ??
+          undefined,
       }));
     }
     case "artificial-grass": {

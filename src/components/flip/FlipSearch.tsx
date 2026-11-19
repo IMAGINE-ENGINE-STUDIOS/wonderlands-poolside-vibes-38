@@ -98,7 +98,7 @@ const FlipSearch: React.FC<{
       const s = score(`${it.label} ${it.tagline ?? ""} ${(it.notes ?? []).join(" ")}`, q);
       if (s) out.push({ r: { kind: "category", categoryId: it.id, label: it.label, note: it.tagline, image: it.images?.[0] }, s: s + 4 });
       (catalogue[it.id] ?? []).forEach((e) => {
-        const es = score(`${e.name} ${e.brand ?? ""} ${e.meta ?? ""} ${it.label}`, q);
+        const es = score(`${e.name} ${e.brand ?? ""} ${e.meta ?? ""} ${e.detail ?? ""} ${it.label}`, q);
         if (es)
           out.push({
             r: {
