@@ -96,7 +96,7 @@ const SCREEN_STYLES = [
   { id: "premium", label: "2-story cage", rate: SCREEN_ENCLOSURE_PRICING.premium, heights: [18, 20] },
 ];
 const SCREEN_COLORS = [{ id: "bronze", hex: "#6b4a2b" }, { id: "white", hex: "#e9e9e6" }, { id: "black", hex: "#222" }];
-const DECK_COLORS: Record<string, string> = { appian: "#b98a62", catalina: "#c9a27c", travertine: "#e2d3b8", coralina: "#d8d2c8" };
+const DECK_COLORS: Record<string, string> = { appian: "#b98a62", catalina: "#c9a27c", travertini: "#e2d3b8", coralina: "#d8d2c8" };
 
 const buildCatalog = (): Product[] => {
   const seen = new Set<string>();

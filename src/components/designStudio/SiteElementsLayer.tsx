@@ -87,7 +87,7 @@ export function siteElementImage(e: SiteElement): string | undefined {
 }
 /** Pavers grouped by family (Appian, Catalina Grana, …) for a symmetrical picker. */
 const DECK_FAMILIES: [string, typeof DECK_PAVERS][] = (() => {
-  const fams = ["Catalina Grana", "Gloca Mirage", "Appian", "Catalina", "Coralina", "Travertine"];
+  const fams = ["Catalina Grana", "Glocal", "Appian", "Catalina", "Coralina", "Travertini"];
   const m = new Map<string, typeof DECK_PAVERS>();
   for (const d of DECK_PAVERS) { const f = fams.find((x) => d.label.startsWith(x)) ?? "Other"; m.set(f, [...(m.get(f) ?? []), d]); }
   return [...m.entries()];

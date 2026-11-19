@@ -16,7 +16,7 @@ import InstallationNote from "@/components/InstallationNote";
  * PaversSection — every paver collection in `src/data/paverData.ts`, rendered
  * from one declarative list so new collections appear automatically instead of
  * needing another hard-coded card (previously only Appian + Catalina showed,
- * hiding Travertine, Coralina and Gloca Mirage).
+ * hiding Travertini, Coralina and Glocal).
  *
  * Prices come from each paver's `basePrice` ($/sq ft) — the collection "from"
  * figure is the minimum basePrice in that collection, so the card can never
@@ -80,16 +80,16 @@ const COLLECTIONS: CollectionDef[] = [
     ],
   },
   {
-    key: "travertine",
-    name: "Travertine Collection",
-    badge: "Natural Stone",
+    key: "travertini",
+    name: "Travertini Collection",
+    badge: "Porcelain",
     description:
-      "Natural travertine in light, dark, honed and tumbled finishes — cool underfoot and quietly luxurious.",
-    match: (p) => p.id.startsWith("travertine"),
+      "Travertini porcelain with a natural travertine look — vein-cut and cross-cut finishes, cool underfoot and quietly luxurious.",
+    match: (p) => p.id.startsWith("travertini"),
     features: [
-      "Natural quarried stone",
+      "Mirage porcelain — travertine look, not natural stone",
       "Stays cool underfoot",
-      "Honed, tumbled and classic finishes",
+      "Vein-cut and cross-cut finishes",
       "Premium pool coping match available",
       "Professional installation included",
     ],
@@ -110,15 +110,15 @@ const COLLECTIONS: CollectionDef[] = [
     ],
   },
   {
-    key: "gloca-mirage",
-    name: "Gloca Mirage Collection",
+    key: "glocal",
+    name: "Glocal Collection",
     badge: "Large Format",
     description:
-      "Gloca Mirage large-format porcelain in 24x48 and 48x48 — Ideal, Concrete and Chairmues surfaces.",
-    match: (p) => p.id.startsWith("gloca-mirage"),
+      "Glocal large-format porcelain in 24x48 and 48x48 — Ideal and Absolute surfaces.",
+    match: (p) => p.id.startsWith("glocal"),
     features: [
       "48x48 and 24x48 large formats",
-      "Ideal, Concrete and Chairmues finishes",
+      "Ideal and Absolute finishes",
       "Rectified edges for tight joints",
       "High slip resistance rating",
       "Professional installation included",
@@ -283,8 +283,8 @@ const PaversSection = () => {
                       "Appian ",
                       "Catalina Grana ",
                       "Catalina ",
-                      "Travertine ",
-                      "Gloca Mirage ",
+                      "Travertini ",
+                      "Glocal ",
                     ])}
                   </div>
 

@@ -156,8 +156,8 @@ const endpoints = [
   "data": [
     {
       "id": "uuid",
-      "name": "Travertine Classic",
-      "category": "natural_stone",
+      "name": "Travertini Light Vein",
+      "category": "porcelain",
       "collection": "Premium",
       "base_price": 12.50,
       "image_url": "https://wonderlands-poolside-vibes-38.lovable.app/media/paver-example.png"
@@ -182,8 +182,8 @@ const endpoints = [
     exampleResponse: `{
   "data": {
     "id": "uuid",
-    "name": "Travertine Classic",
-    "category": "natural_stone",
+    "name": "Travertini Light Vein",
+    "category": "porcelain",
     "collection": "Premium",
     "base_price": 12.50,
     "image_url": "https://wonderlands-poolside-vibes-38.lovable.app/media/paver-example.png"

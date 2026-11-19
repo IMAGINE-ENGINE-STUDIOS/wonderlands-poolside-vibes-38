@@ -150,7 +150,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
     { name: 'Glacier Blue', color: '#0EA5E9', price: 0 }
   ];
 
-  // Paver options from paverData with $22/sq ft pricing for travertine
+  // Paver options from paverData with $22/sq ft pricing for Travertini
   const paverOptions = [{
     name: 'Concrete Deck',
     price: 10,

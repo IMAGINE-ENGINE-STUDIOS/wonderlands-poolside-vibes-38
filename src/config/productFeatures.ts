@@ -220,7 +220,7 @@ const coverColorFeature: FeatureConfig = {
 
 /**
  * Every paver Wonderlands actually sells, read straight from `paverData` so the
- * premium collections (Coralina, Gloca Mirage, Travertine…) can never go missing
+ * premium collections (Coralina, Glocal, Travertini…) can never go missing
  * from a product card, the studio or a FLIP book. Rates are $ per square foot
  * and the list is ordered cheapest first.
  */

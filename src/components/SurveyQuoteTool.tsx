@@ -2005,7 +2005,7 @@ const SurveyQuoteTool = ({
                                     'Appian Rio': '/media/b7d9216e-3489-4a50-827d-974a5b6481be.webp',
                                     'Appian Slate': '/media/fcc4d668-4682-47d8-89c4-5cba819f80ed.webp',
                                     'Appian Titanium': '/media/c86467c2-f57b-407c-a9f8-9ad2143552c2.webp',
-                                    'Appian Charco': '/media/6d98de42-0baa-42af-a04c-3b16e3dcb6a6.webp',
+                                    'Appian Charcoal': '/media/6d98de42-0baa-42af-a04c-3b16e3dcb6a6.webp',
                                     'Catalina Grana Amaretto': '/media/58a4af60-11d8-4589-b955-f689476fc1b3.webp',
                                     'Catalina Grana Napoli': '/media/c16269fd-9db6-4791-8cef-9aaf0f5e972a.webp',
                                     'Catalina Grana Rio': '/media/d8bded3c-41a9-4591-b0bc-3e20a9977602.webp',
@@ -2344,7 +2344,7 @@ const SurveyQuoteTool = ({
                         'Appian Rio': '/media/b7d9216e-3489-4a50-827d-974a5b6481be.webp',
                         'Appian Slate': '/media/fcc4d668-4682-47d8-89c4-5cba819f80ed.webp',
                         'Appian Titanium': '/media/c86467c2-f57b-407c-a9f8-9ad2143552c2.webp',
-                        'Appian Charco': '/media/6d98de42-0baa-42af-a04c-3b16e3dcb6a6.webp',
+                        'Appian Charcoal': '/media/6d98de42-0baa-42af-a04c-3b16e3dcb6a6.webp',
                         // Catalina Grana Collection
                         'Catalina Grana Amaretto': '/media/58a4af60-11d8-4589-b955-f689476fc1b3.webp',
                         'Catalina Grana Napoli': '/media/c16269fd-9db6-4791-8cef-9aaf0f5e972a.webp',

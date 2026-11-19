@@ -1,9 +1,7 @@
 // Paver and coping data with different types and color options
 // Assets are imported (never referenced by raw /src/assets string paths) so the
 // bundler resolves and fingerprints them for production.
-import glocaMirageIdeal from '@/assets/pavers/gloca-mirage-ideal.webp';
-import glocaMirageConcrete from '@/assets/pavers/gloca-mirage-concrete.webp';
-import glocaMirageChairmues from '@/assets/pavers/gloca-mirage-chairmues.webp';
+
 
 export interface PaverType {
   id: string;
@@ -89,9 +87,9 @@ export const paverTypes: PaverType[] = [
     image: '/media/c86467c2-f57b-407c-a9f8-9ad2143552c2.webp'
   },
   {
-    id: 'appian-charco',
-    name: 'Appian Charco',
-    description: 'Deep Charco tones from the Appian Collection',
+    id: 'appian-charcoal',
+    name: 'Appian Charcoal',
+    description: 'Deep Charcoal tones from the Appian Collection',
     basePrice: 15,
     category: 'paver',
     image: '/media/6d98de42-0baa-42af-a04c-3b16e3dcb6a6.webp'
@@ -183,138 +181,97 @@ export const paverTypes: PaverType[] = [
     image: '/media/coralina-blanco.webp'
   },
 
-  // Gloca Mirage Porcelain Deck Collection - $26/sqft
+  // Glocal Porcelain Deck Collection (Mirage) - $26/sqft
   {
-    id: 'gloca-mirage-ideal-48x48',
-    name: 'Gloca Mirage Ideal 48x48',
-    description: 'Premium Gloca Mirage porcelain deck — Ideal color in 48x48 large format',
+    id: 'glocal-ideal-48x48',
+    name: 'Glocal Ideal 48x48',
+    description: 'Premium Glocal porcelain deck — Ideal color in 48x48 large format',
     basePrice: 26,
     category: 'paver',
-    image: glocaMirageIdeal
+    image: '/media/pavers/glocal-ideal.webp'
   },
   {
-    id: 'gloca-mirage-ideal-24x48',
-    name: 'Gloca Mirage Ideal 24x48',
-    description: 'Premium Gloca Mirage porcelain deck — Ideal color in 24x48 plank format',
+    id: 'glocal-ideal-24x48',
+    name: 'Glocal Ideal 24x48',
+    description: 'Premium Glocal porcelain deck — Ideal color in 24x48 plank format',
     basePrice: 26,
     category: 'paver',
-    image: glocaMirageIdeal
+    image: '/media/pavers/glocal-ideal.webp'
   },
   {
-    id: 'gloca-mirage-concrete-48x48',
-    name: 'Gloca Mirage Concrete 48x48',
-    description: 'Premium Gloca Mirage porcelain deck — Concrete color in 48x48 large format',
+    id: 'glocal-absolute-48x48',
+    name: 'Glocal Absolute 48x48',
+    description: 'Premium Glocal porcelain deck — Absolute dark color in 48x48 large format',
     basePrice: 26,
     category: 'paver',
-    image: glocaMirageConcrete
+    image: '/media/pavers/glocal-absolute.webp'
   },
   {
-    id: 'gloca-mirage-concrete-24x48',
-    name: 'Gloca Mirage Concrete 24x48',
-    description: 'Premium Gloca Mirage porcelain deck — Concrete color in 24x48 plank format',
+    id: 'glocal-absolute-24x48',
+    name: 'Glocal Absolute 24x48',
+    description: 'Premium Glocal porcelain deck — Absolute dark color in 24x48 plank format',
     basePrice: 26,
     category: 'paver',
-    image: glocaMirageConcrete
-  },
-  {
-    id: 'gloca-mirage-chairmues-48x48',
-    name: 'Gloca Mirage Chairmues 48x48',
-    description: 'Premium Gloca Mirage porcelain deck — Chairmues dark color in 48x48 large format',
-    basePrice: 26,
-    category: 'paver',
-    image: glocaMirageChairmues
-  },
-  {
-    id: 'gloca-mirage-chairmues-24x48',
-    name: 'Gloca Mirage Chairmues 24x48',
-    description: 'Premium Gloca Mirage porcelain deck — Chairmues dark color in 24x48 plank format',
-    basePrice: 26,
-    category: 'paver',
-    image: glocaMirageChairmues
+    image: '/media/pavers/glocal-absolute.webp'
   },
   
-  // Premium Travertine Collection - $22/sqft
+  // Travertini Porcelain Collection (Mirage) - $22/sqft
+  // Travertini is a Mirage PORCELAIN paver with a travertine look — not natural stone.
   {
-    id: 'travertine-light',
-    name: 'Travertine Light',
-    description: 'Premium Travertine Light natural stone deck finish',
+    id: 'travertini-light-vein',
+    name: 'Travertini Light Vein',
+    description: 'Travertini Light Vein — Mirage porcelain deck finish with a vein-cut travertine look',
     basePrice: 22,
     category: 'paver',
     image: '/media/deck-light.webp'
   },
   {
-    id: 'travertine-dark',
-    name: 'Travertine Dark',
-    description: 'Premium Travertine Dark natural stone deck finish',
+    id: 'travertini-dark-vein',
+    name: 'Travertini Dark Vein',
+    description: 'Travertini Dark Vein — Mirage porcelain deck finish with a vein-cut travertine look',
     basePrice: 22,
     category: 'paver',
     image: '/media/deck-dark.webp'
   },
   {
-    id: 'travertine-misty',
-    name: 'Travertine Misty',
-    description: 'Premium Travertine Misty natural stone deck finish',
+    id: 'travertini-misty-vein',
+    name: 'Travertini Misty Vein',
+    description: 'Travertini Misty Vein — Mirage porcelain deck finish with a vein-cut travertine look',
     basePrice: 22,
     category: 'paver',
     image: '/media/deck-misty.webp'
   },
   {
-    id: 'travertine-steel',
-    name: 'Travertine Steel',
-    description: 'Premium Travertine Steel natural stone deck finish',
+    id: 'travertini-light-cross',
+    name: 'Travertini Light Cross',
+    description: 'Travertini Light Cross — Mirage porcelain deck finish with a cross-cut travertine look',
     basePrice: 22,
     category: 'paver',
     image: '/media/deck-steel.webp'
   },
   {
-    id: 'travertine-pearly',
-    name: 'Travertine Pearly',
-    description: 'Premium Travertine Pearly natural stone deck finish',
+    id: 'travertini-pearly-cross',
+    name: 'Travertini Pearly Cross',
+    description: 'Travertini Pearly Cross — Mirage porcelain deck finish with a cross-cut travertine look',
     basePrice: 22,
     category: 'paver',
     image: '/media/deck-pearly.webp'
   },
   {
-    id: 'travertine-silver',
-    name: 'Travertine Silver',
-    description: 'Premium Travertine Silver natural stone deck finish',
+    id: 'travertini-misty-cross',
+    name: 'Travertini Misty Cross',
+    description: 'Travertini Misty Cross — Mirage porcelain deck finish with a cross-cut travertine look',
     basePrice: 22,
     category: 'paver',
     image: '/media/deck-silver.webp'
   },
   {
-    id: 'travertine-rustic',
-    name: 'Travertine Rustic',
-    description: 'Premium Travertine Rustic natural stone deck finish',
+    id: 'travertini-rustic-cross',
+    name: 'Travertini Rustic Cross',
+    description: 'Travertini Rustic Cross — Mirage porcelain deck finish with a cross-cut travertine look',
     basePrice: 22,
     category: 'paver',
     image: '/media/deck-rustic.webp'
-  },
-  
-  // Premium Travertine Finishes - $22/sqft
-  {
-    id: 'travertine-classic',
-    name: 'Travertine Classic',
-    description: 'Premium natural travertine pavers with classic finish',
-    basePrice: 22,
-    category: 'paver',
-    image: '/media/classic-brown.webp'
-  },
-  {
-    id: 'travertine-tumbled',
-    name: 'Travertine Tumbled',
-    description: 'Premium tumbled travertine pavers with antique finish',
-    basePrice: 22,
-    category: 'paver',
-    image: '/media/classic-grey.webp'
-  },
-  {
-    id: 'travertine-honed',
-    name: 'Travertine Honed',
-    description: 'Premium honed travertine pavers with smooth finish',
-    basePrice: 22,
-    category: 'paver',
-    image: '/media/deck-light.webp'
   }
 ];
 
