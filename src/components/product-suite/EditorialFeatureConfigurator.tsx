@@ -5,6 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import {
   calculateFeaturePrice,
+  getFeatureLineImage,
   getProductFeatures,
   type FeatureConfig,
   type ProductType,
@@ -63,7 +64,7 @@ export const featureExtrasBreakdown = (
   productType: ProductType,
   extras: Record<string, any>,
   priceMultiplier = 1,
-): Array<{ name: string; price: number; key: string }> =>
+): Array<{ name: string; price: number; key: string; image?: string }> =>
   getProductFeatures(productType)
     .map((feature) => {
       const price = calculateFeaturePrice(feature, extras[feature.id], extras) * priceMultiplier;
@@ -78,10 +79,12 @@ export const featureExtrasBreakdown = (
               ? `${feature.label} × ${value}`
               : feature.label;
       /* `key` lets the shared shopping-list widget edit or drop this exact
-         feature at its source (the suite's `extras` state). */
-      return { name, price, key: feature.id };
+         feature at its source (the suite's `extras` state). `image` is the
+         selected option's own catalogue photo, carried so the quote shows
+         the exact feature the guest chose instead of a fallback picture. */
+      return { name, price, key: feature.id, image: getFeatureLineImage(feature, value, extras) };
     })
-    .filter(Boolean) as Array<{ name: string; price: number; key: string }>;
+    .filter(Boolean) as Array<{ name: string; price: number; key: string; image?: string }>;
 
 const EditorialFeatureConfigurator: React.FC<EditorialFeatureConfiguratorProps> = ({
   productType,

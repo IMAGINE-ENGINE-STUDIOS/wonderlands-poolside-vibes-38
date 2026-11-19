@@ -12,7 +12,10 @@ export const cartToQuoteLines = (
   excludeName?: string | null
 ): QuoteLine[] =>
   (cartItems || [])
-    .filter(item => !excludeName || item.name !== excludeName)
+    /* The product being quoted is never merged back in as its own extra.
+       Suites name their cart copy "<Brand> <Model>", so a name that merely
+       ends with the quoted product's name is the same product too. */
+    .filter(item => !excludeName || (item.name !== excludeName && !item.name.endsWith(` ${excludeName}`)))
     .flatMap(item => {
       const qty = item.quantity || 1;
       return [

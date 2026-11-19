@@ -1042,6 +1042,37 @@ export const calculateFeaturePrice = (
   return price;
 };
 
+/**
+ * The selected option's own photo for a configured feature line — the same
+ * lookup `calculateFeaturePrice` uses to find the price. Selection/nested
+ * features resolve the chosen option's image; area features resolve the
+ * chosen sub-option's image; every other type falls back to the feature's
+ * own image. Returns undefined when the catalogue carries no photo, so
+ * callers can leave the line imageless rather than invent one.
+ */
+export const getFeatureLineImage = (
+  feature: FeatureConfig,
+  value: any,
+  extras?: any
+): string | undefined => {
+  if ((feature.type === 'selection' || feature.type === 'nested') && feature.options) {
+    const selected = feature.options.find(opt =>
+      opt.name === value || opt.model === value
+    );
+    if (selected?.image) return selected.image;
+  }
+  if (feature.type === 'area' && feature.options?.length) {
+    const optionKey = `${feature.id}Option`;
+    const optionName =
+      extras?.[optionKey] ??
+      (feature.id === 'pavers' ? extras?.paverOption : undefined) ??
+      (feature.id === 'screenEnclosure' ? extras?.screenEnclosureQuality : undefined);
+    const selectedOption = feature.options.find(opt => opt.name === optionName);
+    if (selectedOption?.image) return selectedOption.image;
+  }
+  return feature.image;
+};
+
 // Helper to get default extras for a product type
 export const getDefaultExtras = (productType: ProductType): any => {
   const features = getProductFeatures(productType);

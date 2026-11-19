@@ -455,7 +455,15 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({
         pool={null}
         isOpen={quoteOpen}
         onClose={() => setQuoteOpen(false)}
-        extras={extras}
+        /* Saunas quote exactly like the sauna product card: the configured
+           features travel as an explicit breakdown (each line carrying its
+           own photo) with the suite's pre-calculated total, instead of the
+           raw selection record the other suites pass. */
+        extras={
+          productType === "sauna"
+            ? { productType, extrasTotal, totalPrice: total, extrasBreakdown: breakdown }
+            : extras
+        }
         customProduct={
           model
             ? { name: model.name, price: base, type: productType, image: model.image }

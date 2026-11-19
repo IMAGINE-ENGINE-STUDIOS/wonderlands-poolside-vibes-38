@@ -5,7 +5,7 @@ import { Flame, Users, Zap, Clock, ShieldCheck, ChevronDown, ChevronUp, Lock, Bo
 import { OptimizedImage } from "./OptimizedImage";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import { DynamicFeatureRenderer } from "./DynamicFeatureRenderer";
-import { getProductFeatures, calculateFeaturePrice } from "@/config/productFeatures";
+import { getProductFeatures, calculateFeaturePrice, getFeatureLineImage } from "@/config/productFeatures";
 import { useProjectType } from "@/contexts/ProjectTypeContext";
 import { resolveCategoryLabel } from '@/lib/productCategories';
 import SaunaSalesPricingDialog from "./sauna/SaunaSalesPricingDialog";
@@ -231,9 +231,11 @@ const SaunaProductCard = ({ sauna }: SaunaProductCardProps) => {
               const value = extras[feature.id];
               const name =
                 feature.type === 'selection' ? `${feature.label} — ${value}` : feature.label;
-              return { name, price };
+              /* Carry the selected option's own catalogue photo so the quote
+                 shows the exact feature chosen, never a fallback picture. */
+              return { name, price, image: getFeatureLineImage(feature, value, extras) };
             })
-            .filter(Boolean) as Array<{ name: string; price: number }>,
+            .filter(Boolean) as Array<{ name: string; price: number; image?: string }>,
         }}
         isOpen={showQuote}
         onClose={() => setShowQuote(false)}
