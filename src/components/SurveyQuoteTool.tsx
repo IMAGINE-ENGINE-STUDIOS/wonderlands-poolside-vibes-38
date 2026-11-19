@@ -1,5 +1,5 @@
 import * as React from "react";
-const { useState, useEffect } = React;
+const { useState, useEffect, useRef } = React;
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -248,6 +248,9 @@ const SurveyQuoteTool = ({
   const [isEditMode, setIsEditMode] = useState(false);
   const [passcodeInput, setPasscodeInput] = useState("");
   const [editableQuoteAmount, setEditableQuoteAmount] = useState<number>(0);
+  // True only when the admin types the total by hand in Edit Mode; while false,
+  // the seeded total tracks calculateQuote() as items are added or prices edited.
+  const quoteTotalTouchedRef = useRef(false);
   const [hiddenSections, setHiddenSections] = useState<Set<string>>(new Set());
   const [editableTexts, setEditableTexts] = useState<Record<string, string>>({});
   const [editablePrices, setEditablePrices] = useState<Record<string, number>>({});
@@ -568,6 +571,7 @@ const SurveyQuoteTool = ({
       setIsEditMode(true);
       // Initialize editableQuoteAmount with current calculated value
       const currentQuote = calculateQuote();
+      quoteTotalTouchedRef.current = false;
       setEditableQuoteAmount(currentQuote);
       
       // Initialize all editable texts with current values if not already set
@@ -772,6 +776,19 @@ const SurveyQuoteTool = ({
 
     return Math.round(basePrice);
   };
+
+  // While the admin is in Edit Mode and has not typed the total by hand, keep
+  // the seeded editable total in step with the live calculation, so items
+  // added in Edit Mode (e.g. a pool added to a finish quote) are included in
+  // the Total Investment instead of the total staying frozen at entry time.
+  useEffect(() => {
+    if (isEditMode && !quoteTotalTouchedRef.current) {
+      const t = calculateQuote();
+      setEditableQuoteAmount(prev => (prev !== t ? t : prev));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEditMode, customItems, selectedOptions, editablePrices]);
+
   const getPoolArea = () => {
     if (!displayPool?.dimensions) return 600; // Default pool area
 
@@ -1727,6 +1744,12 @@ const SurveyQuoteTool = ({
                   const isSaunaProduct = customProduct?.type === 'Sauna' || extras?.productType === 'sauna';
                   const isPoolItself = !!pool || !!subjectPoolInfo || String(customProduct?.type || '').toLowerCase() === 'pool';
                   const isConcreteConstruction = !!(extras?.concreteConstruction || (!pool && isPoolType(customProduct?.type)) || (pool?.model && ['Madre Perla', 'Winderview', 'Pacific Ridge', 'Maxima', 'Cape Coral', 'Royal Lake', 'Royal Lake 8.10', 'Royal Lake 10.16'].includes(pool.model)) || subjectPoolInfo?.brand === "Wonderlands");
+                  // Edit Mode seeds this heading before any custom item exists; if a
+                  // pool was added afterwards, the seeded non-pool default must not
+                  // override the pool heading.
+                  const productTitleText = (subjectPoolInfo && editableTexts['product-title'] === 'Product Details')
+                    ? 'Pool Specifications'
+                    : (editableTexts['product-title'] || (isLanaiProduct ? 'Lanai Specifications' : isPoolProduct ? 'Pool Specifications' : 'Product Details'));
 
                   return (
                     <>
@@ -1734,11 +1757,11 @@ const SurveyQuoteTool = ({
                         {isEditMode ? (
                           <input
                             type="text"
-                            value={editableTexts['product-title'] || (isLanaiProduct ? 'Lanai Specifications' : isPoolProduct ? 'Pool Specifications' : 'Product Details')}
+                            value={productTitleText}
                             onChange={(e) => setEditableTexts({...editableTexts, 'product-title': e.target.value})}
                             className="bg-white border rounded px-2 py-1 w-full"
                           />
-                        ) : (editableTexts['product-title'] || (isLanaiProduct ? 'Lanai Specifications' : isPoolProduct ? 'Pool Specifications' : 'Product Details'))}
+                        ) : productTitleText}
                       </h3>
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -2760,27 +2783,27 @@ const SurveyQuoteTool = ({
                   <div className="bg-gradient-to-br from-blue-100 to-green-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg avoid-break">
                     {isEditMode ? (
                       <Input
-                        value={editableTexts['installation-time-title'] || 'Installation Time'}
+                        value={(subjectPoolInfo && editableTexts['installation-time-title'] === 'Installation Time') ? 'Estimated Build Time' : (editableTexts['installation-time-title'] || 'Installation Time')}
                         onChange={(e) => setEditableTexts(prev => ({ ...prev, 'installation-time-title': e.target.value }))}
                         className="font-bold text-lg mb-2 text-blue-600 bg-white/50"
                       />
                     ) : (
                       <h4 className="font-bold text-lg mb-2 text-blue-600">
-                        {editableTexts['installation-time-title'] || (() => {
+                        {(subjectPoolInfo && editableTexts['installation-time-title'] === 'Installation Time') ? 'Estimated Build Time' : (editableTexts['installation-time-title'] || (() => {
                           const isPoolProduct = pool || (customProduct && isPoolType(customProduct.type)) || !!subjectPoolInfo;
                           return isPoolProduct ? 'Estimated Build Time' : 'Installation Time';
-                        })()}
+                        })())}
                       </h4>
                     )}
                     {isEditMode ? (
                       <Input
-                        value={editableTexts['installation-time-text'] || getInstallationTimeText()}
+                        value={(subjectPoolInfo && editableTexts['installation-time-text'] && (editableTexts['installation-time-text'].includes('Installation same day') || editableTexts['installation-time-text'].startsWith('Arrives'))) ? getInstallationTimeText() : (editableTexts['installation-time-text'] || getInstallationTimeText())}
                         onChange={(e) => setEditableTexts(prev => ({ ...prev, 'installation-time-text': e.target.value }))}
                         className="text-sm bg-white/50"
                       />
                     ) : (
                       <p className="text-sm">
-                        {editableTexts['installation-time-text'] || getInstallationTimeText()}
+                        {(subjectPoolInfo && editableTexts['installation-time-text'] && (editableTexts['installation-time-text'].includes('Installation same day') || editableTexts['installation-time-text'].startsWith('Arrives'))) ? getInstallationTimeText() : (editableTexts['installation-time-text'] || getInstallationTimeText())}
                       </p>
                     )}
                     {(() => {
@@ -2826,7 +2849,7 @@ const SurveyQuoteTool = ({
                    {isEditMode ? (
                      <PriceInput
                        value={editableQuoteAmount}
-                       onCommit={(n) => setEditableQuoteAmount(n)}
+                       onCommit={(n) => { quoteTotalTouchedRef.current = true; setEditableQuoteAmount(n); }}
                        className="text-4xl font-bold bg-white text-gray-900 px-4 py-2 rounded w-full text-center"
                      />
                    ) : (
