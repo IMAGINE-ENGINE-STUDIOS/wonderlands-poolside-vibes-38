@@ -31,6 +31,7 @@ import { boardTo3D, saveBoard3D, loadBoard3D, applyBoard3DToItems, BOARD_3D_EVEN
 import { FENCE_HEIGHTS as CONFIG_FENCE_HEIGHTS } from "@/data/fenceConfigurator";
 import { SCREEN_ENCLOSURE_PRICING, CONCRETE_DECK_PRICE_PER_SQFT } from "@/utils/paverPricing";
 import { paverTypes } from "@/data/paverData";
+import { getPaverDisplayInfo } from "@/lib/paverDisplay";
 import aluFenceImg from "@/assets/fencing/aluminum-panel-2.webp";
 import vinylFenceAsset from "@/assets/fencing/vinyl-fence.avif.asset.json";
 import screenPremiumImg from "@/assets/enclosures/screen-enclosure-premium.webp";
@@ -115,10 +116,19 @@ const buildCatalog = (): Product[] => {
   const turf: Product[] = GRASS_PRODUCTS_FOR_BOARD();
   const deck: Product[] = [
     { id: "deck:concrete", kind: "deck", label: "Concrete deck", detail: "Broom finish", rate: CONCRETE_DECK_PRICE_PER_SQFT, unit: "sqft", color: "#c9c3b8" },
-    ...paverTypes.filter((p) => p.category === "paver").map((p) => ({
-      id: `deck:${p.id}`, kind: "deck" as Kind, label: p.name, detail: "Paver", rate: p.basePrice, unit: "sqft" as const, image: p.image,
-      color: DECK_COLORS[Object.keys(DECK_COLORS).find((k) => p.id.includes(k)) ?? ""] ?? "#d6cbb8",
-    })),
+    ...paverTypes.filter((p) => p.category === "paver").map((p) => {
+      // Display enrichment (Paver Port Wiring Job 7): the deck entry shows
+      // this color's real unit face and the catalog printed sizes, resolved
+      // by the shared paverDisplay helper. The rate expression below is
+      // untouched; a product with no extracted face keeps its store image.
+      const info = getPaverDisplayInfo(p);
+      return {
+        id: `deck:${p.id}`, kind: "deck" as Kind, label: p.name,
+        detail: info.sizes.length ? `Paver · Printed sizes (in): ${info.sizes.join(", ")}` : "Paver",
+        rate: p.basePrice, unit: "sqft" as const, image: info.faceImage ?? p.image,
+        color: DECK_COLORS[Object.keys(DECK_COLORS).find((k) => p.id.includes(k)) ?? ""] ?? "#d6cbb8",
+      };
+    }),
   ];
   return [...pools, ...spas, ...deck, ...turf, ...fences, ...screens];
 };
