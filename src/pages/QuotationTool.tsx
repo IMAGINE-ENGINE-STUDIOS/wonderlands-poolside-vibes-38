@@ -6,6 +6,7 @@ import { ITEMS } from "@/components/FlipIndex";
 import type { ConsoleEntry } from "@/components/flip/flipConsoleData";
 import StudioCartWidget from "@/components/StudioCartWidget";
 import SurveyQuoteTool from "@/components/SurveyQuoteTool";
+import { pools } from "@/components/PoolCatalog";
 import QuoteStudioConfigurator, {
   type ConfiguredProduct,
   type ConfiguratorControls,
@@ -502,7 +503,24 @@ const QuotationTool = () => {
       )}
 
       <SurveyQuoteTool
-        pool={null}
+        pool={
+          product
+            ? (() => {
+                const p = pools.find((x) => x.model === product.name);
+                return p
+                  ? {
+                      model: p.model,
+                      price: product.basePrice,
+                      category: p.category,
+                      dimensions: p.dimensions,
+                      depth: p.depth,
+                      image: p.image,
+                      warrantyYears: p.warrantyYears,
+                    }
+                  : null;
+              })()
+            : null
+        }
         isOpen={quoteOpen}
         onClose={() => setQuoteOpen(false)}
         extras={quoteExtras}

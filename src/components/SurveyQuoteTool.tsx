@@ -22,6 +22,7 @@ import { listSavedQuotes, saveQuoteSnapshot, deleteSavedQuote, type SavedQuoteSn
 import { useOptionalShoppingCart } from "@/components/ShoppingCartProvider";
 import { mergeCartIntoExtras } from "@/lib/cartQuoteLines";
 import { resolveDiscipline, getDisciplineConfig } from "@/lib/quoteDisciplines";
+import { findProductInfo } from "@/data/poolProductLookup";
 import { quoteLineImage, CUSTOM_POOL_IMAGE } from "@/lib/design/sceneQuoteCatalog";
 
 // Every photo the platform holds for a pool model, from the model's own
@@ -166,9 +167,7 @@ const SurveyQuoteTool = ({
   );
 
   // Category registry: title, inclusions and warranties for this product only
-  const discipline = resolveDiscipline({ pool, customProduct, extras });
-  const disciplineCfg = getDisciplineConfig(discipline);
-  const isSolar = discipline === 'solar';
+  const baseDiscipline = resolveDiscipline({ pool, customProduct, extras });
   const [solarInputs, setSolarInputs] = useState<SolarQuoteInputs>(DEFAULT_SOLAR_INPUTS);
   const [solarLines, setSolarLines] = useState<SolarQuoteLine[]>([]);
 
@@ -259,6 +258,23 @@ const SurveyQuoteTool = ({
   // Custom extra items added by admin in Edit Mode
   type CustomQuoteItem = { id: string; name: string; price: number; image?: string };
   const [customItems, setCustomItems] = useState<CustomQuoteItem[]>([]);
+
+  // A quote composed from another product's card (for example a finish) can
+  // still carry a pool among its added items. When it does, the pool is the
+  // product of the quote: the document takes the pool format, the pool
+  // specifications and the pool build time, however the quote was started.
+  const baseIsCatalogPool = !!pool && !!pool.model && findProductInfo(pool.model)?.category === "Pool";
+  const subjectPoolInfo = (!baseIsCatalogPool && !(customProduct && isPoolType(customProduct.type)))
+    ? ([...customItems.map((ci) => ci?.name), ...((extras?.extrasBreakdown || []) as any[]).map((l: any) => l?.name)]
+        .map((n) => (n ? findProductInfo(String(n)) : undefined))
+        .find((info) => info && info.category === "Pool") || null)
+    : null;
+  const displayPool = subjectPoolInfo
+    ? { model: subjectPoolInfo.name, dimensions: subjectPoolInfo.dimensions, depth: subjectPoolInfo.depth, price: subjectPoolInfo.price, image: subjectPoolInfo.image }
+    : pool;
+  const discipline = (subjectPoolInfo ? "pool" : baseDiscipline) as typeof baseDiscipline;
+  const disciplineCfg = getDisciplineConfig(discipline);
+  const isSolar = discipline === 'solar';
 
   const handleAddCustomItem = () => {
     const id = (typeof crypto !== 'undefined' && 'randomUUID' in crypto)
@@ -532,14 +548,14 @@ const SurveyQuoteTool = ({
     }
   };
   const getInstallationTimeText = () => {
-    const isPoolProduct = pool || (customProduct && isPoolType(customProduct.type));
+    const isPoolProduct = pool || (customProduct && isPoolType(customProduct.type)) || !!subjectPoolInfo;
     
     if (!isPoolProduct) {
       const deliveryDate = new Date(Date.now() + 6 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
       return `Arrives ${deliveryDate} • Installation same day`;
     }
     
-    if ((extras?.concreteConstruction || (!pool && isPoolType(customProduct?.type))) || pool?.model === "Madre Perla" || pool?.model === "Winderview" || pool?.model === "Pacific Ridge" || pool?.model === "Maxima" || pool?.model === "Cape Coral" || pool?.model === "Royal Lake" || pool?.model === "Royal Lake 8.10" || pool?.model === "Royal Lake 10.16") {
+    if ((extras?.concreteConstruction || (!pool && isPoolType(customProduct?.type))) || subjectPoolInfo?.brand === "Wonderlands" || pool?.model === "Madre Perla" || pool?.model === "Winderview" || pool?.model === "Pacific Ridge" || pool?.model === "Maxima" || pool?.model === "Cape Coral" || pool?.model === "Royal Lake" || pool?.model === "Royal Lake 8.10" || pool?.model === "Royal Lake 10.16") {
       return "18+ weeks";
     }
     
@@ -561,14 +577,14 @@ const SurveyQuoteTool = ({
         'contact-phone': prev['contact-phone'] || '+1 (239) 257-0637',
         'contact-email': prev['contact-email'] || 'sales@wonderlandsworld.com',
         'business-hours': prev['business-hours'] || 'Business Hours: Mon-Fri 8AM-6PM, Sat 9AM-4PM',
-        'product-title': prev['product-title'] || (extras?.productType === 'lanai' ? 'Lanai Specifications' : pool ? 'Pool Specifications' : 'Product Details'),
+        'product-title': prev['product-title'] || (extras?.productType === 'lanai' ? 'Lanai Specifications' : (pool || subjectPoolInfo) ? 'Pool Specifications' : 'Product Details'),
         'includes-title': prev['includes-title'] || (extras?.productType === 'lanai' ? 'LANAI INCLUDES' : customProduct?.type === 'Sauna' ? 'EVERY SAUNA INCLUDES' : 'ALL POOLS INCLUDE'),
         'includes-content': prev['includes-content'] || getIncludedItems().filter(item => !item.startsWith("FREE")).join(", "),
         'disclaimer': prev['disclaimer'] || 'Architectural Design, Construction and permiting is included in all products, unless project scope is modified.',
         'total-title': prev['total-title'] || 'Total Investment',
         'paver-deck-title': prev['paver-deck-title'] || 'Paver Deck',
         'paver-deck-description': prev['paver-deck-description'] || "Custom paver selection with full area pricing",
-        'installation-time-title': prev['installation-time-title'] || (pool || (customProduct && isPoolType(customProduct?.type)) ? 'Estimated Build Time' : 'Installation Time'),
+        'installation-time-title': prev['installation-time-title'] || (pool || subjectPoolInfo || (customProduct && isPoolType(customProduct?.type)) ? 'Estimated Build Time' : 'Installation Time'),
         'installation-time-text': prev['installation-time-text'] || getInstallationTimeText(),
         ...prev
       }));
@@ -757,9 +773,9 @@ const SurveyQuoteTool = ({
     return Math.round(basePrice);
   };
   const getPoolArea = () => {
-    if (!pool?.dimensions) return 600; // Default pool area
+    if (!displayPool?.dimensions) return 600; // Default pool area
 
-    const dims = pool.dimensions.split('x').map(d => parseInt(d.trim().replace(/['"]/g, '')));
+    const dims = displayPool.dimensions.split('x').map(d => parseInt(d.trim().replace(/['"]/g, '')));
     const poolLength = dims[0] || 30;
     const poolWidth = dims[1] || 20;
     return poolLength * poolWidth;
@@ -767,8 +783,8 @@ const SurveyQuoteTool = ({
 
   // Calculate enclosure footprint as the pool plus the selected deck width around it
   const getEnclosureArea = () => {
-    if (!pool?.dimensions) return 1100; // sensible default
-    const dims = pool.dimensions.split('x').map(d => parseInt(d.trim().replace(/['"]/g, '')));
+    if (!displayPool?.dimensions) return 1100; // sensible default
+    const dims = displayPool.dimensions.split('x').map(d => parseInt(d.trim().replace(/['"]/g, '')));
     const poolLength = dims[0] || 30;
     const poolWidth = dims[1] || 20;
     const deckWidth = parseInt(surveyData.deckWidth || '3');
@@ -1706,11 +1722,11 @@ const SurveyQuoteTool = ({
                   </button>
                 )}
                 {(() => {
-                  const isPoolProduct = pool || (customProduct && isPoolType(customProduct.type));
+                  const isPoolProduct = pool || (customProduct && isPoolType(customProduct.type)) || !!subjectPoolInfo;
                   const isLanaiProduct = extras?.productType === 'lanai';
                   const isSaunaProduct = customProduct?.type === 'Sauna' || extras?.productType === 'sauna';
-                  const isPoolItself = !!pool || String(customProduct?.type || '').toLowerCase() === 'pool';
-                  const isConcreteConstruction = !!(extras?.concreteConstruction || (!pool && isPoolType(customProduct?.type)) || (pool?.model && ['Madre Perla', 'Winderview', 'Pacific Ridge', 'Maxima', 'Cape Coral', 'Royal Lake', 'Royal Lake 8.10', 'Royal Lake 10.16'].includes(pool.model)));
+                  const isPoolItself = !!pool || !!subjectPoolInfo || String(customProduct?.type || '').toLowerCase() === 'pool';
+                  const isConcreteConstruction = !!(extras?.concreteConstruction || (!pool && isPoolType(customProduct?.type)) || (pool?.model && ['Madre Perla', 'Winderview', 'Pacific Ridge', 'Maxima', 'Cape Coral', 'Royal Lake', 'Royal Lake 8.10', 'Royal Lake 10.16'].includes(pool.model)) || subjectPoolInfo?.brand === "Wonderlands");
 
                   return (
                     <>
@@ -1806,18 +1822,18 @@ const SurveyQuoteTool = ({
                             <div className="bg-gradient-to-br from-orange-100 to-teal-100 dark:from-gray-800 dark:to-gray-700 p-4 rounded-lg">
                               <h4 className="font-semibold mb-2">
                                 {isPoolProduct ? 'Pool Model' : 'Product'}: {isEditMode ? (
-                                  <input type="text" value={editableTexts['product-name'] ?? (pool?.model || customProduct?.name)} onChange={(e) => setEditableTexts(prev => ({...prev, 'product-name': e.target.value}))} className="px-1 py-0.5 border rounded inline-block" />
-                                ) : (editableTexts['product-name'] ?? pool?.model ?? customProduct?.name)}
+                                  <input type="text" value={editableTexts['product-name'] ?? (displayPool?.model || customProduct?.name)} onChange={(e) => setEditableTexts(prev => ({...prev, 'product-name': e.target.value}))} className="px-1 py-0.5 border rounded inline-block" />
+                                ) : (editableTexts['product-name'] ?? displayPool?.model ?? customProduct?.name)}
                               </h4>
                               {isPoolItself && (
                                 <p className="text-base font-bold mb-1">Construction: {isConcreteConstruction ? 'Concrete pool' : 'Fiberglass pool'}</p>
                               )}
-                              {pool?.dimensions && <p className="text-sm">Dimensions: {isEditMode ? (
-                                <input type="text" value={editableTexts['product-dims'] ?? pool.dimensions} onChange={(e) => setEditableTexts(prev => ({...prev, 'product-dims': e.target.value}))} className="px-1 py-0.5 border rounded inline-block" />
-                              ) : (editableTexts['product-dims'] ?? pool.dimensions)}</p>}
-                              {pool?.depth && <p className="text-sm">Depth: {isEditMode ? (
-                                <input type="text" value={editableTexts['product-depth'] ?? pool.depth} onChange={(e) => setEditableTexts(prev => ({...prev, 'product-depth': e.target.value}))} className="px-1 py-0.5 border rounded inline-block" />
-                              ) : (editableTexts['product-depth'] ?? pool.depth)}</p>}
+                              {displayPool?.dimensions && <p className="text-sm">Dimensions: {isEditMode ? (
+                                <input type="text" value={editableTexts['product-dims'] ?? displayPool.dimensions} onChange={(e) => setEditableTexts(prev => ({...prev, 'product-dims': e.target.value}))} className="px-1 py-0.5 border rounded inline-block" />
+                              ) : (editableTexts['product-dims'] ?? displayPool.dimensions)}</p>}
+                              {displayPool?.depth && <p className="text-sm">Depth: {isEditMode ? (
+                                <input type="text" value={editableTexts['product-depth'] ?? displayPool.depth} onChange={(e) => setEditableTexts(prev => ({...prev, 'product-depth': e.target.value}))} className="px-1 py-0.5 border rounded inline-block" />
+                              ) : (editableTexts['product-depth'] ?? displayPool.depth)}</p>}
                               {customProduct && !isPoolProduct && customProduct.type && (
                                 <p className="text-sm">Type: {customProduct.type}</p>
                               )}
@@ -1825,12 +1841,12 @@ const SurveyQuoteTool = ({
                                 <span>Base Price:</span>
                                 {isEditMode ? (
                                   <PriceInput
-                                    value={editablePrices['base-price'] ?? (pool?.price || customProduct?.price || 0)}
+                                    value={editablePrices['base-price'] ?? (displayPool?.price || customProduct?.price || 0)}
                                     onCommit={(n) => setEditablePrices(prev => ({...prev, 'base-price': n}))}
                                     className="w-32 px-2 py-1 border rounded text-right font-semibold"
                                   />
                                 ) : (
-                                  <span className="font-semibold">${(editablePrices['base-price'] ?? pool?.price ?? customProduct?.price ?? 0).toLocaleString()}</span>
+                                  <span className="font-semibold">${(editablePrices['base-price'] ?? displayPool?.price ?? customProduct?.price ?? 0).toLocaleString()}</span>
                                 )}
                               </div>
                             </div>
@@ -2048,7 +2064,7 @@ const SurveyQuoteTool = ({
                           <div className="mb-4 avoid-break">
                             <ImageUploadOverlay imageKey="main-product" isEditMode={isEditMode} imageOverrides={imageOverrides} onImageOverride={handleImageOverride} cropSettings={imageCropSettings} onCropChange={handleCropChange}>
                               <ImageCard 
-                                src={imageOverrides['main-product'] || pool?.image || customProduct?.image || (isPoolType(customProduct?.type) ? CUSTOM_POOL_IMAGE : discipline === 'fencing' ? fenceQuoteImage : (quoteLineImage(customProduct?.name || '') || fenceQuoteImage))} 
+                                src={imageOverrides['main-product'] || displayPool?.image || customProduct?.image || (isPoolType(customProduct?.type) ? CUSTOM_POOL_IMAGE : discipline === 'fencing' ? fenceQuoteImage : (quoteLineImage(customProduct?.name || '') || fenceQuoteImage))} 
                                 alt={pool?.model || customProduct?.name || 'Product'}
                                 className="w-full h-auto max-h-[420px] rounded-lg border border-orange-200" 
                                 objectFit="contain" 
@@ -2059,7 +2075,7 @@ const SurveyQuoteTool = ({
                               {pool?.model || customProduct?.name}
                             </p>
                             {(() => {
-                              const galleryImages = getPoolModelImages(pool?.model || customProduct?.name, imageOverrides['main-product'] || pool?.image || customProduct?.image);
+                              const galleryImages = getPoolModelImages(displayPool?.model || customProduct?.name, imageOverrides['main-product'] || displayPool?.image || customProduct?.image);
                               if (galleryImages.length < 2) return null;
                               return (
                                 <div className="grid grid-cols-3 gap-2 mt-2 avoid-break">
@@ -2537,7 +2553,7 @@ const SurveyQuoteTool = ({
 
                 {/* Items Included - For pool products OR lanai with included features */}
                 {!hiddenSections.has('included-items') && (() => {
-                  const isPoolProduct = pool || (customProduct && isPoolType(customProduct.type));
+                  const isPoolProduct = pool || (customProduct && isPoolType(customProduct.type)) || !!subjectPoolInfo;
                   const isLanaiProduct = extras?.productType === 'lanai';
                   const isSaunaProduct = customProduct?.type === 'Sauna' || extras?.productType === 'sauna';
                   const lanaiIncludedFeatures = extras?.includedFeatures || [];
@@ -2614,7 +2630,7 @@ const SurveyQuoteTool = ({
 
                 {/* Pool Construction Details - Only for pool products, NOT lanai */}
                 {!hiddenSections.has('construction-details') && (() => {
-                  const isPoolProduct = pool || (customProduct && isPoolType(customProduct.type));
+                  const isPoolProduct = pool || (customProduct && isPoolType(customProduct.type)) || !!subjectPoolInfo;
                   const isLanaiProduct = extras?.productType === 'lanai';
                   const isSaunaProduct = customProduct?.type === 'Sauna' || extras?.productType === 'sauna';
                   
@@ -2660,7 +2676,7 @@ const SurveyQuoteTool = ({
 
                 {/* Warranty Information - Only for pool products, NOT lanai */}
                 {!hiddenSections.has('warranty') && (() => {
-                  const isPoolProduct = pool || (customProduct && isPoolType(customProduct.type));
+                  const isPoolProduct = pool || (customProduct && isPoolType(customProduct.type)) || !!subjectPoolInfo;
                   const isLanaiProduct = extras?.productType === 'lanai';
                   const isSaunaProduct = customProduct?.type === 'Sauna' || extras?.productType === 'sauna';
                   
@@ -2751,7 +2767,7 @@ const SurveyQuoteTool = ({
                     ) : (
                       <h4 className="font-bold text-lg mb-2 text-blue-600">
                         {editableTexts['installation-time-title'] || (() => {
-                          const isPoolProduct = pool || (customProduct && isPoolType(customProduct.type));
+                          const isPoolProduct = pool || (customProduct && isPoolType(customProduct.type)) || !!subjectPoolInfo;
                           return isPoolProduct ? 'Estimated Build Time' : 'Installation Time';
                         })()}
                       </h4>
@@ -2768,7 +2784,7 @@ const SurveyQuoteTool = ({
                       </p>
                     )}
                     {(() => {
-                      const isPoolProduct = pool || (customProduct && isPoolType(customProduct.type));
+                      const isPoolProduct = pool || (customProduct && isPoolType(customProduct.type)) || !!subjectPoolInfo;
                       
                       if (!isPoolProduct) return null;
                       
