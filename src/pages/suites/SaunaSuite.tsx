@@ -21,6 +21,7 @@ const SaunaSuite = () => {
         description: s.description,
         features: s.features,
         meta: `${s.capacity} · ${s.heaterPower}`,
+        threeDUrl: s.threeDUrl,
       })),
     [],
   );

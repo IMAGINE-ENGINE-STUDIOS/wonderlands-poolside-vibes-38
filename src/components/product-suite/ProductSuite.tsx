@@ -60,6 +60,8 @@ export interface SuiteModel {
   features?: string[];
   /** Small line under the name, e.g. "2 persons · 6.0kW" */
   meta?: string;
+  /** Manufacturer's own 3D experience for this model, when one exists */
+  threeDUrl?: string;
 }
 
 export interface ProductSuiteProps {
@@ -345,6 +347,17 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({
                     <li key={f} className="border-l border-border pl-3">{f}</li>
                   ))}
                 </ul>
+              )}
+              {model?.threeDUrl && (
+                <a
+                  href={model.threeDUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-6 inline-flex items-center gap-2 border border-foreground px-4 py-2 text-[10px] uppercase tracking-[0.3em] text-foreground transition-colors hover:bg-foreground hover:text-background"
+                  title="Open the manufacturer's 3D experience for this model"
+                >
+                  View in 3D
+                </a>
               )}
             </div>
           </div>
