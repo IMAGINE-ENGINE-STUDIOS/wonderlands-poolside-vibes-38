@@ -172,6 +172,7 @@ const pools: Pool[] = [
   carbonFiber: false,
   type: "Concrete Pool"
 },
+// Royal Lake pricing basis (founder, 2026-11-18): the Royal Lake line is priced at $200 per square foot of pool surface. Exception: the 8 by 10 is fixed at $33,000 by the founder and does not follow the formula. Any size added later prices at the $200 per square foot basis unless the founder fixes its price herself.
 // Royal Lake Concrete Pool by Wonderlands - FLORIDA (NO SURCHARGE)
 {
   model: "Royal Lake",
