@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ProductMediaGallery, { type MediaItem } from "@/components/ProductMediaGallery";
@@ -6,6 +6,9 @@ import { BELGARD_FOLDER, BELGARD_FOLDER_TOTAL_FILES, type BelgardFolderProduct }
 import { BELGARD_MEDIA_LOGIC, BELGARD_MEDIA_LOGIC_TOTALS, type BelgardMediaProduct } from "@/data/belgardMediaLogic";
 import { BELGARD_PATTERNS } from "@/data/belgardPatterns";
 import { appAssetUrl } from "@/lib/design/kitchenAssetUrl";
+import { PAVER_CUT_SPECS, type PaverCutSpec } from "@/lib/visual/paverCut3d";
+import { UNIT_VISUALIZER_PRODUCTS } from "@/lib/visual/unitVisualizerSpecs";
+import PaverCutVisualizer from "@/components/pavers/PaverCutVisualizer";
 
 /**
  * /belgard-products: Belgard reference library (paver port wiring Job 2,
@@ -16,7 +19,10 @@ import { appAssetUrl } from "@/lib/design/kitchenAssetUrl";
  * belgardMediaLogic) and touches no catalog, Studio or quote data. The
  * folder data carries no prices and this page shows none. Galleries use the
  * Wonderlands Studio image widget (ProductMediaGallery with studioChrome).
- * The 3D visualizer tab is a separate job (WIRING-PLAN Job 3).
+ * The 3D Paver Files tab (WIRING-PLAN Job 3) mounts the ported
+ * PaverCutVisualizer from the cut specs in paverCut3d and the per unit
+ * spec factory in unitVisualizerSpecs, each card behind a lazy mount and
+ * unmount wrapper so live WebGL contexts stay within the browser cap.
  */
 
 const CATEGORY_ORDER = ["Pavers & Slabs", "Permeable Pavers", "Porcelain Pavers", "Coping & Steps", "Walls", "Fire & Outdoor Kitchens"];
@@ -45,6 +51,18 @@ const MEDIA_BY_NORM = new Map(BELGARD_MEDIA_LOGIC.map((p) => [normName(p.name), 
 const mediaForFolderName = (name: string): BelgardMediaProduct | undefined =>
   MEDIA_BY_NORM.get(normName(name));
 const PATTERNS_BY_SLUG = new Map(BELGARD_PATTERNS.map((g) => [g.productSlug, g.patterns]));
+
+/** Folder product name (normalised) to the slug of that product's first
+ *  3D size cut in PAVER_CUT_SPECS. Catalina Grana has two cuts; its
+ *  product entry links to the first (Brick). Matching is by name in
+ *  this component only. The generated folder data is never edited. */
+const PAVER_FILE_BY_NORM: Record<string, string> = {
+  "appian stone": "appian-stone-square",
+  "catalina grana": "catalina-grana-brick",
+  "melville plank": "melville-plank",
+  turfstone: "turfstone-large-slab",
+};
+const paverFileSlugFor = (name: string): string | undefined => PAVER_FILE_BY_NORM[normName(name)];
 
 const linkify = (text: string) => {  const parts = text.split(/(https?:\/\/[^\s)]+)/g);
   return parts.map((part, i) =>
@@ -226,9 +244,194 @@ const MediaLogicView = ({
   );
 };
 
+/** Lazy mount for one visualizer card (modeled on the Foss file page).
+ *  The tab holds many PaverCutVisualizer cards and each one creates a
+ *  three.js WebGL context on mount. Browsers cap live contexts (iOS
+ *  Safari allows about eight) and force lose the oldest ones once too
+ *  many exist. Mount on scroll alone is not enough: a card mounted once
+ *  would stay mounted forever, so scrolling the whole tab would still
+ *  accumulate every context and the browser would blank the top cards.
+ *  So the card lives inside a persistent wrapper that an
+ *  IntersectionObserver watches both ways: the real visualizer mounts
+ *  when the card comes within 800px of the viewport and unmounts when
+ *  it leaves that band, which disposes the renderer and force loses
+ *  the context (see PaverCutVisualizer). Only a few contexts stay
+ *  alive at once. Off screen the card shows a lightweight placeholder
+ *  with the same 16 by 10 footprint as the visualizer canvas. A deep
+ *  linked card (forceMount) mounts at once and stays mounted. */
+const LazyPaverVisualizer = ({
+  spec,
+  forceMount,
+}: {
+  spec: PaverCutSpec;
+  forceMount?: boolean;
+}) => {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const [mounted, setMounted] = useState(!!forceMount);
+  useEffect(() => {
+    if (forceMount) {
+      setMounted(true);
+      return;
+    }
+    const el = ref.current;
+    if (!el) return;
+    if (typeof IntersectionObserver === "undefined") {
+      setMounted(true);
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        setMounted(entries.some((e) => e.isIntersecting));
+      },
+      { rootMargin: "800px 0px" }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [forceMount]);
+  return (
+    <div ref={ref}>
+      {mounted ? (
+        <PaverCutVisualizer spec={spec} />
+      ) : (
+        <div
+          className="flex w-full items-center justify-center rounded-xl border border-dashed border-zinc-300 bg-zinc-50"
+          style={{ aspectRatio: "16 / 10" }}
+          aria-label={`3D model of ${spec.name}, ${spec.size} inches. It loads as you scroll to it.`}
+        >
+          <p className="px-4 text-center text-xs text-zinc-400">
+            3D visualizer. It loads as you scroll to it.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+/** The 3D Paver Files tab: the five paver size cuts, one file after
+ *  the other. Each section is the cut's own file view (title,
+ *  description, dimensions) with its interactive 3D visualizer under
+ *  it. Specs come from src/lib/visual/paverCut3d.ts. Under the cuts,
+ *  every other covered paver gets a per unit card whose spec is
+ *  derived by src/lib/visual/unitVisualizerSpecs.ts from the product's
+ *  own per unit texture sets. */
+const PaverFilesView = ({ focusSlug }: { focusSlug?: string | null }) => {
+  useEffect(() => {
+    if (!focusSlug) return;
+    const el = document.getElementById(`paver-${focusSlug}`);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+      window.history.replaceState(null, "", `#paver-${focusSlug}`);
+    }
+  }, [focusSlug]);
+  return (
+    <div>
+      <p className="max-w-3xl text-sm leading-relaxed text-zinc-600">
+        Five Belgard paver size cuts filed as exact 3D models. Each cut is one simple box at its printed
+        catalog dimensions and thickness, at true relative scale where one unit equals one inch, built on
+        the same three.js stack as the Design Studio. Each file below is the cut&apos;s own file view. Drag
+        a model to orbit it, and click a texture under a model to apply it to that cut.
+      </p>
+      <div className="mt-6 space-y-6">
+        {PAVER_CUT_SPECS.map((spec) => (
+          <article
+            key={spec.slug}
+            id={`paver-${spec.slug}`}
+            className="scroll-mt-6 rounded-2xl border border-zinc-200 p-5"
+          >
+            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <h3 className="text-2xl font-semibold tracking-tight">{spec.name}</h3>
+              <span className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-medium text-zinc-600">
+                {spec.size} in
+              </span>
+            </div>
+            {spec.description && (
+              <p className="mt-3 text-sm leading-relaxed text-zinc-700">{spec.description}</p>
+            )}
+            <dl className="mt-4 grid gap-2 sm:grid-cols-3">
+              <div className="rounded-xl bg-zinc-50 px-3 py-2">
+                <dt className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">
+                  Dimensions (catalog)
+                </dt>
+                <dd className="mt-0.5 text-sm leading-relaxed text-zinc-800">{spec.size} in</dd>
+              </div>
+              <div className="rounded-xl bg-zinc-50 px-3 py-2">
+                <dt className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">Face</dt>
+                <dd className="mt-0.5 text-sm leading-relaxed text-zinc-800">
+                  {spec.w} × {spec.d} in
+                </dd>
+              </div>
+              <div className="rounded-xl bg-zinc-50 px-3 py-2">
+                <dt className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">Thickness</dt>
+                <dd className="mt-0.5 text-sm leading-relaxed text-zinc-800">{spec.t} in</dd>
+              </div>
+            </dl>
+            {spec.fileName && (
+              <p className="mt-3 text-xs leading-relaxed text-zinc-500">
+                File: Belgard Products/3D Paver Files/{spec.fileName} · Source: Belgard pattern data
+                (belgardPatterns.ts sizesUsed) · Model: buildPaverCut in src/lib/visual/paverCut3d.ts.
+              </p>
+            )}
+            <div className="mt-4">
+              <LazyPaverVisualizer spec={spec} forceMount={focusSlug === spec.slug} />
+            </div>
+          </article>
+        ))}
+      </div>
+
+      {/* Per unit visualizer for every other covered paver: one card per
+          product with extracted per unit texture sets. Specs are
+          synthetic and data derived. See
+          src/lib/visual/unitVisualizerSpecs.ts. */}
+      <h3 className="mt-12 text-xl font-semibold tracking-tight">
+        Per unit visualizer for every covered paver
+      </h3>
+      <p className="mt-2 max-w-3xl text-sm leading-relaxed text-zinc-600">
+        Every Belgard product with extracted per unit textures gets the same visualizer as the cut files
+        above. Pick a color under a model to apply it. Colors with per unit sets light up the Single pieces
+        and Large deck views, and those views come from the product&apos;s own primary pattern, sizes and
+        thickness.
+      </p>
+      <div className="mt-6 space-y-6">
+        {UNIT_VISUALIZER_PRODUCTS.map((entry) => (
+          <article
+            key={entry.spec.slug}
+            className="scroll-mt-6 rounded-2xl border border-zinc-200 p-5"
+          >
+            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <h4 className="text-2xl font-semibold tracking-tight">{entry.productName}</h4>
+              <span className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-medium text-zinc-600">
+                {entry.spec.size} in
+              </span>
+            </div>
+            <p className="mt-2 text-sm font-medium text-zinc-700">
+              Per unit textures: {entry.setCount} colors
+            </p>
+            <p className="mt-1 text-xs leading-relaxed text-zinc-500">
+              Primary pattern: {entry.primaryPatternName} · Spec derived from Belgard pattern data
+              (belgardPatterns.ts). No dimensions invented.
+            </p>
+            {entry.note && (
+              <p className="mt-1 text-xs leading-relaxed text-zinc-500">{entry.note}</p>
+            )}
+            <div className="mt-4">
+              <LazyPaverVisualizer spec={entry.spec} />
+            </div>
+          </article>
+        ))}
+      </div>
+      <p className="mt-10 border-t border-zinc-100 pt-4 text-xs leading-relaxed text-zinc-400">
+        Reference only. These files record printed catalog sizes and they change no catalog product, price
+        or quote surface. Textures are the Belgard 3D studio texture set, and one module is about 12 inches
+        of paver face.
+      </p>
+    </div>
+  );
+};
+
 export default function BelgardProductsFolder() {
-  const [view, setView] = useState<"folder" | "media">("folder");
+  const [view, setView] = useState<"folder" | "media" | "pavers3d">("folder");
   const [mediaFocus, setMediaFocus] = useState<string | null>(null);
+  const [paverFocus, setPaverFocus] = useState<string | null>(null);
   const [locIdx, setLocIdx] = useState(0); // Florida first
   const [catIdx, setCatIdx] = useState(0);
   const [selected, setSelected] = useState<BelgardFolderProduct | null>(null);
@@ -271,6 +474,19 @@ export default function BelgardProductsFolder() {
     setMediaFocus(slug);
     setView("media");
   };
+  // Cross link from a folder product to its cut in the 3D Paver Files tab.
+  const openPaverFile = (slug: string) => {
+    setPaverFocus(slug);
+    setView("pavers3d");
+  };
+  // Deep link: /belgard-products#paver-<slug> opens the tab at that cut.
+  useEffect(() => {
+    const m = window.location.hash.match(/^#paver-([a-z0-9-]+)$/);
+    if (m && PAVER_CUT_SPECS.some((s) => s.slug === m[1])) {
+      setPaverFocus(m[1]);
+      setView("pavers3d");
+    }
+  }, []);
   const openInFolder = (mp: BelgardMediaProduct) => {
     // Find this product folder file with Florida first, then every region.
     const flIdx = BELGARD_FOLDER.findIndex((r) => r.location.startsWith("Florida"));
@@ -330,6 +546,7 @@ export default function BelgardProductsFolder() {
   // exactly as before. This only adds a section and never touches a
   // gallery image.
   const selectedMedia = selected ? mediaForFolderName(selected.name) : undefined;
+  const selectedPaverSlug = selected ? paverFileSlugFor(selected.name) : undefined;
   const selectedPatterns = selectedMedia ? PATTERNS_BY_SLUG.get(selectedMedia.slug) ?? [] : [];
 
   return (
@@ -348,7 +565,7 @@ export default function BelgardProductsFolder() {
         {/* View switch. The bar wraps so every tab stays visible and
             tappable at phone width. */}
         <div className="mt-6 flex max-w-full flex-wrap rounded-2xl border border-zinc-300 p-1 gap-1">
-          {([["folder", "Folder"], ["media", "Media & Logic"]] as const).map(([v, label]) => (
+          {([["folder", "Folder"], ["media", "Media & Logic"], ["pavers3d", "3D Paver Files"]] as const).map(([v, label]) => (
             <button
               key={v}
               onClick={() => setView(v)}
@@ -528,6 +745,21 @@ export default function BelgardProductsFolder() {
                     <p className="mt-4 text-sm leading-relaxed text-zinc-700">{selected.description}</p>
                   )}
 
+                  {selectedPaverSlug && (
+                    <p className="mt-4">
+                      <button
+                        onClick={() => openPaverFile(selectedPaverSlug)}
+                        className="rounded-full bg-zinc-900 px-3 py-1 text-xs font-medium text-white transition hover:bg-zinc-700"
+                      >
+                        3D paver file →
+                      </button>
+                      <span className="ml-2 text-xs text-zinc-500">
+                        This product has a 3D size cut with its own textures. You can open it in the 3D
+                        Paver Files tab.
+                      </span>
+                    </p>
+                  )}
+
                   {selected.specs.length > 0 && (
                     <dl className="mt-4 space-y-2">
                       {selected.specs.map((s) => (
@@ -662,6 +894,8 @@ export default function BelgardProductsFolder() {
         </>)}
 
         {view === "media" && <MediaLogicView focusSlug={mediaFocus} onOpenInFolder={openInFolder} />}
+
+        {view === "pavers3d" && <PaverFilesView focusSlug={paverFocus} />}
       </div>
     </div>
   );
