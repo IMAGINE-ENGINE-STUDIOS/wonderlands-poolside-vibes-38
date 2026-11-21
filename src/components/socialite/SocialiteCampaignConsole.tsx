@@ -32,6 +32,7 @@ export default function SocialiteCampaignConsole({ isOwner = true }: { isOwner?:
   const [preview, setPreview] = useState("");
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
+  const [armed, setArmed] = useState<"" | "all" | "mine">("");
   const [books, setBooks] = useState<BookPick[] | null>(null);
 
   const load = () => { if (isOwner) supabase.from("daily_email_rotation").select("campaign_key,title,subject,html,is_active,position,updated_at").order("position").then(({ data }) => setRows((data as Row[]) ?? [])); };
@@ -46,7 +47,7 @@ export default function SocialiteCampaignConsole({ isOwner = true }: { isOwner?:
   const sk = (k: string) => `socialite.campaign.${k}`;
   const currentDoc = (): BuilderDocV2 => { cacheFlush(); return ensureV2(cacheRead(`${sk(open!.key)}.doc`, open!.seed)); };
   const html = () => docToEmailHtml(currentDoc(), undefined, isOwner);
-  const pick = (it: Item) => { setOpen(it); setSubject(it.row?.subject ?? it.subject); setPreview(""); setNote(""); };
+  const pick = (it: Item) => { setOpen(it); setSubject(it.row?.subject ?? it.subject); setPreview(""); setNote(""); setArmed(""); };
   const addMine = (s: Saved) => { setMine((l) => [s, ...l.filter((x) => x.key !== s.key)]); pick(s); };
 
   const save = async () => {
@@ -59,8 +60,11 @@ export default function SocialiteCampaignConsole({ isOwner = true }: { isOwner?:
     setBusy(false); setNote(error ? "Couldn't save. Please try again." : "Saved — this version now goes out in the daily schedule.");
     load();
   };
+  // Send confirmations live on the buttons, never in a native confirm()
+  // dialog: a dismissed or suppressed dialog silently cancelled the send.
   const sendAll = async () => {
-    if (!confirm(`Send "${subject}" to ALL clients now?`)) return;
+    if (armed !== "all") { setArmed("all"); setNote(`Ready to send "${subject}" to ALL clients — press the button again to send.`); return; }
+    setArmed("");
     setBusy(true);
     const { data, error } = await supabase.functions.invoke("send-bulk-email", { body: { send_to_all: true, custom_subject: subject, custom_html: html(), template_name: open!.title } });
     setBusy(false); setNote(error ? "Couldn't send right now." : `Sent ${data?.successful ?? 0}${data?.failed ? ` · ${data.failed} failed` : ""}.`);
@@ -70,7 +74,8 @@ export default function SocialiteCampaignConsole({ isOwner = true }: { isOwner?:
     const { data: list } = await (supabase as any).from("socialite_contacts").select("id,email").not("email", "is", null).limit(5000);
     const ids: string[] = (list ?? []).filter((c: any) => c.email).map((c: any) => c.id);
     if (!ids.length) { setBusy(false); return setNote("You have no contacts with an email yet — add them under Email · SMS · Calls."); }
-    if (!confirm(`Send "${subject}" to your ${ids.length} contact(s)?`)) { setBusy(false); return; }
+    if (armed !== "mine") { setArmed("mine"); setBusy(false); setNote(`Ready to send "${subject}" to your ${ids.length} contact${ids.length > 1 ? "s" : ""} — press the button again to send.`); return; }
+    setArmed("");
     const body = html(); let ok = 0, failed = 0;
     for (let i = 0; i < ids.length; i += 200) {
       const { data, error } = await supabase.functions.invoke("socialite-send", { body: { channel: "email", contact_ids: ids.slice(i, i + 200), subject, message: currentDoc().title || subject, html: body } });
@@ -105,12 +110,12 @@ export default function SocialiteCampaignConsole({ isOwner = true }: { isOwner?:
       <div className={`${card} p-4 flex flex-wrap items-center gap-2`}>
         <button className={pill} onClick={() => setOpen(null)}>Back to campaigns</button>
         <div className="text-[14px] font-semibold text-zinc-100 mr-2">{open.title}</div>
-        <input value={subject} onChange={(e) => setSubject(e.target.value)} className="flex-1 min-w-[220px] rounded-full bg-zinc-950 border border-zinc-800 px-4 py-1.5 text-[13px] text-zinc-100" placeholder="Subject" />
+        <input value={subject} onChange={(e) => { setSubject(e.target.value); setArmed(""); }} className="flex-1 min-w-[220px] rounded-full bg-zinc-950 border border-zinc-800 px-4 py-1.5 text-[13px] text-zinc-100" placeholder="Subject" />
         <button className={pill} onClick={() => setPreview(preview ? "" : html())}>{preview ? "Back to editing" : "Preview email"}</button>
         {isOwner ? <>
           <button className={pill} disabled={busy} onClick={save}>Save to daily schedule</button>
-          <button className={pill} disabled={busy} onClick={sendAll}>Send to all clients</button>
-        </> : <button className={pill} disabled={busy} onClick={sendMine}>Send to my contacts</button>}
+          <button className={pill} disabled={busy} onClick={sendAll}>{armed === "all" ? "Confirm · Send to all clients" : "Send to all clients"}</button>
+        </> : <button className={pill} disabled={busy} onClick={sendMine}>{armed === "mine" ? "Confirm · Send to my contacts" : "Send to my contacts"}</button>}
         {note && <div className="w-full text-[12px] text-zinc-400">{note}</div>}
       </div>
       {preview

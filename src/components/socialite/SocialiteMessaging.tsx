@@ -147,6 +147,7 @@ function Composer({ channel, source, isOwner }: { channel: Channel; source: Sour
   const [tz, setTz] = useState(getSavedTz);
   const [busy, setBusy] = useState("");
   const [note, setNote] = useState("");
+  const [armed, setArmed] = useState(false);
 
   const load = () => (source === "clients" ? loadCompanyClients() : loadMyContacts()).then(setPeople);
   useEffect(() => { setPicked(new Set()); load(); }, [source]);
@@ -158,6 +159,8 @@ function Composer({ channel, source, isOwner }: { channel: Channel; source: Sour
   }, [people, q, channel]);
   const toggle = (id: string) => setPicked(s => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
   const targets = people.filter(p => picked.has(p.id) && reach(p));
+  // Any change to the draft or the audience disarms a pending send confirmation.
+  useEffect(() => { setArmed(false); }, [picked, message, subject, channel, later]);
   const shield = useShieldPreview(channel === "calls" ? "sms" : channel as any, { text: message, subject, recipients: Math.min(targets.length, 200), timezone: tz, scheduled: later }, source === "contacts");
   const body = (p?: Person) => { const m = message.replace(/\{first_name\}/g, p?.first || "there"); return sign && channel !== "email" && channel !== "calls" ? `${m}\n${SIGN}` : m; };
   const canSchedule = source === "contacts" ? true : isOwner; // every channel can be timed
@@ -191,7 +194,6 @@ function Composer({ channel, source, isOwner }: { channel: Channel; source: Sour
       return;
     }
     const verb = { email: "Email", sms: "Text", whatsapp: "WhatsApp", calls: "Call" }[channel];
-    if (!confirm(`${verb} ${targets.length} ${source === "clients" ? "client" : "contact"}(s)?`)) return;
     let ok = 0, failed = 0;
     try {
       if (source === "contacts") {
@@ -217,6 +219,21 @@ function Composer({ channel, source, isOwner }: { channel: Channel; source: Sour
       if (source === "contacts") load();
     } catch { setNote("Couldn't send right now. Please try again."); }
     setBusy("");
+  };
+
+  // Send-now confirmation lives on the button itself, never in a native
+  // confirm() dialog: a dismissed or suppressed dialog used to make send()
+  // return silently — no busy state, no note, no function call, no trace.
+  const handleSendClick = () => {
+    if (later && canSchedule) { send(); return; }
+    if (!armed) {
+      setArmed(true);
+      const verb = { email: "email", sms: "text", whatsapp: "WhatsApp", calls: "call" }[channel];
+      setNote(`Ready to ${verb} ${targets.length} ${source === "clients" ? "client" : "contact"}${targets.length > 1 ? "s" : ""} — press the button again to send.`);
+      return;
+    }
+    setArmed(false);
+    send();
   };
 
   const len = body().length;
@@ -274,9 +291,9 @@ function Composer({ channel, source, isOwner }: { channel: Channel; source: Sour
           </div>
         )}
         {note && <div className="text-[12px] text-zinc-400">{note}</div>}
-        <button disabled={!!busy || !targets.length || !message.trim() || (later && canSchedule && !at)} onClick={send}
+        <button disabled={!!busy || !targets.length || !message.trim() || (later && canSchedule && !at)} onClick={handleSendClick}
           className="w-full py-2.5 rounded-full bg-white text-black text-[13px] font-semibold disabled:opacity-40">
-          {busy || (later && canSchedule ? "Schedule" : `${{ email: "Send email", sms: "Send texts", whatsapp: "Send WhatsApp", calls: "Start calls" }[channel]} · ${targets.length}`)}
+          {busy || (later && canSchedule ? "Schedule" : `${armed ? "Confirm · " : ""}${{ email: "Send email", sms: "Send texts", whatsapp: "Send WhatsApp", calls: "Start calls" }[channel]} · ${targets.length}`)}
         </button>
       </div>
     </div>
