@@ -1709,11 +1709,11 @@ Use 2 hashtags max when promo present`;
 
       <div className="flex-1 min-w-0 flex flex-col">
         <div className="lg:hidden sticky top-0 z-20 backdrop-blur-xl bg-[#0a0a0b]/80 border-b border-zinc-800 px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <div className="w-8 h-8 rounded-lg bg-white text-black grid place-items-center font-bold">P</div>
             <span className="font-semibold">Socialite</span>
           </div>
-        <div className="flex gap-1 overflow-x-auto">
+        <div className="flex gap-1 overflow-x-auto flex-1 min-w-0 justify-end">
             {[
               { id: "composer", icon: PenTool },
               { id: "automation", icon: Bot },

@@ -5,7 +5,8 @@ import { fmtIn } from "@/lib/socialite/sendTime";
 import SocialiteAutopilot from "./SocialiteAutopilot";
 
 type Row = { id: string; kind: string; payload: any; send_at: string; timezone: string; status: string; result: any };
-const KIND: Record<string, string> = { post: "Social post", email: "Email", sms: "SMS", whatsapp: "WhatsApp" };
+const KIND: Record<string, string> = { post: "Social post", email: "Email", sms: "SMS", whatsapp: "WhatsApp", call: "Call", contact: "Contact send" };
+const CONTACT_KIND: Record<string, string> = { email: "Email", sms: "SMS", whatsapp: "WhatsApp", call: "Call" };
 
 export default function SocialiteScheduled() {
   const [rows, setRows] = useState<Row[]>([]);
@@ -21,9 +22,11 @@ export default function SocialiteScheduled() {
     await (supabase as any).from("socialite_scheduled").delete().eq("id", id).eq("status", "pending");
     load();
   };
+  const kindLabel = (r: Row) => r.kind === "contact" ? (CONTACT_KIND[r.payload?.channel] ?? KIND.contact) : (KIND[r.kind] ?? r.kind);
   const summary = (r: Row) =>
     r.kind === "post" ? `${(r.payload?.platforms ?? []).join(", ")} — ${String(r.payload?.text ?? "").slice(0, 80)}`
-    : r.kind === "email" ? `${r.payload?.custom_subject || r.payload?.template_name || "Campaign"} → ${r.payload?.client_ids?.length ? `${r.payload.client_ids.length} clients` : "all clients"}`
+    : r.kind === "email" ? `${r.payload?.custom_subject || r.payload?.template_name || "Campaign"} → ${r.payload?.client_ids?.length ? `${r.payload.client_ids.length} client${r.payload.client_ids.length > 1 ? "s" : ""}` : "all clients"}`
+    : r.kind === "contact" ? `${r.payload?.subject || String(r.payload?.message ?? "").slice(0, 70)} → ${(r.payload?.contact_ids ?? []).length} contact${(r.payload?.contact_ids ?? []).length === 1 ? "" : "s"}`
     : `${r.payload?.messages?.length ?? 0} recipients — ${String(r.payload?.messages?.[0]?.message ?? "").slice(0, 70)}`;
 
   return (
@@ -43,7 +46,7 @@ export default function SocialiteScheduled() {
             {rows.map((r) => (
               <div key={r.id} className="p-4 flex items-center gap-4">
                 <div className="w-28 shrink-0">
-                  <div className="text-[12px] font-semibold text-zinc-200">{KIND[r.kind] ?? r.kind}</div>
+                  <div className="text-[12px] font-semibold text-zinc-200">{kindLabel(r)}</div>
                   <div className={`text-[11px] mono ${r.status === "sent" ? "text-emerald-400" : r.status === "failed" ? "text-amber-400" : "text-zinc-500"}`}>{r.status}</div>
                 </div>
                 <div className="flex-1 min-w-0">

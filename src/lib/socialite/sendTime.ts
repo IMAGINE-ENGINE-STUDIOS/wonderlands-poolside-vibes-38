@@ -58,3 +58,39 @@ export async function scheduleSend(kind: SendKind, payload: unknown, local: stri
   if (error) throw new Error(error.message);
   return { id: data.id as string, when };
 }
+
+/**
+ * EMAIL SPACING — scheduled emails are NEVER queued as one bulk row.
+ * Each recipient gets their OWN socialite_scheduled row, send_at staggered
+ * EMAIL_SPACING_SECONDS apart, so the scheduler (pg_cron, every 5 min,
+ * processes due rows one at a time, in send_at order) fires them one by
+ * one — a separate single-recipient send per email — instead of one blast
+ * to the whole list. That drip is what keeps the campaign from looking
+ * like spam. Queue rows are inserted together; the SENDS are individual.
+ */
+export const EMAIL_SPACING_SECONDS = 60;
+
+export async function scheduleSpacedEmails(
+  entries: { kind: SendKind; payload: unknown }[],
+  local: string,
+  tz: string,
+  spacingSeconds: number = EMAIL_SPACING_SECONDS,
+) {
+  const start = zonedToDate(local, tz);
+  if (isNaN(start.getTime())) throw new Error("Pick a valid date and time");
+  if (start.getTime() < Date.now() - 60_000) throw new Error("That time has already passed");
+  if (!entries.length) throw new Error("Pick at least one recipient");
+  const { data: u } = await supabase.auth.getUser();
+  const rows = entries.map((e, i) => ({
+    kind: e.kind,
+    payload: e.payload,
+    send_at: new Date(start.getTime() + i * spacingSeconds * 1000).toISOString(),
+    timezone: tz,
+    created_by: u.user?.id ?? null,
+  }));
+  for (let i = 0; i < rows.length; i += 500) {
+    const { error } = await (supabase as any).from("socialite_scheduled").insert(rows.slice(i, i + 500));
+    if (error) throw new Error(error.message);
+  }
+  return { count: rows.length, first: start, last: new Date(start.getTime() + (rows.length - 1) * spacingSeconds * 1000), spacingSeconds };
+}

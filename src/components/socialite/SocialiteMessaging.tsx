@@ -13,7 +13,7 @@ import SocialiteCampaignConsole from "./SocialiteCampaignConsole";
 import { ShieldNotice, useShieldPreview, shieldFromError } from "./SocialiteShield";
 import AutomationTemplatesManager from "@/components/admin/AutomationTemplatesManager";
 import SendTimePicker from "./SendTimePicker";
-import { scheduleSend, getSavedTz, fmtIn } from "@/lib/socialite/sendTime";
+import { scheduleSend, scheduleSpacedEmails, getSavedTz, fmtIn } from "@/lib/socialite/sendTime";
 import { emailClients, textToHtml } from "@/lib/socialite/clientActions";
 
 type Channel = "email" | "sms" | "whatsapp" | "calls";
@@ -173,11 +173,19 @@ function Composer({ channel, source, isOwner }: { channel: Channel; source: Sour
     setNote("");
     if (later && canSchedule) {
       try {
+        if (channel === "email") {
+          // Emails go ONE BY ONE, spaced 1 minute apart — never one bulk row.
+          // Each recipient gets their own scheduled row (see scheduleSpacedEmails).
+          const entries = source === "contacts"
+            ? targets.map(p => ({ kind: "contact" as const, payload: { channel: "email", contact_ids: [p.id], subject, message } }))
+            : targets.map(p => ({ kind: "email" as const, payload: { client_ids: [p.id], custom_subject: subject, custom_html: textToHtml(message.replace(/\{first_name\}/g, "{{first_name}}")) } }));
+          const res = await scheduleSpacedEmails(entries, at, tz);
+          setNote(`Scheduled ${res.count} email${res.count > 1 ? "s" : ""} one by one from ${fmtIn(res.first, tz)} — one every minute, last at ${fmtIn(res.last, tz)} — see Calendar.`);
+          return;
+        }
         const res = source === "contacts"
-          ? await scheduleSend("contact", { channel: channel === "calls" ? "call" : channel, contact_ids: targets.slice(0, 200).map(p => p.id), subject, message: sign && channel !== "email" && channel !== "calls" ? `${message}\n${SIGN}` : message }, at, tz)
-          : channel === "email"
-            ? await scheduleSend("email", { client_ids: targets.map(p => p.id), custom_subject: subject, custom_html: textToHtml(message.replace(/\{first_name\}/g, "{{first_name}}")) }, at, tz)
-            : await scheduleSend(channel === "calls" ? "call" : channel, { messages: targets.map(p => ({ to: p.phone, message: body(p), recipientName: p.name })) }, at, tz);
+          ? await scheduleSend("contact", { channel: channel === "calls" ? "call" : channel, contact_ids: targets.slice(0, 200).map(p => p.id), subject, message: sign && channel !== "calls" ? `${message}\n${SIGN}` : message }, at, tz)
+          : await scheduleSend(channel === "calls" ? "call" : channel, { messages: targets.map(p => ({ to: p.phone, message: body(p), recipientName: p.name })) }, at, tz);
         setNote(`Scheduled ${Math.min(targets.length, source === "contacts" ? 200 : targets.length)} for ${fmtIn(res.when, tz)} — see Calendar.`);
       } catch (e: any) { setNote(e.message); }
       return;
@@ -213,8 +221,8 @@ function Composer({ channel, source, isOwner }: { channel: Channel; source: Sour
 
   const len = body().length;
   return (
-    <div className="grid lg:grid-cols-[1fr_400px] gap-5">
-      <div className={`${card} p-5 space-y-4`}>
+    <div className="grid lg:grid-cols-[1fr_400px] gap-5 min-w-0">
+      <div className={`${card} p-5 space-y-4 min-w-0`}>
         <div className="flex items-center justify-between">
           <div className={label}>{source === "clients" ? "Clients" : "My contacts"}</div>
           <div className="text-[12px] text-zinc-500 mono">{picked.size} selected · {shown.length} shown</div>
@@ -238,13 +246,13 @@ function Composer({ channel, source, isOwner }: { channel: Channel; source: Sour
                 <div className="text-[13px] truncate">{p.name}</div>
                 <div className="text-[11px] text-zinc-500 truncate">{p.note}</div>
               </div>
-              <div className="text-[12px] mono text-zinc-500 truncate max-w-[180px]">{reach(p)}</div>
+              <div className="text-[12px] mono text-zinc-500 truncate max-w-[110px] sm:max-w-[180px] shrink-0">{reach(p)}</div>
             </label>
           ))}
         </div>
       </div>
 
-      <div className={`${card} p-5 space-y-4 h-fit`}>
+      <div className={`${card} p-5 space-y-4 h-fit min-w-0`}>
         <div className={label}>{{ email: "Email", sms: "Text message", whatsapp: "WhatsApp message", calls: "Voice message" }[channel]}</div>
         <div className="flex flex-wrap gap-1.5">
           {QUICK.map(([l, t]) => <button key={l} className={chip(false)} onClick={() => setMessage(t)}>{l}</button>)}
@@ -262,6 +270,7 @@ function Composer({ channel, source, isOwner }: { channel: Channel; source: Sour
           <div className="space-y-2">
             <div className="flex gap-1.5">{([["Send now", false], ["Schedule", true]] as const).map(([l, v]) => <button key={l} className={chip(later === v)} onClick={() => setLater(v)}>{l}</button>)}</div>
             {later && <SendTimePicker value={at} onChange={setAt} tz={tz} onTzChange={setTz} />}
+            {later && channel === "email" && <p className="text-[11px] text-zinc-500">Emails go out one by one, one every minute, so the campaign is not flagged as spam.</p>}
           </div>
         )}
         {note && <div className="text-[12px] text-zinc-400">{note}</div>}
@@ -286,30 +295,30 @@ export default function SocialiteMessaging({ isOwner = false }: { isOwner?: bool
   ];
   const src = channel === "calls" && isOwner ? "clients" : channel === "calls" ? "contacts" : source;
   return (
-    <div className="p-4 lg:p-8 space-y-6">
+    <div className="p-4 lg:p-8 space-y-6 min-w-0 max-w-full overflow-x-clip">
       <div>
         <h1 className="text-[22px] font-semibold tracking-tight">Email · SMS · Calls</h1>
         <p className="text-[13px] text-zinc-500">{isOwner ? "Message your clients or your own uploaded contacts." : "Add or upload your contacts, then send emails, texts, WhatsApp messages, calls and campaigns."}</p>
       </div>
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="inline-flex p-1 rounded-full bg-zinc-900 border border-zinc-800">
+      <div className="flex flex-wrap items-center gap-3 max-w-full">
+        <div className="inline-flex p-1 rounded-full bg-zinc-900 border border-zinc-800 max-w-full overflow-x-auto">
           {tabs.map(t => (
-            <button key={t.id} onClick={() => setChannel(t.id)} className={`flex items-center gap-2 px-4 py-2 rounded-full text-[12.5px] font-medium transition ${channel === t.id ? "bg-white text-black" : "text-zinc-400 hover:text-white"}`}>
-              <t.icon className="w-4 h-4" /> {t.label}
+            <button key={t.id} onClick={() => setChannel(t.id)} className={`flex items-center gap-2 px-4 py-2 rounded-full text-[12.5px] font-medium transition whitespace-nowrap ${channel === t.id ? "bg-white text-black" : "text-zinc-400 hover:text-white"}`}>
+              <t.icon className="w-4 h-4 shrink-0" /> {t.label}
             </button>
           ))}
         </div>
         {isOwner && channel !== "calls" && !(channel === "email" && emailMode !== "compose") && (
-          <div className="inline-flex p-1 rounded-full bg-zinc-900 border border-zinc-800">
+          <div className="inline-flex p-1 rounded-full bg-zinc-900 border border-zinc-800 max-w-full overflow-x-auto">
             {([["clients", "Clients"], ["contacts", "My contacts"]] as const).map(([id, l]) => (
               <button key={id} onClick={() => setSource(id)} className={`px-4 py-2 rounded-full text-[12.5px] font-medium ${source === id ? "bg-white text-black" : "text-zinc-400 hover:text-white"}`}>{l}</button>
             ))}
           </div>
         )}
         {channel === "email" && (
-          <div className="inline-flex p-1 rounded-full bg-zinc-900 border border-zinc-800">
+          <div className="inline-flex p-1 rounded-full bg-zinc-900 border border-zinc-800 max-w-full overflow-x-auto">
             {(isOwner ? [["compose", "Compose"], ["campaigns", "Campaign console"], ["templates", "Templates"]] as const : [["compose", "Compose"], ["campaigns", "Campaign console"]] as const).map(([id, l]) => (
-              <button key={id} onClick={() => setEmailMode(id)} className={`px-4 py-2 rounded-full text-[12.5px] font-medium ${emailMode === id ? "bg-white text-black" : "text-zinc-400 hover:text-white"}`}>{l}</button>
+              <button key={id} onClick={() => setEmailMode(id)} className={`px-4 py-2 rounded-full text-[12.5px] font-medium whitespace-nowrap ${emailMode === id ? "bg-white text-black" : "text-zinc-400 hover:text-white"}`}>{l}</button>
             ))}
           </div>
         )}
