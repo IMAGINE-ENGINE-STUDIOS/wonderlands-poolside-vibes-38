@@ -3,14 +3,12 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Slider } from '@/components/ui/slider';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { 
   Search, 
   Filter, 
   MapPin, 
-  DollarSign, 
   Calendar as CalendarIcon,
   X,
   SlidersHorizontal
@@ -63,8 +61,6 @@ const JobSearchEnhanced = ({ onFiltersChange, totalJobs }: JobSearchEnhancedProp
   const sortOptions = [
     { value: 'newest', label: 'Newest First' },
     { value: 'oldest', label: 'Oldest First' },
-    { value: 'budget_high', label: 'Highest Budget' },
-    { value: 'budget_low', label: 'Lowest Budget' },
     { value: 'deadline', label: 'Deadline Soon' },
     { value: 'most_proposals', label: 'Most Proposals' },
     { value: 'least_proposals', label: 'Least Proposals' }
@@ -80,7 +76,6 @@ const JobSearchEnhanced = ({ onFiltersChange, totalJobs }: JobSearchEnhancedProp
     const count = [
       filters.category !== 'all',
       filters.location !== 'any',
-      filters.budgetMin > 0 || filters.budgetMax < 100000,
       filters.deadline !== undefined,
       filters.urgent
     ].filter(Boolean).length;
@@ -200,31 +195,6 @@ const JobSearchEnhanced = ({ onFiltersChange, totalJobs }: JobSearchEnhancedProp
             </Select>
           </div>
 
-          {/* Budget Range */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium flex items-center gap-2">
-              <DollarSign className="h-4 w-4" />
-              Budget Range
-            </label>
-            <div className="space-y-3">
-              <Slider
-                value={[filters.budgetMin, filters.budgetMax]}
-                onValueChange={([min, max]) => {
-                  updateFilter('budgetMin', min);
-                  updateFilter('budgetMax', max);
-                }}
-                max={100000}
-                min={0}
-                step={1000}
-                className="w-full"
-              />
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>${filters.budgetMin.toLocaleString()}</span>
-                <span>${filters.budgetMax.toLocaleString()}</span>
-              </div>
-            </div>
-          </div>
-
           {/* Deadline Filter */}
           <div className="space-y-2">
             <label className="text-sm font-medium flex items-center gap-2">
@@ -296,19 +266,6 @@ const JobSearchEnhanced = ({ onFiltersChange, totalJobs }: JobSearchEnhancedProp
               <X
                 className="h-3 w-3 cursor-pointer"
                 onClick={() => updateFilter('location', 'any')}
-              />
-            </Badge>
-          )}
-          
-          {(filters.budgetMin > 0 || filters.budgetMax < 100000) && (
-            <Badge variant="secondary" className="gap-1">
-              Budget: ${filters.budgetMin.toLocaleString()} - ${filters.budgetMax.toLocaleString()}
-              <X 
-                className="h-3 w-3 cursor-pointer" 
-                onClick={() => {
-                  updateFilter('budgetMin', 0);
-                  updateFilter('budgetMax', 100000);
-                }}
               />
             </Badge>
           )}

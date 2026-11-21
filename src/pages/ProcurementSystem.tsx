@@ -341,9 +341,6 @@ const ProcurementSystem = () => {
   const stats = [
     { label: 'Open projects', value: String(visibleProjects.length) },
     { label: 'Open opportunities', value: String(openListingCount) },
-    ...(!bidderView
-      ? [{ label: 'Open budget (max)', value: `$${visibleProjects.reduce((n, p) => n + p.listings.reduce((m, l) => m + (l.budget_max || 0), 0), 0).toLocaleString()}` }]
-      : []),
     ...(user && !bidderView
       ? [{ label: 'Your open postings', value: String(myJobs.filter(j => j.status === 'open').length) }]
       : []),
@@ -521,6 +518,7 @@ const ProcurementSystem = () => {
                               </span>
                             </div>
                             <div className="mt-2 flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted-foreground">
+                              <span className="font-medium text-foreground">Posted by Wonderlands World</span>
                               {listing?.location && <span>{listing.location}</span>}
                               {start && <span>Work starts {start}</span>}
                               <span>{areas.length} areas open for bids</span>

@@ -461,6 +461,9 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
             {group.project_name}
           </h3>
           <div className="flex items-center gap-3 mt-0.5">
+            <span className="text-xs font-medium text-foreground">
+              Posted by Wonderlands World
+            </span>
             <span className="text-xs text-muted-foreground">
               {openTaskCount} open task{openTaskCount !== 1 ? 's' : ''}
             </span>

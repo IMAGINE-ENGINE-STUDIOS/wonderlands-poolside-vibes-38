@@ -13,7 +13,7 @@ import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calendar, DollarSign, FileText, MapPin, MessageSquare, Send, X } from 'lucide-react';
+import { Calendar, FileText, MapPin, MessageSquare, Send, X } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { ListingMessageThread } from '@/components/procurement/ListingMessageThread';
 import {
@@ -39,8 +39,6 @@ export const formatDateColumn = (value?: string | null): string | null => {
   if (!y || !m || !d) return value;
   return new Date(y, m - 1, d).toLocaleDateString();
 };
-
-const money = (n?: number | null) => (n == null ? null : `$${Number(n).toLocaleString()}`);
 
 const isImageDoc = (fileType?: string | null, fileUrl?: string | null, fileName?: string | null) =>
   (fileType || '').startsWith('image') || /\.(png|jpe?g|webp|gif|avif)$/i.test(fileUrl || fileName || '');
@@ -69,10 +67,6 @@ const ProjectDetailModal = ({ project, isOpen, onClose, onBid }: ProjectDetailMo
   const title = projectListing?.title || project.project_name;
   const location = projectListing?.location || areas[0]?.location || null;
   const startDate = formatDateColumn(projectListing?.start_date || areas[0]?.start_date);
-  const budget =
-    projectListing && (projectListing.budget_min != null || projectListing.budget_max != null)
-      ? `${money(projectListing.budget_min) ?? 'Open'} to ${money(projectListing.budget_max) ?? 'Open'}`
-      : null;
   const imageDocs = project.documents.filter((d) => isImageDoc(d.file_type, d.file_url, d.file_name));
 
   return (
@@ -100,6 +94,7 @@ const ProjectDetailModal = ({ project, isOpen, onClose, onBid }: ProjectDetailMo
           <Card>
             <CardContent className="pt-6">
               <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
+                <span className="font-medium text-foreground">Posted by Wonderlands World</span>
                 {location && (
                   <span className="flex min-w-0 items-center gap-2 break-words">
                     <MapPin className="h-4 w-4 shrink-0" /> {location}
@@ -108,11 +103,6 @@ const ProjectDetailModal = ({ project, isOpen, onClose, onBid }: ProjectDetailMo
                 {startDate && (
                   <span className="flex min-w-0 items-center gap-2 break-words">
                     <Calendar className="h-4 w-4 shrink-0" /> Work starts {startDate}
-                  </span>
-                )}
-                {budget && (
-                  <span className="flex min-w-0 items-center gap-2 break-words">
-                    <DollarSign className="h-4 w-4 shrink-0" /> Budget {budget}
                   </span>
                 )}
                 <span>{areas.length} areas open for bids</span>
@@ -134,7 +124,7 @@ const ProjectDetailModal = ({ project, isOpen, onClose, onBid }: ProjectDetailMo
                     className="w-full sm:w-auto"
                     onClick={() => openMessages(projectListing)}
                   >
-                    <MessageSquare className="mr-2 h-4 w-4" /> Message the project owner
+                    <MessageSquare className="mr-2 h-4 w-4" /> Message Wonderlands World
                   </Button>
                 </div>
               )}
@@ -201,10 +191,6 @@ const ProjectDetailModal = ({ project, isOpen, onClose, onBid }: ProjectDetailMo
               <div className="space-y-4">
                 {areas.map((area, index) => {
                   const areaStart = formatDateColumn(area.start_date);
-                  const areaBudget =
-                    area.budget_min != null || area.budget_max != null
-                      ? `${money(area.budget_min) ?? 'Open'} to ${money(area.budget_max) ?? 'Open'}`
-                      : null;
                   return (
                     <div key={area.id} className="rounded-xl border border-border p-4">
                       <div className="flex flex-wrap items-start gap-3">
@@ -221,11 +207,6 @@ const ProjectDetailModal = ({ project, isOpen, onClose, onBid }: ProjectDetailMo
                             {areaStart && (
                               <span className="flex min-w-0 items-center gap-1.5 break-words">
                                 <Calendar className="h-3.5 w-3.5 shrink-0" /> Work starts {areaStart}
-                              </span>
-                            )}
-                            {areaBudget && (
-                              <span className="flex min-w-0 items-center gap-1.5 break-words">
-                                <DollarSign className="h-3.5 w-3.5 shrink-0" /> Budget {areaBudget}
                               </span>
                             )}
                             <span>{proposalCountLabel(area.proposal_count)}</span>
@@ -248,7 +229,7 @@ const ProjectDetailModal = ({ project, isOpen, onClose, onBid }: ProjectDetailMo
                             className="w-full shrink-0 sm:w-auto"
                             onClick={() => openMessages(area)}
                           >
-                            <MessageSquare className="mr-2 h-4 w-4" /> Message the owner
+                            <MessageSquare className="mr-2 h-4 w-4" /> Message Wonderlands World
                           </Button>
                         </div>
                       </div>
@@ -306,7 +287,7 @@ const ProjectDetailModal = ({ project, isOpen, onClose, onBid }: ProjectDetailMo
             <div>
               <div className="mb-2 flex items-center justify-between">
                 <p className="text-sm font-medium text-neutral-900">
-                  Your conversation with the project owner about {messageListing.title}
+                  Your conversation with Wonderlands World about {messageListing.title}
                 </p>
                 <button
                   onClick={() => setMessageListing(null)}
@@ -322,7 +303,7 @@ const ProjectDetailModal = ({ project, isOpen, onClose, onBid }: ProjectDetailMo
                 bidderId={user.id}
                 currentUserId={user.id}
                 heading={messageListing.title}
-                subheading="Private thread with the project owner"
+                subheading="Private thread with Wonderlands World"
               />
             </div>
           )}

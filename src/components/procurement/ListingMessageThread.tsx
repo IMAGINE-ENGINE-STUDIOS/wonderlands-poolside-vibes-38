@@ -2,7 +2,7 @@
  * ListingMessageThread — one private thread between a project owner and
  * one bidder on one listing of the single procurement system, backed by
  * listing_messages (migration 20261118160000). Used from the public
- * project view (bidder side, "Message the project owner") and from the
+ * project view (bidder side, "Message Wonderlands World") and from the
  * owner's postings (owner side, one thread per bidder).
  * Credits: Imagine Engine Studios Corp.
  */
