@@ -45,7 +45,7 @@ serve(async (req) => {
           </div>
           
           <div style="margin: 25px 0; text-align: center;">
-            <a href="https://wonderlands-poolside-vibes-38.lovable.app" style="background: #475569; color: white; padding: 12px 30px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block;">
+            <a href="https://wonderlandsworld.com" style="background: #475569; color: white; padding: 12px 30px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block;">
               View Available Projects
             </a>
           </div>

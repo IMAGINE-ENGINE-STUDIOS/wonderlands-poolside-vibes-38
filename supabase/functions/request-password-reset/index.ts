@@ -4,7 +4,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
-const ALLOWED = ["https://www.wonderlandsworld.com", "https://wonderlandsworld.com", "https://wonderlands-poolside-vibes-38.lovable.app"];
+const ALLOWED = ["https://www.wonderlandsworld.com", "https://wonderlandsworld.com"];
 const json = (b: unknown, s = 200) => new Response(JSON.stringify(b), { status: s, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
 Deno.serve(async (req) => {
@@ -12,7 +12,7 @@ Deno.serve(async (req) => {
   try {
     const { email, origin } = await req.json();
     if (typeof email !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 255) return json({ error: "Invalid email" }, 400);
-    const base = ALLOWED.includes(origin) || /^https:\/\/[a-z0-9-]+\.lovable\.app$/.test(String(origin)) ? origin : ALLOWED[0];
+    const base = ALLOWED.includes(origin) ? origin : ALLOWED[0];
 
     const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
     const { data, error } = await admin.auth.admin.generateLink({ type: "recovery", email, options: { redirectTo: `${base}/auth/reset-password` } });

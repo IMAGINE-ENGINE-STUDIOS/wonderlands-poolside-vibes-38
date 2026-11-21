@@ -52,7 +52,7 @@ serve(async (req) => {
           <p style="color: #475569;">Please log into your contractor dashboard to view task details and track your progress.</p>
           
           <div style="margin: 25px 0; text-align: center;">
-            <a href="https://wonderlands-poolside-vibes-38.lovable.app" style="background: #0891b2; color: white; padding: 12px 30px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block;">
+            <a href="https://wonderlandsworld.com" style="background: #0891b2; color: white; padding: 12px 30px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block;">
               Go to Dashboard
             </a>
           </div>

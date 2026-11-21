@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 const SUPABASE_URL = "https://bwngxlbnavnhbtahyzbf.supabase.co";
-const SITE_URL = "https://wonderlands-poolside-vibes-38.lovable.app";
+const SITE_URL = "https://wonderlandsworld.com";
 
 /**
  * Convert relative image URLs to absolute URLs so external consumers can display them.
