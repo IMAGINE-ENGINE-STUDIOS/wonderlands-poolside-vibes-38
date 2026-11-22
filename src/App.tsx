@@ -69,6 +69,7 @@ const InvestorDataRoom = lazy(() => import("./pages/InvestorDataRoom"));
 const ConsentPage = lazy(() => import("./pages/ConsentPage"));
 const ApiDocumentation = lazy(() => import("./pages/ApiDocumentation"));
 const Licenses = lazy(() => import("./pages/Licenses"));
+const Links = lazy(() => import("./pages/Links"));
 const SharedProjectView = lazy(() => import("./pages/SharedProjectView"));
 const InternalProjectView = lazy(() => import("./pages/InternalProjectView"));
 const GalleryFilesPage = lazy(() => import("./pages/GalleryFilesPage"));
@@ -235,6 +236,7 @@ const App = () => {
             <Route path="/consent" element={<ConsentPage />} />
             <Route path="/api" element={<ApiDocumentation />} />
             <Route path="/licenses" element={<Licenses />} />
+            <Route path="/links" element={<Links />} />
             <Route path="/project/:token" element={<SharedProjectView />} />
             <Route path="/project/internal/:token" element={<InternalProjectView />} />
             <Route 
