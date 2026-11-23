@@ -9,6 +9,7 @@ import horizonImg from "@/assets/hanso/hanso-horizon.webp";
 import horizonImg2 from "@/assets/hanso/hanso-horizon-2.webp";
 import apexImg from "@/assets/hanso/hanso-apex.webp";
 import apexImg2 from "@/assets/hanso/hanso-apex-2.webp";
+import awningImg from "@/assets/hanso/hanso-awning.webp";
 
 export interface HansoSize {
   label: string;
@@ -90,6 +91,24 @@ export const hansoLines: HansoLine[] = [
       { label: "13 × 19 ft", price: 21950 },
       { label: "13 × 23 ft", price: 25950 },
       { label: "13 × 26 ft", price: 27950 },
+    ],
+  },
+  {
+    id: "hanso-awning",
+    name: "Awning",
+    brand: "Hansø",
+    tagline: "Electric retractable, full cassette",
+    description:
+      "An electric retractable awning in a full cassette that seals the fabric, the arms and the motor away when it closes. The Sauleda marine grade acrylic blocks up to 97 percent of UV, and it mounts to a wall, ceiling or soffit. An optional sensor retracts it on its own when the wind reaches 18 mph.",
+    images: [awningImg],
+    specs: ["Electric retractable, full cassette", "25 mph wind rated, fully extended", "Sauleda acrylic, up to 97 percent UV block"],
+    finishes: "Full cassette, wall ceiling or soffit mount",
+    warranty: "Covered by the Hansø warranty",
+    sizes: [
+      { label: "10 × 7 ft", price: 3797 },
+      { label: "13 × 10 ft", price: 4510 },
+      { label: "16 × 10 ft", price: 5082 },
+      { label: "20 × 10 ft", price: 5796 },
     ],
   },
 ];
