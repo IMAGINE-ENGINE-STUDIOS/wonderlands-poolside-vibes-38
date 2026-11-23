@@ -311,8 +311,8 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({
                 );
               })}
             </CarouselContent>
-            <CarouselPrevious />
-            <CarouselNext />
+            <CarouselPrevious className="left-2 md:-left-12" />
+            <CarouselNext className="right-2 md:-right-12" />
           </Carousel>
         </div>
       </section>
