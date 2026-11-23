@@ -1,6 +1,7 @@
 // Sends email / SMS / WhatsApp to a SOCIALITE user's own contacts (owner-checked).
 // Used by socialite-send (now) and socialite-scheduler (kind=contact, later).
 import { admin } from "./socialiteVault.ts";
+import { enqueueMail, isQuotaFailure } from "./mailQueue.ts";
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
 export async function sendToContacts(ownerId: string, replyTo: string, channel: "email" | "sms" | "whatsapp" | "call", contact_ids: string[], subject: string, message: string, customHtml?: string) {
@@ -9,6 +10,7 @@ export async function sendToContacts(ownerId: string, replyTo: string, channel: 
     const list = (contacts ?? []).filter((c) => (channel === "email" ? c.email : c.phone));
     const resendKey = Deno.env.get("RESEND_API_KEY");
     let ok = 0;
+    let queuedCount = 0;
     const sentIds: string[] = [];
     const queue = [...list];
     const worker = async () => {
@@ -23,7 +25,16 @@ export async function sendToContacts(ownerId: string, replyTo: string, channel: 
               method: "POST", headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
               body: JSON.stringify({ from: "SOCIALITE <sales@wonderlandsworld.com>", to: [c.email], subject, html, reply_to: replyTo || undefined }),
             });
-            if (!r.ok) throw new Error(await r.text());
+            if (!r.ok) {
+              const body = await r.text();
+              // Quota wall: park the rendered mail in the Socialite mail
+              // queue instead of losing it; the scheduler drains it later.
+              if (isQuotaFailure(r.status, body) && await enqueueMail(db, { source: "socialite-contact", from: "SOCIALITE <sales@wonderlandsworld.com>", to: [c.email], subject, html, replyTo: replyTo || undefined })) {
+                queuedCount++;
+                continue;
+              }
+              throw new Error(body);
+            }
           } else {
             const { data, error } = await db.functions.invoke(channel === "sms" ? "send-sms" : channel === "call" ? "make-voice-call" : "send-whatsapp", { body: { to: c.phone, message: text, recipientType: "contact", recipientName: c.name } });
             if (error || data?.success === false) throw new Error("send failed");
@@ -34,5 +45,5 @@ export async function sendToContacts(ownerId: string, replyTo: string, channel: 
     };
     await Promise.all(Array.from({ length: Math.min(4, list.length) }, worker));
     if (sentIds.length) await db.from("socialite_contacts").update({ last_sent_at: new Date().toISOString(), last_channel: channel }).in("id", sentIds);
-  return { successful: ok, failed: contact_ids.length - ok };
+  return { successful: ok, failed: contact_ids.length - ok - queuedCount, queued: queuedCount };
 }

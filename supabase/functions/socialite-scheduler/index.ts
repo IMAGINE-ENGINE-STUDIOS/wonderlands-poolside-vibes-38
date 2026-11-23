@@ -10,6 +10,7 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { admin } from "../_shared/socialiteVault.ts";
 import { publishAll } from "../_shared/socialitePublish.ts";
 import { sendToContacts } from "../_shared/contactSend.ts";
+import { drainMailQueue } from "../_shared/mailQueue.ts";
 import { meter } from "../_shared/socialiteBilling.ts";
 import { guard, record, failSpike } from "../_shared/socialiteShield.ts";
 import { topUpAutopilots } from "../_shared/socialiteAutopilot.ts";
@@ -28,6 +29,9 @@ Deno.serve(async (req) => {
   // Autopilot: keep every active owner's next ~36h of posts filled. It only
   // enqueues normal scheduled rows — sending stays on the path below.
   try { await topUpAutopilots(db); } catch { /* top-up must never block due sends */ }
+  // Mail queue: drain mail parked during the Resend quota wall (founder
+  // ruling 2026-11-22). Stops itself at the first renewed refusal.
+  try { await drainMailQueue(db, Deno.env.get("RESEND_API_KEY")); } catch { /* drain must never block due sends */ }
   const { data: due } = await db.from("socialite_scheduled").select("*").eq("status", "pending").lte("send_at", new Date().toISOString()).order("send_at").limit(25);
   const done: string[] = [];
   for (const row of due ?? []) {

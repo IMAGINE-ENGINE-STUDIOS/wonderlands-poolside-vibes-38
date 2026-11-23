@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { Resend } from "npm:resend@2.0.0";
+import { enqueueMail, isQuotaFailure } from "../_shared/mailQueue.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -149,8 +150,12 @@ serve(async (req: Request) => {
     const results = {
       successful: 0,
       failed: 0,
+      queued: 0,
       errors: [] as string[],
     };
+    // Set at the first Resend quota refusal: the rest of the run parks in
+    // the mail queue without attempting sends the wall would refuse.
+    let quotaHit = false;
 
     // Send email to each client
     for (const client of clients) {
@@ -222,7 +227,7 @@ serve(async (req: Request) => {
 
         console.log(`Sending to ${client.email} (${client.first_name}) from ${salesRepName}...`);
 
-        const emailResponse = await resend.emails.send({
+        const mailPayload = {
           from: `Ricardo - Wonderlands World <sales@wonderlandsworld.com>`,
           reply_to: salesRepEmail,
           to: [client.email],
@@ -232,9 +237,31 @@ serve(async (req: Request) => {
             "List-Unsubscribe": `<${oneClickUrl}>`,
             "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
           },
+        };
+        const parkInQueue = async () => await enqueueMail(supabase, {
+          source: "send-bulk-email",
+          from: mailPayload.from,
+          to: mailPayload.to,
+          subject,
+          html: htmlContent,
+          replyTo: salesRepEmail,
+          headers: mailPayload.headers,
         });
 
+        if (quotaHit) {
+          if (await parkInQueue()) { results.queued++; continue; }
+          results.failed++;
+          results.errors.push(`${client.email}: mail queue insert failed`);
+          continue;
+        }
+
+        const emailResponse = await resend.emails.send(mailPayload);
+
         if (emailResponse.error) {
+          if (isQuotaFailure((emailResponse.error as any).statusCode, emailResponse.error.message)) {
+            quotaHit = true;
+            if (await parkInQueue()) { results.queued++; continue; }
+          }
           console.error(`Failed to send to ${client.email}:`, emailResponse.error);
           results.failed++;
           results.errors.push(`${client.email}: ${emailResponse.error.message}`);
@@ -266,14 +293,15 @@ serve(async (req: Request) => {
       }
     }
 
-    console.log(`Bulk email complete: ${results.successful} sent, ${results.failed} failed`);
+    console.log(`Bulk email complete: ${results.successful} sent, ${results.failed} failed, ${results.queued} queued`);
 
     return new Response(
       JSON.stringify({
         success: true,
-        message: `Bulk email complete: ${results.successful} sent, ${results.failed} failed`,
+        message: `Bulk email complete: ${results.successful} sent, ${results.failed} failed, ${results.queued} queued (Resend quota — parked in the mail queue)`,
         total_clients: clients.length,
         successful: results.successful,
+        queued: results.queued,
         failed: results.failed,
         errors: results.errors.slice(0, 10), // Only return first 10 errors
       }),

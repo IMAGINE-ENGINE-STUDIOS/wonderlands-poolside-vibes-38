@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { Resend } from "npm:resend@2.0.0";
+import { enqueueMail, isQuotaFailure } from "../_shared/mailQueue.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -40,7 +41,7 @@ async function sendEmail(
   subject: string,
   body: string,
   htmlContent?: string
-): Promise<{ success: boolean; externalId?: string; error?: string }> {
+): Promise<{ success: boolean; externalId?: string; error?: string; queued?: boolean }> {
   try {
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
     if (!resendApiKey) {
@@ -48,12 +49,25 @@ async function sendEmail(
     }
 
     const resend = new Resend(resendApiKey);
+    const html = htmlContent || `<p>${body}</p>`;
     const response = await resend.emails.send({
       from: "Wonderlands World <noreply@wonderlandsworld.com>",
       to: [to],
       subject: subject,
-      html: htmlContent || `<p>${body}</p>`,
+      html,
     });
+
+    if (response.error) {
+      // Quota wall: park the rendered mail in the Socialite mail queue
+      // instead of losing it; the scheduler drains it when Resend reopens.
+      if (isQuotaFailure((response.error as any).statusCode, response.error.message)) {
+        const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+        if (await enqueueMail(db, { source: "scheduled-outreach", from: "Wonderlands World <noreply@wonderlandsworld.com>", to: [to], subject, html })) {
+          return { success: false, queued: true, error: "Resend quota reached — parked in the mail queue" };
+        }
+      }
+      return { success: false, error: response.error.message };
+    }
 
     console.log("Email sent:", response);
     return { success: true, externalId: response.data?.id };
