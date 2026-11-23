@@ -107,6 +107,25 @@ export interface ProductSuiteProps {
     model: SuiteModel,
     ctx: { extras: Record<string, any> },
   ) => React.ReactNode;
+  /**
+   * Expansion A (founder pattern, 2026-11-22): the three actions every
+   * suite carries — AR / 3D, Place in Real World, Generate a Render —
+   * each rendered ONLY when the capability behind it exists for the
+   * selected model, so no surface ever shows an action that does
+   * nothing. The AR action reads the model's own threeDUrl; a suite
+   * whose 3D links live outside the model record resolves them here.
+   */
+  threeDUrlFor?: (model: SuiteModel) => string | null | undefined;
+  /**
+   * Optional in-detail render addon (the Generate a Render tool),
+   * rendered under the placement addon with its own "Generate a
+   * render" action scrolling to it — the exact mirror of detailAddon.
+   * Seam only until Expansion C wires the first surface.
+   */
+  renderAddon?: (
+    model: SuiteModel,
+    ctx: { extras: Record<string, any> },
+  ) => React.ReactNode;
 }
 
 const money = (n: number) => `$${Math.round(n).toLocaleString()}`;
@@ -125,6 +144,8 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({
   unitSuffix = "",
   placementPathFor,
   detailAddon,
+  threeDUrlFor,
+  renderAddon,
 }) => {
   /* every suite also carries every other discipline's drawing board */
   const boards = React.useMemo(() => {
@@ -155,6 +176,10 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({
     () => models.find((m) => m.id === modelId) ?? models[0],
     [models, modelId],
   );
+
+  /** Expansion A — the selected model's AR / 3D link: the suite's
+   *  resolver wins, the model's own threeDUrl is the fallback. */
+  const threeDUrl = model ? (threeDUrlFor?.(model) ?? model.threeDUrl) : undefined;
 
   const base = React.useMemo(() => (model?.price ?? 0) * priceMultiplier, [model, priceMultiplier]);
   const extrasTotal = React.useMemo(
@@ -368,9 +393,9 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({
                   ))}
                 </ul>
               )}
-              {model?.threeDUrl && (
+              {threeDUrl && (
                 <a
-                  href={model.threeDUrl}
+                  href={threeDUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mt-6 inline-flex items-center gap-2 border border-foreground px-4 py-2 text-[10px] uppercase tracking-[0.3em] text-foreground transition-colors hover:bg-foreground hover:text-background"
@@ -434,6 +459,23 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({
               return null;
             })()}
 
+            {/* Generate a Render entry — only for suites carrying a
+                render addon (Expansion C wires the first surface);
+                the action scrolls to the addon in this page. */}
+            {model && renderAddon ? (
+              <Button
+                className="mt-3 w-full rounded-none"
+                variant="outline"
+                onClick={() =>
+                  document
+                    .getElementById("suite-render")
+                    ?.scrollIntoView({ behavior: "smooth", block: "start" })
+                }
+              >
+                Generate a render
+              </Button>
+            ) : null}
+
             {/* Live shopping list — the SAME widget the Quote Atelier and the
                 Studio use, so every category shows one cart, one total. */}
             <div className="mt-8">
@@ -485,6 +527,14 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({
               {model && detailAddon ? (
                 <div id="suite-placement" className="mt-8 scroll-mt-6">
                   {detailAddon(model, { extras })}
+                </div>
+              ) : null}
+
+              {/* In-detail render addon for the selected model
+                  (Expansion C's Generate a Render tool lives here). */}
+              {model && renderAddon ? (
+                <div id="suite-render" className="mt-8 scroll-mt-6">
+                  {renderAddon(model, { extras })}
                 </div>
               ) : null}
 
