@@ -6,6 +6,7 @@ import {
   buildPlacementPayload,
   choosableOptionGroups,
   complementsFromSelections,
+  selectionsFromSuiteExtras,
   fetchSaunaPack,
   generateSaunaPlacement,
   markerPointFor,
@@ -411,6 +412,35 @@ describe("complementsFromSelections (every chosen group rides the request)", () 
       complementsFromSelections(all, { coldPlunge: "" }, { rainJacket: false }),
       [],
     );
+  });
+});
+
+describe("selectionsFromSuiteExtras (the suite configuration carries into the picture)", () => {
+  const pack = parseSaunaPack(PACK_FIXTURE);
+  const { visible, rest } = placementGroupsForDisplay(pack);
+  const all = [...visible, ...rest];
+
+  it("seeds selections and toggles whose names the pack carries", () => {
+    const out = selectionsFromSuiteExtras(all, {
+      saunaDoor: "All-Wood Door",
+      saunaHeater: "Included Heater (as configured)",
+      rainJacket: true,
+    });
+    assert.deepEqual(out.selections, {
+      saunaDoor: "All-Wood Door",
+      saunaHeater: "Included Heater (as configured)",
+    });
+    assert.deepEqual(out.toggles, { rainJacket: true });
+  });
+
+  it("seeds nothing for a deselection, an unknown choice, or a quantity", () => {
+    const out = selectionsFromSuiteExtras(all, {
+      saunaDoor: "None",
+      saunaHeater: "A Heater The Pack Does Not Carry",
+      coldPlunge: 2,
+      careSet: false,
+    });
+    assert.deepEqual(out, { selections: {}, toggles: {} });
   });
 });
 

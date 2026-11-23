@@ -62,8 +62,12 @@ const SaunaSuite = () => {
         title="The Sauna Suite"
         blurb="Barrel, cabin and panorama cabins from Almost Heaven Saunas, configured line by line — heater, control, stones, door, glass and the cold plunge that follows the heat."
         models={models}
-        detailAddon={(m) => (
-          <SaunaPlacementTool embedded modelId={m.id} />
+        detailAddon={(m, ctx) => (
+          <SaunaPlacementTool
+            embedded
+            modelId={m.id}
+            initialFromExtras={ctx.extras}
+          />
         )}
       />
     </>

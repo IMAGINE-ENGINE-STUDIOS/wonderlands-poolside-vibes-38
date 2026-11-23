@@ -103,7 +103,10 @@ export interface ProductSuiteProps {
    * scrolls to the addon (anchor id "suite-placement") instead of
    * navigating away.
    */
-  detailAddon?: (model: SuiteModel) => React.ReactNode;
+  detailAddon?: (
+    model: SuiteModel,
+    ctx: { extras: Record<string, any> },
+  ) => React.ReactNode;
 }
 
 const money = (n: number) => `$${Math.round(n).toLocaleString()}`;
@@ -481,7 +484,7 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({
                   Suite's placement tool lives here). */}
               {model && detailAddon ? (
                 <div id="suite-placement" className="mt-8 scroll-mt-6">
-                  {detailAddon(model)}
+                  {detailAddon(model, { extras })}
                 </div>
               ) : null}
 

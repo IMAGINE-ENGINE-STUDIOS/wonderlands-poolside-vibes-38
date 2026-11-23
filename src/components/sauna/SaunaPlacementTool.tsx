@@ -3,6 +3,7 @@ import { saunas } from "@/data/saunaData";
 import {
   arUrlForModel,
   complementsFromSelections,
+  selectionsFromSuiteExtras,
   fetchSaunaPack,
   generateSaunaPlacement,
   modelSizeLine,
@@ -91,12 +92,21 @@ export interface SaunaPlacementToolProps {
   initialModelId?: string | null;
   /** Inside the Sauna Suite: fluid width, section heading, no picker. */
   embedded?: boolean;
+  /**
+   * Embedded only: the suite configurator's current extras record.
+   * The section starts from that configuration (strategy §2.4): each
+   * suite selection the pack carries seeds the matching placement
+   * choice, and later changes above are followed group by group —
+   * choices the customer edits here for other groups are left alone.
+   */
+  initialFromExtras?: Record<string, unknown>;
 }
 
 const SaunaPlacementTool: React.FC<SaunaPlacementToolProps> = ({
   modelId: controlledModelId,
   initialModelId,
   embedded = false,
+  initialFromExtras,
 }) => {
   const [pack, setPack] = React.useState<SaunaPack | null>(null);
   const [packError, setPackError] = React.useState<string | null>(null);
@@ -136,6 +146,56 @@ const SaunaPlacementTool: React.FC<SaunaPlacementToolProps> = ({
   React.useEffect(() => {
     void loadPack();
   }, [loadPack]);
+
+  /* Carry-over from the suite configurator (strategy §2.4): seed the
+   * section from the configuration above, then follow later changes
+   * group by group. Only groups whose suite value changed since the
+   * last seed are re-applied, so a choice the customer edits here
+   * for another group is never clobbered. */
+  const lastSeedRef = React.useRef<{
+    selections: Record<string, string>;
+    toggles: Record<string, boolean>;
+  }>({ selections: {}, toggles: {} });
+  React.useEffect(() => {
+    if (!pack || !initialFromExtras) return;
+    const derived = selectionsFromSuiteExtras(
+      pack.optionGroups,
+      initialFromExtras,
+    );
+    const last = lastSeedRef.current;
+    const selDelta = new Map<string, string | undefined>();
+    const togDelta = new Map<string, boolean | undefined>();
+    for (const g of pack.optionGroups) {
+      if (g.type === "selection") {
+        if (derived.selections[g.id] !== last.selections[g.id]) {
+          selDelta.set(g.id, derived.selections[g.id]);
+        }
+      } else if (derived.toggles[g.id] !== last.toggles[g.id]) {
+        togDelta.set(g.id, derived.toggles[g.id]);
+      }
+    }
+    if (selDelta.size) {
+      setSelections((prev) => {
+        const next = { ...prev };
+        for (const [id, value] of selDelta) {
+          if (value === undefined) delete next[id];
+          else next[id] = value;
+        }
+        return next;
+      });
+    }
+    if (togDelta.size) {
+      setToggles((prev) => {
+        const next = { ...prev };
+        for (const [id, value] of togDelta) {
+          if (value === undefined) delete next[id];
+          else next[id] = value;
+        }
+        return next;
+      });
+    }
+    lastSeedRef.current = derived;
+  }, [pack, initialFromExtras]);
 
   /* Standalone in-context entry: apply the requested model once the
    * pack can resolve it. The ref keeps a later manual change from

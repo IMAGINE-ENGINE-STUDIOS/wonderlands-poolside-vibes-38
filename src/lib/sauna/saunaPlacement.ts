@@ -623,8 +623,7 @@ export function placementGroupsForDisplay(pack: SaunaPack): {
  * selections: a selection group contributes its chosen choice, a
  * boolean group contributes itself when toggled on. Order follows the
  * group list given.
- */
-export function complementsFromSelections(
+ */export function complementsFromSelections(
   groups: PackOptionGroup[],
   selections: Record<string, string>,
   toggles: Record<string, boolean>,
@@ -639,6 +638,37 @@ export function complementsFromSelections(
     }
   }
   return out;
+}
+
+/**
+ * Carry-over from the suite configurator (founder strategy §2.4,
+ * 2026-11-22): the placement section starts from the configuration
+ * the customer already made in the suite above it. The suite's
+ * extras record stores the chosen option NAME per feature id, and
+ * the pack's groups share the same ids and choice names — so a
+ * suite selection seeds the placement selection only when the pack
+ * group exists AND the stored name is one of its choices. Anything
+ * else (a "None" deselection, a quantity, a group the pack does
+ * not carry) seeds nothing — never invented, never approximated.
+ * Boolean pack groups seed from a stored boolean true.
+ */
+export function selectionsFromSuiteExtras(
+  groups: PackOptionGroup[],
+  extras: Record<string, unknown>,
+): { selections: Record<string, string>; toggles: Record<string, boolean> } {
+  const selections: Record<string, string> = {};
+  const toggles: Record<string, boolean> = {};
+  for (const g of groups) {
+    const value = extras[g.id];
+    if (g.type === "selection") {
+      if (typeof value === "string" && g.choices.includes(value)) {
+        selections[g.id] = value;
+      }
+    } else if (value === true) {
+      toggles[g.id] = true;
+    }
+  }
+  return { selections, toggles };
 }
 
 /**
