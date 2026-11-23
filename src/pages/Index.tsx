@@ -21,6 +21,7 @@ import drivewayGateBanner from "@/assets/banners/driveway-gate-banner.webp";
 import tanningLedgeBanner from "@/assets/banners/tanning-ledge-banner.webp";
 import patioFencingBanner from "@/assets/banners/patio-fencing-banner.webp";
 import lanaiBanner from "@/assets/banners/lanai-banner.webp";
+import hansoBanner from "@/assets/banners/hanso-pergolas-banner.webp";
 import landscapingBanner from "@/assets/banners/landscaping-banner.webp";
 
 // Lazy-loaded section components
@@ -37,6 +38,7 @@ const PoolCoverEnergyEditorial = lazy(() => import("@/components/PoolCoverEnergy
 const ScreenEnclosureSection = lazy(() => import("@/components/ScreenEnclosureSection"));
 const PatioFencingSection = lazy(() => import("@/components/PatioFencingSection"));
 const LanaiSection = lazy(() => import("@/components/LanaiSection"));
+const HansoPergolaSection = lazy(() => import("@/components/HansoPergolaSection"));
 const PaversSection = lazy(() => import("@/components/PaversSection"));
 const ArtificialGrassSection = lazy(() => import("@/components/ArtificialGrassSection"));
 const DrivewayGateSection = lazy(() => import("@/components/DrivewayGateSection"));
@@ -170,6 +172,11 @@ const Index = () => {
         <Suspense fallback={<SectionFallback />}>
           <SectionBanner id="lanai" image={lanaiBanner} alt="Lanai Enclosures" title="Lanai Enclosures" subtitle="Transform your outdoor space into a luxurious covered living area" />
           <LanaiSection />
+        </Suspense>
+
+        <Suspense fallback={<SectionFallback />}>
+          <SectionBanner id="pergolas" image={hansoBanner} alt="Hansø Pergolas" title="Pérgolas" subtitle="Aluminum pergolas with louvered roofs from Hansø. Shade you control, built for Florida weather." />
+          <HansoPergolaSection />
         </Suspense>
 
         <Suspense fallback={<SectionFallback />}>
