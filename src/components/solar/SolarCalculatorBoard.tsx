@@ -7,6 +7,12 @@ import { usePersistentState } from "@/hooks/usePersistentState";
 import { useOptionalShoppingCart } from "@/components/ShoppingCartProvider";
 import AerialCanvas, { type AerialView } from "./AerialCanvas";
 import { composeAerialFrame } from "@/lib/solar/aerialTiles";
+import ParcelMap from "@/components/gis/ParcelMap";
+import {
+  lookupParcelByAddress,
+  lookupParcelByPoint,
+  type ParcelResult,
+} from "@/lib/gis/parcelLookup";
 
 import {
   traceRoofPlane,
@@ -102,6 +108,26 @@ const SolarCalculatorBoard: React.FC<{ height?: number; mapOnly?: boolean }> = (
   const [suggestions, setSuggestions] = React.useState<Suggestion[]>([]);
   const [typing, setTyping] = React.useState(false);
   const [busy, setBusy] = React.useState<"" | "geocode" | "insights" | "trace">("");
+
+  /** the county parcel for the settled address — the shared GIS layer's
+   *  boundary + zoning context beside the aerial trace */
+  const [parcel, setParcel] = React.useState<ParcelResult | null>(null);
+  React.useEffect(() => {
+    let cancelled = false;
+    const run = async () => {
+      const found =
+        session.lat != null && session.lng != null
+          ? await lookupParcelByPoint(session.lng, session.lat).catch(() => null)
+          : session.address
+            ? await lookupParcelByAddress(session.address).catch(() => null)
+            : null;
+      if (!cancelled) setParcel(found);
+    };
+    void run();
+    return () => {
+      cancelled = true;
+    };
+  }, [session.lat, session.lng, session.address]);
 
   const [mode, setMode] = usePersistentState<Mode>("solar_capture_mode", "idle");
   const [selected, setSelected] = React.useState<string>("");
@@ -859,6 +885,25 @@ const SolarCalculatorBoard: React.FC<{ height?: number; mapOnly?: boolean }> = (
               Orange prime · yellow good · red shaded
             </span>
           </div>
+
+          {/* the parcel — county boundary, zoning and true side lengths for
+              the settled address, from the shared GIS layer */}
+          {parcel && (
+            <div className="mt-4 border border-border/60 p-3">
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">The parcel</p>
+                <p className="text-[10px] text-muted-foreground">
+                  {parcel.fields.parcelId}
+                  {parcel.fields.acreage != null ? ` · ${parcel.fields.acreage} acres` : ""}
+                  {parcel.fields.zoning ? ` · Zoning ${parcel.fields.zoning}` : ""}
+                </p>
+              </div>
+              <p className="mt-1 text-sm font-light">{parcel.fields.situs}</p>
+              <div className="mt-2">
+                <ParcelMap parcel={parcel} />
+              </div>
+            </div>
+          )}
 
           {/* memory of previous studies — reload any earlier roof capture */}
           <div className="mt-4">
