@@ -23,7 +23,9 @@ export interface HansoLine {
   tagline: string;
   description: string;
   images: string[];
-  specs: string[];
+  roof: string;
+  sizeRange: string;
+  features: string[];
   finishes: string;
   warranty: string;
   sizes: HansoSize[];
@@ -38,7 +40,9 @@ export const hansoLines: HansoLine[] = [
     description:
       "The original Hansø pergola. Its louvers turn by hand crank, so there is no motor and nothing to charge. The frame is 6063 T5 aluminum with a three layer powder coat, and it stands freestanding or wall mounted in your yard.",
     images: [proPlusImg, proPlusImg2],
-    specs: ["Hand crank louvers", "120 mph wind rated, properly mounted", "25 psf snow load"],
+    roof: "Hand crank louvers",
+    sizeRange: "10 × 10 ft to 13 × 19 ft",
+    features: ["120 mph wind rated, properly mounted", "25 psf snow load", "6063 T5 aluminum, three layer powder coat", "Freestanding or wall mounted"],
     finishes: "Dark Gray or White",
     warranty: "10 year warranty",
     sizes: [
@@ -56,7 +60,9 @@ export const hansoLines: HansoLine[] = [
     description:
       "The smart flagship. Its motorized roof opens to 135 degrees and answers to your phone, the remote, Alexa, Google Home or HomeKit, and SoftGlow LED lighting in two colors is built into the frame. The frame is 6063 T6 aerospace grade aluminum.",
     images: [horizonImg, horizonImg2],
-    specs: ["Motorized roof, phone remote or voice", "Up to 165 mph wind rated, louvers closed", "Up to 60 psf snow load", "SoftGlow dual color LED built in"],
+    roof: "Motorized, phone remote or voice",
+    sizeRange: "10 × 10 ft to 13 × 19 ft",
+    features: ["Up to 165 mph wind rated, louvers closed", "Up to 60 psf snow load", "SoftGlow dual color LED built in", "6063 T6 aerospace grade aluminum"],
     finishes: "Dark Gray or White",
     warranty: "10 year warranty",
     sizes: [
@@ -75,7 +81,9 @@ export const hansoLines: HansoLine[] = [
     description:
       "The premium Hansø and the largest of the three. Twelve sizes run up to 13 by 26 feet, the motorized roof answers to phone, remote or voice, and SoftGlow LED is built into every louver. The frame is 6063 T6 aerospace grade aluminum.",
     images: [apexImg, apexImg2],
-    specs: ["Motorized roof, phone remote or voice", "167 mph wind rated, louvers closed", "65 psf snow load", "SoftGlow LED in every louver"],
+    roof: "Motorized, phone remote or voice",
+    sizeRange: "10 × 10 ft to 13 × 26 ft",
+    features: ["167 mph wind rated, louvers closed", "65 psf snow load", "SoftGlow LED in every louver", "6063 T6 aerospace grade aluminum"],
     finishes: "Dark Gray, White or Matte Black",
     warranty: "10 year warranty",
     sizes: [
@@ -101,7 +109,9 @@ export const hansoLines: HansoLine[] = [
     description:
       "An electric retractable awning in a full cassette that seals the fabric, the arms and the motor away when it closes. The Sauleda marine grade acrylic blocks up to 97 percent of UV, and it mounts to a wall, ceiling or soffit. An optional sensor retracts it on its own when the wind reaches 18 mph.",
     images: [awningImg],
-    specs: ["Electric retractable, full cassette", "25 mph wind rated, fully extended", "Sauleda acrylic, up to 97 percent UV block"],
+    roof: "Electric retractable, full cassette",
+    sizeRange: "10 × 7 ft to 20 × 10 ft",
+    features: ["25 mph wind rated, fully extended", "Sauleda acrylic, up to 97 percent UV block", "Wall, ceiling or soffit mount", "Optional wind sensor retracts at 18 mph"],
     finishes: "Full cassette, wall ceiling or soffit mount",
     warranty: "Covered by the Hansø warranty",
     sizes: [
