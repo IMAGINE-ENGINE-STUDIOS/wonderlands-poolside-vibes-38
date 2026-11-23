@@ -121,6 +121,10 @@ const SaunaPlacementTool: React.FC<SaunaPlacementToolProps> = ({
   const [tap, setTap] = React.useState<PlacementTap | null>(null);
   const [phase, setPhase] = React.useState<Phase>("edit");
   const [result, setResult] = React.useState<PlacementResult | null>(null);
+  /* The model the current result was made for. A result belongs to
+   * its model: when the selection moves on, the old picture must not
+   * wear the new model's name (live proof finding, 2026-11-22). */
+  const [resultModelId, setResultModelId] = React.useState<string | null>(null);
   const [errorMsg, setErrorMsg] = React.useState<string>("");
 
   const cameraRef = React.useRef<HTMLInputElement>(null);
@@ -215,6 +219,17 @@ const SaunaPlacementTool: React.FC<SaunaPlacementToolProps> = ({
     }
   }, [phase]);
 
+  /* A result belongs to the model it was made for: when the model
+   * changes, drop the old picture back to the edit phase — the photo
+   * and tap stay, so the customer can re-make it for this model. */
+  React.useEffect(() => {
+    if (result && resultModelId && modelId && resultModelId !== modelId) {
+      setResult(null);
+      setResultModelId(null);
+      setPhase("edit");
+    }
+  }, [result, resultModelId, modelId]);
+
   const model: PackModel | null = React.useMemo(
     () => pack?.models.find((m) => m.id === modelId) ?? null,
     [pack, modelId],
@@ -246,6 +261,7 @@ const SaunaPlacementTool: React.FC<SaunaPlacementToolProps> = ({
       });
       setTap(null);
       setResult(null);
+      setResultModelId(null);
       setPhase("edit");
     };
     img.onerror = () => {
@@ -295,6 +311,7 @@ const SaunaPlacementTool: React.FC<SaunaPlacementToolProps> = ({
         size,
       );
       setResult(res);
+      setResultModelId(model.id);
       setPhase("result");
     } catch (err) {
       setErrorMsg(
@@ -655,6 +672,16 @@ const SaunaPlacementTool: React.FC<SaunaPlacementToolProps> = ({
                 <p className="text-sm font-semibold">
                   {money(PRICE_BY_ID.get(model.id) ?? 0)}
                 </p>
+              ) : null}
+              {arUrl ? (
+                <a
+                  href={arUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-1 inline-block text-sm font-medium text-neutral-900 underline"
+                >
+                  See this sauna in 3D on the manufacturer's site
+                </a>
               ) : null}
             </div>
           </div>
