@@ -3,6 +3,7 @@ import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { MAPBOX_SATELLITE_STYLE, MAPBOX_TOKEN } from "@/lib/gis/mapboxToken";
 import { parcelBounds, parcelEdges, type ParcelResult } from "@/lib/gis/parcelLookup";
+import { addEsriSatelliteFallback } from "@/lib/gis/esriImagery";
 
 // Shared GIS layer — the parcel map: Mapbox satellite with the county parcel
 // boundary drawn as colored glass and every side labelled with its true
@@ -40,6 +41,10 @@ export default function ParcelMap({ parcel, height = 320 }: { parcel: ParcelResu
     mapRef.current = map;
     map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), "top-right");
     map.on("load", () => {
+      // Second satellite source under the style's own (founder,
+      // 2026-11-22): if Mapbox's tiles are refused, Esri World Imagery
+      // shows through and the basemap is a real satellite photo.
+      addEsriSatelliteFallback(map);
       map.addSource("gis-parcel", { type: "geojson", data: parcelRef.current.feature });
       map.addSource("gis-edges", { type: "geojson", data: edgeLabelFeatures(parcelRef.current) });
       map.addLayer({
