@@ -89,6 +89,21 @@ export interface ProductSuiteProps {
   boards?: Array<{ id: string; label: string }>;
   /** Printed after every figure for rate-based trades, e.g. "/sq ft". */
   unitSuffix?: string;
+  /**
+   * Optional placement entry: given the selected model, the path of the
+   * placement flow that can open it (the Sauna Suite's standalone page).
+   * Only suites whose models a placement flow can open set it.
+   */
+  placementPathFor?: (model: SuiteModel) => string | null | undefined;
+  /**
+   * Optional in-detail addon rendered under the detail column's
+   * actions for the selected model (the Sauna Suite renders its
+   * placement tool here, founder 2026-11-22). When set and no
+   * placementPathFor is given, the "See it in your space" action
+   * scrolls to the addon (anchor id "suite-placement") instead of
+   * navigating away.
+   */
+  detailAddon?: (model: SuiteModel) => React.ReactNode;
 }
 
 const money = (n: number) => `$${Math.round(n).toLocaleString()}`;
@@ -105,6 +120,8 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({
   mastheadSlot,
   boards: boardsProp,
   unitSuffix = "",
+  placementPathFor,
+  detailAddon,
 }) => {
   /* every suite also carries every other discipline's drawing board */
   const boards = React.useMemo(() => {
@@ -381,6 +398,39 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({
               />
             </div>
 
+            {/* In-context placement entry — only for suites whose
+                models a placement flow can open (saunas today). With
+                an in-detail addon and no path, the action scrolls to
+                the addon in this page instead of navigating away. */}
+            {(() => {
+              const placePath = model && placementPathFor ? placementPathFor(model) : null;
+              if (placePath) {
+                return (
+                  <Button
+                    className="mt-5 w-full rounded-none"
+                    onClick={() => navigate(placePath)}
+                  >
+                    See it in your space
+                  </Button>
+                );
+              }
+              if (model && detailAddon) {
+                return (
+                  <Button
+                    className="mt-5 w-full rounded-none"
+                    onClick={() =>
+                      document
+                        .getElementById("suite-placement")
+                        ?.scrollIntoView({ behavior: "smooth", block: "start" })
+                    }
+                  >
+                    See it in your space
+                  </Button>
+                );
+              }
+              return null;
+            })()}
+
             {/* Live shopping list — the SAME widget the Quote Atelier and the
                 Studio use, so every category shows one cart, one total. */}
             <div className="mt-8">
@@ -426,6 +476,14 @@ const ProductSuite: React.FC<ProductSuiteProps> = ({
                   </div>
                 </div>
               )}
+
+              {/* In-detail addon for the selected model (the Sauna
+                  Suite's placement tool lives here). */}
+              {model && detailAddon ? (
+                <div id="suite-placement" className="mt-8 scroll-mt-6">
+                  {detailAddon(model)}
+                </div>
+              ) : null}
 
               <p className="mt-4 text-[9px] leading-relaxed text-muted-foreground">
                 All prices include delivery, installation and the product as described.
