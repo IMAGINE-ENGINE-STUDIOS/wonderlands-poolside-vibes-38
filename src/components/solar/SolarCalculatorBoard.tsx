@@ -894,7 +894,7 @@ const SolarCalculatorBoard: React.FC<{ height?: number; mapOnly?: boolean }> = (
                 <p className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">The parcel</p>
                 <p className="text-[10px] text-muted-foreground">
                   {parcel.fields.parcelId}
-                  {parcel.fields.acreage != null ? ` · ${parcel.fields.acreage} acres` : ""}
+                  {parcel.fields.acreage != null ? ` · ${Math.round(parcel.fields.acreage * 100) / 100} acres` : ""}
                   {parcel.fields.zoning ? ` · Zoning ${parcel.fields.zoning}` : ""}
                 </p>
               </div>
