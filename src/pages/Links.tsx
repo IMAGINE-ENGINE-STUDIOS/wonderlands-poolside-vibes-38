@@ -16,6 +16,7 @@ import Footer from "@/components/Footer";
 interface LinkEntry {
   path: string;
   label: string;
+  note?: string;
 }
 
 interface LinkGroup {
@@ -80,6 +81,71 @@ const GROUPS: LinkGroup[] = [
       { path: "/flip", label: "Flip Lab" },
       { path: "/flip-pages", label: "Flip Pages" },
       { path: "/live-flip", label: "Live Flip Book" },
+    ],
+  },
+  {
+    title: "Spline Tools",
+    entries: [
+      {
+        path: "/design-studio",
+        label: "Draw Pool",
+        note: "Design Studio, Designer tools — draw the pool outline as a spline",
+      },
+      {
+        path: "/design-studio",
+        label: "Draw Deck",
+        note: "Design Studio, Designer tools — draw the deck outline as a spline",
+      },
+      {
+        path: "/design-studio",
+        label: "Feature Splines",
+        note: "Design Studio, Designer tools — benches, seats, stairs, walls and fences drawn as splines, to exact size",
+      },
+      {
+        path: "/design-studio?view=3d",
+        label: "Edit Pool Shape",
+        note: "Design Studio 3D view, Shape Editing — drag the pool spline control points",
+      },
+      {
+        path: "/design-studio?view=3d",
+        label: "Edit Deck Shape",
+        note: "Design Studio 3D view, Shape Editing — drag the deck spline control points",
+      },
+      {
+        path: "/design-studio?view=3d",
+        label: "Pool Bottom / Depth Profile",
+        note: "Design Studio 3D view — edit the floor depth spline",
+      },
+      {
+        path: "/global-design-board",
+        label: "Site & Pool Studio Board",
+        note: "Global Design Board, Site & pool studio tab — the spline site drawing board; the same board is inside Blueprint Builder",
+      },
+      {
+        path: "/global-design-board",
+        label: "Screen Enclosure & Lanai Board",
+        note: "Global Design Board, Screen enclosure & lanai tab — spline drawing board",
+      },
+      {
+        path: "/global-design-board",
+        label: "Fencing & Gates Board",
+        note: "Global Design Board, Fencing & gates tab — spline drawing board",
+      },
+      {
+        path: "/global-design-board",
+        label: "Artificial Turf Board",
+        note: "Global Design Board, Artificial turf tab — spline drawing board",
+      },
+      {
+        path: "/global-design-board",
+        label: "Planting & Beds Board",
+        note: "Global Design Board, Planting & beds tab — spline drawing board",
+      },
+      {
+        path: "/solar-board",
+        label: "Solar Hand Trace",
+        note: "Solar Board — trace the roof by hand as a spline, with a length on every side; also on Solar Genius",
+      },
     ],
   },
   {
@@ -175,15 +241,22 @@ const Links: React.FC = () => {
             <ul className="mt-2 divide-y divide-border/60">
               {group.entries.map((entry) => (
                 <li
-                  key={entry.path}
+                  key={entry.path + entry.label}
                   className="flex flex-wrap items-baseline justify-between gap-x-6 py-2.5"
                 >
-                  <Link
-                    to={entry.path}
-                    className="text-base font-medium text-primary underline-offset-4 hover:underline"
-                  >
-                    {entry.label}
-                  </Link>
+                  <span>
+                    <Link
+                      to={entry.path}
+                      className="text-base font-medium text-primary underline-offset-4 hover:underline"
+                    >
+                      {entry.label}
+                    </Link>
+                    {entry.note && (
+                      <span className="block text-sm text-muted-foreground">
+                        {entry.note}
+                      </span>
+                    )}
+                  </span>
                   <span className="text-sm text-muted-foreground">
                     {entry.path}
                   </span>
