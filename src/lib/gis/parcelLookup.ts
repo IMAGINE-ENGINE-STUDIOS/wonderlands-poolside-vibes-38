@@ -1,12 +1,23 @@
 // Shared GIS layer — Florida parcel lookup against the proven public
-// cadastral services (see ~/workspace/ar-feature/GIS-PARCEL-SOURCES.md,
-// verified live 2026-11-22):
+// cadastral services (see ~/workspace/ar-feature/GIS-PARCEL-SOURCES.md;
+// field-level facts re-verified live 2026-11-22 after the founder's
+// Auburndale defect report):
 //   - Orange County (best record: carries the zoning district), and
 //   - the Florida DOR statewide cadastral layer (all 67 counties, one
 //     endpoint, no key) as the universal fallback.
+// Address search geocodes FIRST (Mapbox, the layer's public token) and
+// then asks which parcel contains the point — the county record's own
+// spelling of an address is never the gate. The recorded-address LIKE
+// lookup remains only as a fallback when geocoding finds nothing.
+// Two statewide traps, both proven the hard way: its point queries only
+// honour the JSON geometry form (a bare "lon,lat" pair is read in the
+// layer's native projected CRS and silently matches nothing), and it
+// has no ACRES field — land area rides LND_SQFOOT.
 // Owner name / mailing fields are never requested (public-record privacy
 // rule from the sources file): only parcel id, situs address, acreage and
 // zoning ride along.
+
+import { MAPBOX_TOKEN } from "./mapboxToken";
 
 export interface ParcelFields {
   parcelId: string;
@@ -60,7 +71,79 @@ function firstPolygon(fc: GeoJSON.FeatureCollection): GeoJSON.Feature<GeoJSON.Po
   return (f as GeoJSON.Feature<GeoJSON.Polygon | GeoJSON.MultiPolygon>) ?? null;
 }
 
-/** Address lookup: Orange County first (zoning), statewide as the fallback. */
+const STATEWIDE_FIELDS = "PARCEL_ID,PHY_ADDR1,PHY_CITY,PHY_ZIPCD,LND_SQFOOT";
+
+/** Map one statewide record to the shared fields (acreage from LND_SQFOOT). */
+export function statewideFields(p: Record<string, unknown>): ParcelFields {
+  const situs = [p.PHY_ADDR1, p.PHY_CITY, p.PHY_ZIPCD].filter(Boolean).join(", ");
+  const sqft = typeof p.LND_SQFOOT === "number" ? p.LND_SQFOOT : null;
+  return {
+    parcelId: String(p.PARCEL_ID ?? ""),
+    situs,
+    acreage: sqft != null && sqft > 0 ? sqft / 43560 : null,
+    zoning: null,
+    source: "Florida statewide cadastral (DOR)",
+  };
+}
+
+function orangeFields(p: Record<string, unknown>): ParcelFields {
+  return {
+    parcelId: String(p.PARCEL ?? ""),
+    situs: String(p.SITUS ?? ""),
+    acreage: typeof p.ACREAGE === "number" ? p.ACREAGE : null,
+    zoning: p.ZONING_CODE ? String(p.ZONING_CODE) : null,
+    source: "Orange County Property Appraiser",
+  };
+}
+
+/**
+ * Geocode a typed address with Mapbox (the layer's public token).
+ * Returns the best match's centre, or null when nothing matches or the
+ * token is not in place.
+ */
+export async function geocodeAddress(
+  address: string,
+): Promise<{ lon: number; lat: number; placeName: string } | null> {
+  if (!MAPBOX_TOKEN || !address.trim()) return null;
+  const url =
+    `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json` +
+    `?access_token=${MAPBOX_TOKEN}&country=US&types=address&limit=1`;
+  const res = await fetch(url).catch(() => null);
+  if (!res || !res.ok) return null;
+  const body = (await res.json().catch(() => null)) as MapboxGeocodeBody | null;
+  return parseGeocodeCenter(body);
+}
+
+interface MapboxGeocodeBody {
+  features?: { center?: unknown; place_name?: unknown }[];
+}
+
+/** Pure: the first feature's centre from a Mapbox geocoding response. */
+export function parseGeocodeCenter(
+  body: MapboxGeocodeBody | null,
+): { lon: number; lat: number; placeName: string } | null {
+  const f = body?.features?.[0];
+  if (!f || !Array.isArray(f.center) || f.center.length !== 2) return null;
+  const [lon, lat] = f.center as [number, number];
+  if (typeof lon !== "number" || typeof lat !== "number") return null;
+  return { lon, lat, placeName: typeof f.place_name === "string" ? f.place_name : "" };
+}
+
+/**
+ * The address search: geocode first, then the point lookup — the record's
+ * spelling never gates the result. Falls back to the recorded-address
+ * LIKE lookup only when geocoding finds nothing.
+ */
+export async function lookupParcelForAddress(address: string): Promise<ParcelResult | null> {
+  const geo = await geocodeAddress(address).catch(() => null);
+  if (geo) {
+    const byPoint = await lookupParcelByPoint(geo.lon, geo.lat).catch(() => null);
+    if (byPoint) return byPoint;
+  }
+  return lookupParcelByAddress(address);
+}
+
+/** Recorded-address lookup (fallback): Orange first (zoning), statewide next. */
 export async function lookupParcelByAddress(address: string): Promise<ParcelResult | null> {
   const pattern = addressLikePattern(address);
   if (!pattern) return null;
@@ -69,47 +152,30 @@ export async function lookupParcelByAddress(address: string): Promise<ParcelResu
     outFields: "PARCEL,SITUS,ACREAGE,ZONING_CODE",
   });
   const of = orange && firstPolygon(orange);
-  if (of) {
-    const p = (of.properties ?? {}) as Record<string, unknown>;
-    return {
-      feature: of,
-      fields: {
-        parcelId: String(p.PARCEL ?? ""),
-        situs: String(p.SITUS ?? ""),
-        acreage: typeof p.ACREAGE === "number" ? p.ACREAGE : null,
-        zoning: p.ZONING_CODE ? String(p.ZONING_CODE) : null,
-        source: "Orange County Property Appraiser",
-      },
-    };
-  }
+  if (of) return { feature: of, fields: orangeFields((of.properties ?? {}) as Record<string, unknown>) };
   const state = await queryGeoJson(STATEWIDE_URL, {
     where: `PHY_ADDR1 LIKE '${pattern}'`,
-    outFields: "PARCEL_ID,PHY_ADDR1,PHY_CITY,PHY_ZIPCD,ACRES",
+    outFields: STATEWIDE_FIELDS,
   });
   const sf = state && firstPolygon(state);
-  if (sf) {
-    const p = (sf.properties ?? {}) as Record<string, unknown>;
-    const situs = [p.PHY_ADDR1, p.PHY_CITY, p.PHY_ZIPCD].filter(Boolean).join(", ");
-    return {
-      feature: sf,
-      fields: {
-        parcelId: String(p.PARCEL_ID ?? ""),
-        situs,
-        acreage: typeof p.ACRES === "number" ? p.ACRES : null,
-        zoning: null,
-        source: "Florida statewide cadastral (DOR)",
-      },
-    };
-  }
+  if (sf) return { feature: sf, fields: statewideFields((sf.properties ?? {}) as Record<string, unknown>) };
   return null;
+}
+
+/**
+ * The point geometry both services honour: the JSON form carrying its
+ * own spatial reference. A bare "lon,lat" pair is read by the statewide
+ * layer in its native projected CRS and silently matches nothing.
+ */
+export function pointGeometryParam(lon: number, lat: number): string {
+  return JSON.stringify({ x: lon, y: lat, spatialReference: { wkid: 4326 } });
 }
 
 /** Point lookup — the scan's lookup: which parcel contains this lat/lon. */
 export async function lookupParcelByPoint(lon: number, lat: number): Promise<ParcelResult | null> {
   const pointParams = {
-    geometry: `${lon},${lat}`,
+    geometry: pointGeometryParam(lon, lat),
     geometryType: "esriGeometryPoint",
-    inSR: "4326",
     spatialRel: "esriSpatialRelIntersects",
   };
   const orange = await queryGeoJson(ORANGE_URL, {
@@ -117,38 +183,13 @@ export async function lookupParcelByPoint(lon: number, lat: number): Promise<Par
     outFields: "PARCEL,SITUS,ACREAGE,ZONING_CODE",
   });
   const of = orange && firstPolygon(orange);
-  if (of) {
-    const p = (of.properties ?? {}) as Record<string, unknown>;
-    return {
-      feature: of,
-      fields: {
-        parcelId: String(p.PARCEL ?? ""),
-        situs: String(p.SITUS ?? ""),
-        acreage: typeof p.ACREAGE === "number" ? p.ACREAGE : null,
-        zoning: p.ZONING_CODE ? String(p.ZONING_CODE) : null,
-        source: "Orange County Property Appraiser",
-      },
-    };
-  }
+  if (of) return { feature: of, fields: orangeFields((of.properties ?? {}) as Record<string, unknown>) };
   const state = await queryGeoJson(STATEWIDE_URL, {
     ...pointParams,
-    outFields: "PARCEL_ID,PHY_ADDR1,PHY_CITY,PHY_ZIPCD,ACRES",
+    outFields: STATEWIDE_FIELDS,
   });
   const sf = state && firstPolygon(state);
-  if (sf) {
-    const p = (sf.properties ?? {}) as Record<string, unknown>;
-    const situs = [p.PHY_ADDR1, p.PHY_CITY, p.PHY_ZIPCD].filter(Boolean).join(", ");
-    return {
-      feature: sf,
-      fields: {
-        parcelId: String(p.PARCEL_ID ?? ""),
-        situs,
-        acreage: typeof p.ACRES === "number" ? p.ACRES : null,
-        zoning: null,
-        source: "Florida statewide cadastral (DOR)",
-      },
-    };
-  }
+  if (sf) return { feature: sf, fields: statewideFields((sf.properties ?? {}) as Record<string, unknown>) };
   return null;
 }
 

@@ -9,7 +9,7 @@ import AerialCanvas, { type AerialView } from "./AerialCanvas";
 import { composeAerialFrame } from "@/lib/solar/aerialTiles";
 import ParcelMap from "@/components/gis/ParcelMap";
 import {
-  lookupParcelByAddress,
+  lookupParcelForAddress,
   lookupParcelByPoint,
   type ParcelResult,
 } from "@/lib/gis/parcelLookup";
@@ -119,7 +119,7 @@ const SolarCalculatorBoard: React.FC<{ height?: number; mapOnly?: boolean }> = (
         session.lat != null && session.lng != null
           ? await lookupParcelByPoint(session.lng, session.lat).catch(() => null)
           : session.address
-            ? await lookupParcelByAddress(session.address).catch(() => null)
+            ? await lookupParcelForAddress(session.address).catch(() => null)
             : null;
       if (!cancelled) setParcel(found);
     };
