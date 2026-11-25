@@ -58,7 +58,21 @@ const persist = (
     // save could silently lose the very line images it was meant to
     // persist; and when even the stripped write did not fit, the write
     // vanished while the caller still claimed the quote was saved.)
-    // First, drop the oldest OTHER entries one at a time.
+    // First, strip the image payloads from the OTHER entries only: their
+    // quotes (lines, prices, totals) survive, which dropping whole
+    // entries would not allow.
+    try {
+      const slim = quotes.map(q =>
+        q.id === priorityId
+          ? q
+          : { ...q, imageOverrides: {}, imageCropSettings: {}, mainImage: undefined }
+      );
+      localStorage.setItem(key, JSON.stringify(slim));
+      return true;
+    } catch {
+      // Still too big — fall through to dropping entries
+    }
+    // Last resort: drop the oldest OTHER entries one at a time.
     let trimmed = [...quotes];
     while (trimmed.length > 1) {
       let dropIdx = -1;
@@ -74,18 +88,7 @@ const persist = (
         // Still too big — keep trimming
       }
     }
-    // Last resort: strip image payloads from the OTHER entries only.
-    try {
-      const slim = trimmed.map(q =>
-        q.id === priorityId
-          ? q
-          : { ...q, imageOverrides: {}, imageCropSettings: {}, mainImage: undefined }
-      );
-      localStorage.setItem(key, JSON.stringify(slim));
-      return true;
-    } catch {
-      return false;
-    }
+    return false;
   }
 };
 

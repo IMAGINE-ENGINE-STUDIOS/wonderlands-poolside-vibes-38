@@ -51,7 +51,17 @@ const ImageUploadOverlay: React.FC<ImageUploadOverlayProps> = ({
     // quote's images (and its total) with it. Large images are therefore
     // downscaled to a maximum 1600px edge as JPEG before they enter the
     // editor state; small files keep their original bytes untouched.
+    // The keep-original ceiling is on the DATA URL length, not just the
+    // pixel size: a 1600px PNG render can still weigh ~1.3MB as a data
+    // URL, and a gallery holding several of those leaves no headroom —
+    // an image-bearing save on a pre-existing entry then failed on
+    // quota while a smaller scalar-only save (a corrected total) went
+    // through, so the entry kept its old line image and no main image.
+    // Anything past the ceiling is re-encoded as JPEG (at its natural
+    // size when already within the edge limit), which brings the same
+    // image down to a few hundred KB.
     const KEEP_ORIGINAL_MAX_BYTES = 500_000;
+    const KEEP_ORIGINAL_MAX_DATA_URL = 700_000;
     const MAX_EDGE = 1600;
     const reader = new FileReader();
     reader.onload = () => {
@@ -61,7 +71,7 @@ const ImageUploadOverlay: React.FC<ImageUploadOverlayProps> = ({
       const img = new Image();
       img.onload = () => {
         const scale = Math.min(1, MAX_EDGE / Math.max(img.naturalWidth, img.naturalHeight));
-        if (scale >= 1 && original.length <= 1_500_000) { emit(original); return; }
+        if (scale >= 1 && original.length <= KEEP_ORIGINAL_MAX_DATA_URL) { emit(original); return; }
         const canvas = document.createElement('canvas');
         canvas.width = Math.max(1, Math.round(img.naturalWidth * scale));
         canvas.height = Math.max(1, Math.round(img.naturalHeight * scale));
