@@ -104,6 +104,7 @@
   <div class="sharepanel-row">
     <label for="shareLink">Contract link</label>
     <input type="text" id="shareLink" readonly placeholder="Your shareable contract link will appear here">
+    <button id="nativeShareBtn" type="button" class="primary" hidden>Share link</button>
     <button id="copyLinkBtn" type="button" class="primary">Copy link</button>
   </div>
   <div class="sharepanel-row">
@@ -127,16 +128,16 @@
   <h1>STANDARD CONSTRUCTION SERVICES AGREEMENT</h1>
   <p class="center">Wonderlands World Experience LLC</p>
   <hr class="rule">
-  <p id="introPara">This Construction Services Agreement (the “Agreement”) is entered into as of <span class="blank short" data-field="effectiveDate">__________</span> (the “Effective Date”), by and between:</p>
+  <p id="introPara">This Construction Services Agreement (the “Agreement”) is entered into as of <span class="blank short" data-field="effectiveDate"></span> (the “Effective Date”), by and between:</p>
   <p><strong>Wonderlands World Experience LLC</strong>, a Florida limited liability company (the “Contractor”), address: 6900 Tavistock Lakes Blvd, Suite 400, Orlando, FL 32827, email: sales@wonderlandsworld.com, and</p>
-  <p><strong><span class="blank" data-field="clientName">______________________________</span></strong> (the “Client”), address: <span class="blank" data-field="clientAddress">______________________________</span>, email: <span class="blank" data-field="clientEmail">______________________________</span>.</p>
-  <p><strong>Project Address:</strong> <span class="blank" data-field="projectAddress">______________________________</span>, Florida (the “Project”).</p>
+  <p><strong><span class="blank" data-field="clientName"></span></strong> (the “Client”), address: <span class="blank" data-field="clientAddress"></span>, email: <span class="blank" data-field="clientEmail"></span>.</p>
+  <p><strong>Project Address:</strong> <span class="blank" data-field="projectAddress"></span>, Florida (the “Project”).</p>
   <hr class="rule">
   <div class="std-only">
   <h2 class="center">REQUIRED DISCLOSURES</h2>
   <p class="statute">ACCORDING TO FLORIDA’S CONSTRUCTION LIEN LAW (SECTIONS 713.001-713.37, FLORIDA STATUTES), THOSE WHO WORK ON YOUR PROPERTY OR PROVIDE MATERIALS AND SERVICES AND ARE NOT PAID IN FULL HAVE A RIGHT TO ENFORCE THEIR CLAIM FOR PAYMENT AGAINST YOUR PROPERTY. THIS CLAIM IS KNOWN AS A CONSTRUCTION LIEN. IF YOUR CONTRACTOR OR A SUBCONTRACTOR FAILS TO PAY SUBCONTRACTORS, SUB-SUBCONTRACTORS, OR MATERIAL SUPPLIERS, THOSE PEOPLE WHO ARE OWED MONEY MAY LOOK TO YOUR PROPERTY FOR PAYMENT, EVEN IF YOU HAVE ALREADY PAID YOUR CONTRACTOR IN FULL. IF YOU FAIL TO PAY YOUR CONTRACTOR, YOUR CONTRACTOR MAY ALSO HAVE A LIEN ON YOUR PROPERTY. THIS MEANS IF A LIEN IS FILED YOUR PROPERTY COULD BE SOLD AGAINST YOUR WILL TO PAY FOR LABOR, MATERIALS, OR OTHER SERVICES THAT YOUR CONTRACTOR OR A SUBCONTRACTOR MAY HAVE FAILED TO PAY. TO PROTECT YOURSELF, YOU SHOULD STIPULATE IN THIS CONTRACT THAT BEFORE ANY PAYMENT IS MADE, YOUR CONTRACTOR IS REQUIRED TO PROVIDE YOU WITH A WRITTEN RELEASE OF LIEN FROM ANY PERSON OR COMPANY THAT HAS PROVIDED TO YOU A “NOTICE TO OWNER.” FLORIDA’S CONSTRUCTION LIEN LAW IS COMPLEX, AND IT IS RECOMMENDED THAT YOU CONSULT AN ATTORNEY.</p>
   <p>Owner acknowledges receipt of the notice above:</p>
-  <p>Owner signature: <span class="blank">______________________________</span> Date: <span class="blank short">______________</span></p>
+  <p>Owner signature: <span class="blank" id="ownerSigSlot"></span> Date: <span class="blank short" id="ownerSigDate"></span></p>
   <p class="statute">FLORIDA HOMEOWNERS’ CONSTRUCTION RECOVERY FUND</p>
   <p class="statute">PAYMENT, UP TO A LIMITED AMOUNT, MAY BE AVAILABLE FROM THE FLORIDA HOMEOWNERS’ CONSTRUCTION RECOVERY FUND IF YOU LOSE MONEY ON A PROJECT PERFORMED UNDER CONTRACT, WHERE THE LOSS RESULTS FROM SPECIFIED VIOLATIONS OF FLORIDA LAW BY A LICENSED CONTRACTOR. FOR INFORMATION ABOUT THE RECOVERY FUND AND FILING A CLAIM, CONTACT THE FLORIDA CONSTRUCTION INDUSTRY LICENSING BOARD AT THE FOLLOWING TELEPHONE NUMBER AND ADDRESS:</p>
   <p>Florida Construction Industry Licensing Board<br>2601 Blair Stone Road, Tallahassee, Florida 32399-1039<br>Telephone: (850) 487-1395</p>
@@ -168,42 +169,42 @@
 
   <div class="std-only">
   <h2>2. Project Scope</h2>
-  <p><strong>2.1 Scope and Incorporated Proposal.</strong> The Project consists of the work described in Contractor’s Proposal No. <span class="blank short" data-field="proposalNo">__________</span> dated <span class="blank short" data-field="proposalDate">__________</span>, which is attached to and incorporated into this Agreement as <strong>Exhibit A</strong>, together with the following scope summary:</p>
-  <p><span class="blank" data-field="scopeSummary" style="min-width:90%">_______________________________________________________________________________________</span></p>
+  <p><strong>2.1 Scope and Incorporated Proposal.</strong> The Project consists of the work described in Contractor’s Proposal No. <span class="blank short" data-field="proposalNo"></span> dated <span class="blank short" data-field="proposalDate"></span>, which is attached to and incorporated into this Agreement as <strong>Exhibit A</strong>, together with the following scope summary:</p>
+  <p><span class="blank" data-field="scopeSummary" style="min-width:90%"></span></p>
   <p>Equipment:</p>
   <ul data-field="equipmentList">
-    <li>_______________________________________</li>
-    <li>_______________________________________</li>
-    <li>_______________________________________</li>
-    <li>_______________________________________</li>
+    <li></li>
+    <li></li>
+    <li></li>
+    <li></li>
   </ul>
   <p>Features:</p>
   <ul data-field="featuresList">
-    <li>_______________________________________</li>
-    <li>_______________________________________</li>
-    <li>_______________________________________</li>
-    <li>_______________________________________</li>
+    <li></li>
+    <li></li>
+    <li></li>
+    <li></li>
   </ul>
   <p>If there is any conflict between this Section 2.1 and Exhibit A, Exhibit A controls for scope and price.</p>
   <p><strong>2.2 Changes to Scope.</strong> Any item, service, material, feature, upgrade, revision, or work not expressly included in the approved Project scope shall be considered outside the scope of this Agreement and shall be charged separately. All out-of-scope items require a written change order signed by Client before the work is performed. Each change order will state a fixed price for the additional work and any resulting time extension. Contractor shall have no obligation to perform out-of-scope work until the change order is signed and payment for such work is agreed upon and received, if required.</p>
   </div>
   <div class="sauna-only" hidden>
   <h2>2. What Is Included</h2>
-  <p><strong>2.1 The Sauna and Its Added Features.</strong> This Agreement covers the sauna and items described in Contractor’s Proposal No. <span class="blank short" data-field="proposalNo">__________</span> dated <span class="blank short" data-field="proposalDate">__________</span>, which is attached to and incorporated into this Agreement as <strong>Exhibit A</strong>, together with the following summary:</p>
-  <p><span class="blank" data-field="scopeSummary" style="min-width:90%">_______________________________________________________________________________________</span></p>
+  <p><strong>2.1 The Sauna and Its Added Features.</strong> This Agreement covers the sauna and items described in Contractor’s Proposal No. <span class="blank short" data-field="proposalNo"></span> dated <span class="blank short" data-field="proposalDate"></span>, which is attached to and incorporated into this Agreement as <strong>Exhibit A</strong>, together with the following summary:</p>
+  <p><span class="blank" data-field="scopeSummary" style="min-width:90%"></span></p>
   <p>The sauna:</p>
   <ul data-field="equipmentList">
-    <li>_______________________________________</li>
-    <li>_______________________________________</li>
-    <li>_______________________________________</li>
-    <li>_______________________________________</li>
+    <li></li>
+    <li></li>
+    <li></li>
+    <li></li>
   </ul>
   <p>Added features:</p>
   <ul data-field="featuresList">
-    <li>_______________________________________</li>
-    <li>_______________________________________</li>
-    <li>_______________________________________</li>
-    <li>_______________________________________</li>
+    <li></li>
+    <li></li>
+    <li></li>
+    <li></li>
   </ul>
   <p>The price also includes delivery of the sauna to the Project Address, its installation and electrical hookup as described in Section 1, and the permits described in Section 1.5 where a permit is required. If there is any conflict between this Section 2.1 and Exhibit A, Exhibit A controls for what is included and for the price.</p>
   <p><strong>2.2 Changes.</strong> Any item, feature or service not expressly included in Section 2.1 is outside the scope of this Agreement and is charged separately. Added items are agreed in a written change signed by the Client before the item is ordered or the work is performed, and each change states the price of the added item. Contractor has no obligation to supply an added item until the change is signed and any payment the change requires has been received.</p>
@@ -211,7 +212,7 @@
 
   <div class="std-only">
   <h2>3. Payment Terms</h2>
-  <p><strong>3.1 Contract Price.</strong> The total contract price shall be defined in the approved proposal or scope document. <span data-field="priceLine">Total contract price: <span class="blank short" data-field="contractPrice">__________</span>.</span></p>
+  <p><strong>3.1 Contract Price.</strong> The total contract price shall be defined in the approved proposal or scope document. <span data-field="priceLine">Total contract price: <span class="blank short" data-field="contractPrice"></span>.</span></p>
   <p><strong>3.2 Payment Schedule.</strong> Payments shall be made in the following fixed installments, unless otherwise agreed in writing:</p>
   <ul>
     <li>Initial Deposit: Thirty percent (30%) of the total contract price due upon execution of this Agreement.</li>
@@ -223,7 +224,7 @@
   </div>
   <div class="sauna-only" hidden>
   <h2>3. Payment Terms</h2>
-  <p><strong>3.1 Contract Price.</strong> The total contract price is the amount stated in the approved proposal. <span data-field="priceLine">Total contract price: <span class="blank short" data-field="contractPrice">__________</span>.</span></p>
+  <p><strong>3.1 Contract Price.</strong> The total contract price is the amount stated in the approved proposal. <span data-field="priceLine">Total contract price: <span class="blank short" data-field="contractPrice"></span>.</span></p>
   <p><strong>3.2 Two Payments.</strong> The total contract price is payable in two payments. The first payment is 70 percent of the total contract price, due when this Agreement is signed and before the sauna is ordered. The second payment is the remaining 30 percent of the total contract price, due when the installation is complete. All payments are due on the date invoiced; Section 4.1 sets out the notice and cure process if a payment is missed.</p>
   </div>
 
@@ -344,23 +345,23 @@
       <p><strong>Contractor: Wonderlands World Experience LLC</strong></p>
       <div class="sigline" id="contractorSigSlot"></div>
       <div class="lbl">Signature</div>
-      <p>Name: <span id="contractorSigName">______________________________</span></p>
-      <p>Title: <span class="blank">______________________________</span></p>
-      <p>Date: <span id="contractorSigDate">______________</span></p>
+      <p>Name: <span id="contractorSigName"></span></p>
+      <p>Title: <span class="blank"></span></p>
+      <p>Date: <span id="contractorSigDate"></span></p>
     </div>
     <div class="sigblock">
       <p><strong>Client</strong></p>
       <div class="sigline" id="clientSigSlot"></div>
       <div class="lbl">Signature</div>
-      <p>Name: <span id="clientSigName">______________________________</span></p>
-      <p>Date: <span id="clientSigDate">______________</span></p>
+      <p>Name: <span id="clientSigName"></span></p>
+      <p>Date: <span id="clientSigDate"></span></p>
     </div>
   </div>
   <div class="sigblock" style="margin-top:22px">
     <p><strong>Witness</strong></p>
     <div class="sigline" id="witnessSigSlot" style="max-width:380px"></div>
     <div class="lbl">Signature</div>
-    <p>Name: <span id="witnessSigName">______________________________</span>&nbsp;&nbsp;Date: <span id="witnessSigDate">______________</span></p>
+    <p>Name: <span id="witnessSigName"></span>&nbsp;&nbsp;Date: <span id="witnessSigDate"></span></p>
   </div>
 </div>
 
@@ -413,9 +414,9 @@
           var slot0 = doc.querySelector('#clientSigSlot');
           if (slot0) slot0.innerHTML = '';
           var nm = doc.querySelector('#clientSigName');
-          if (nm) nm.textContent = '______________________________';
+          if (nm) nm.textContent = '';
           var dt = doc.querySelector('#clientSigDate');
-          if (dt) dt.textContent = '______________';
+          if (dt) dt.textContent = '';
         }
       }
       localStorage.removeItem('ww_contract_reedit');
@@ -640,6 +641,8 @@
     signedRoles = saved.signedRoles;
     clientSigData = saved.clientSigData || '';
     sigData = clientSigData;
+    stripBlankUnderscores();
+    fillOwnerLine((document.getElementById('clientSigDate') || {}).textContent || '');
     var roleEl = document.getElementById('signerRole');
     if(roleEl){
       Object.keys(signedRoles).forEach(function(r){
@@ -658,6 +661,53 @@
   // Runs automatically when all three parties have signed, or at any
   // earlier point via "Finish & save now" (Client signature required).
   // Roles that have not signed simply stay blank.
+  // ---- No underscore blanks + the Owner acknowledgment line fills itself ----
+  // Fill-in blanks in the document never render as underscore runs: a field
+  // shows its value, or nothing. Stored drafts written before this change
+  // still carry underscore runs in their saved HTML, so the cleanup runs
+  // every time document content is (re)built — template, stored draft, or
+  // on-device progress restore.
+  function stripBlankUnderscores(){
+    if(!doc) return;
+    var els = doc.querySelectorAll('*');
+    for(var i = 0; i < els.length; i++){
+      var el = els[i];
+      if(el.children.length === 0 && /^_+$/.test(el.textContent.trim())) el.textContent = '';
+    }
+  }
+  // The statutory notices near the top of the agreement end with an
+  // "Owner signature: ____ Date: ____" acknowledgment line. The Owner is
+  // the Client: when the Client signs in the signature panel below, that
+  // line fills itself from the same signature — no separate blanks to
+  // complete by hand.
+  function ownerLineSpans(){
+    var sig = document.getElementById('ownerSigSlot');
+    var date = document.getElementById('ownerSigDate');
+    if(sig) return [sig, date];
+    var ps = doc.querySelectorAll('p');
+    for(var i = 0; i < ps.length; i++){
+      if(ps[i].textContent.indexOf('Owner signature:') !== -1){
+        var blanks = ps[i].querySelectorAll('.blank');
+        if(blanks.length >= 2) return [blanks[0], blanks[1]];
+        if(blanks.length === 1) return [blanks[0], null];
+      }
+    }
+    return [null, null];
+  }
+  function fillOwnerLine(dateStr){
+    var spans = ownerLineSpans();
+    var sig = spans[0], date = spans[1];
+    if(!sig || !signedRoles.client) return;
+    if(!sig.querySelector('img') && !sig.textContent.trim()){
+      if(clientSigData && clientSigData.indexOf('data:') === 0){
+        var img = document.createElement('img'); img.className = 'sigimg'; img.alt = 'Owner signature'; img.src = clientSigData; sig.appendChild(img);
+      } else {
+        var sp = document.createElement('span'); sp.className = 'typed-sig'; sp.textContent = signedRoles.client; sig.appendChild(sp);
+      }
+    }
+    if(date && !date.textContent.trim() && dateStr) date.textContent = dateStr;
+  }
+
   function finalize(){
     if(signed) return;
     if(!signedRoles.client) return;
@@ -681,6 +731,7 @@
     document.getElementById('clearPad').disabled = true;
     document.getElementById('typedBtn').disabled = true;
     if(finishBtn) finishBtn.disabled = true;
+    fillOwnerLine(todayET());
     clearProgress();
     saveSignedContract(signedRoles.client, clientSigData);
     saveDraft(true, false).then(function(ok){ if(ok) draftIsFinal = true; });
@@ -712,9 +763,10 @@
     if(role === 'client'){
       clientSigData = thisSig; sigData = thisSig;
       var cn = doc.querySelector('[data-field="clientName"]');
-      if(cn && /_/.test(cn.textContent)) cn.textContent = name;
+      if(cn && !cn.textContent.trim()) cn.textContent = name;
     }
     signedRoles[role] = name;
+    fillOwnerLine(todayET());
     ctx.clearRect(0, 0, pad.width, pad.height); hasInk = false; useTyped = false;
     document.getElementById('signerName').value = '';
     document.getElementById('consent').checked = false;
@@ -910,6 +962,8 @@
     signedRoles = row.signed_roles || {};
     clientSigData = row.client_sig_data || '';
     sigData = clientSigData;
+    stripBlankUnderscores();
+    fillOwnerLine((document.getElementById('clientSigDate') || {}).textContent || '');
     var roleEl = document.getElementById('signerRole');
     if(roleEl){
       Object.keys(signedRoles).forEach(function(r){
@@ -970,20 +1024,53 @@
       fallback();
     }
   }
+  // Sharing a contract means handing over its link. On phones the natural
+  // hand-over is the system share sheet (Messages, Mail, WhatsApp, ...):
+  // the Share button opens it directly whenever the link is already known,
+  // synchronously inside the tap, which is what mobile browsers require.
+  // Where no share sheet exists (desktop), the panel + copy flow below is
+  // the path, exactly as before.
+  var nativeShareBtn = document.getElementById('nativeShareBtn');
+  function syncShareUI(){
+    if(nativeShareBtn) nativeShareBtn.hidden = !(navigator.share && shareLinkInput.value);
+  }
+  function nativeShare(){
+    if(!navigator.share || !draftId) return false;
+    var data = { title: document.title, text: 'Your Wonderlands World contract is ready to view and sign:', url: shareLink() };
+    if(navigator.canShare && !navigator.canShare(data)) return false;
+    navigator.share(data).then(function(){
+      shareMsg('Link shared.');
+    }, function(err){
+      if(err && err.name === 'AbortError') return; // she closed the sheet herself
+      showSharePanel();
+      shareLinkInput.value = shareLink();
+      syncShareUI();
+      copyShareLink();
+    });
+    return true;
+  }
+  if(nativeShareBtn) nativeShareBtn.addEventListener('click', function(){ nativeShare(); });
   document.getElementById('shareBtn').addEventListener('click', function(){
+    if(draftId && nativeShare()) return;
     showSharePanel();
     if(draftId){
       // The link is already known: fill it in and attempt the copy NOW,
       // inside this tap, before any await can expire the user activation
       // mobile browsers require for clipboard access.
       shareLinkInput.value = shareLink();
+      syncShareUI();
       copyShareLink();
       return;
     }
     shareMsg('Preparing your link...');
     ensureDraft().then(function(){
       shareLinkInput.value = shareLink();
-      copyShareLink();
+      syncShareUI();
+      if(navigator.share){
+        shareMsg('Your link is ready — tap Share link to send it, or copy it below.');
+      } else {
+        copyShareLink();
+      }
     }).catch(function(){ shareMsg('The link could not be created. Check your connection and try again.'); });
   });
   document.getElementById('copyLinkBtn').addEventListener('click', copyShareLink);
@@ -991,6 +1078,7 @@
     showSharePanel();
     ensureDraft().then(function(){
       shareLinkInput.value = shareLink();
+      syncShareUI();
       if(!shareEmailInput.value) shareEmailInput.value = fieldText('clientEmail');
       shareMsg('Enter the email address and press Send.');
       shareEmailInput.focus();
@@ -1063,6 +1151,7 @@
     }
   }
 
+  stripBlankUnderscores();
   if(draftId){ loadDraft(); } else { restoreProgress(); }
   document.getElementById('signBtn').addEventListener('click', function(){ document.getElementById('signPanel').scrollIntoView({ behavior:'smooth' }); });
   
