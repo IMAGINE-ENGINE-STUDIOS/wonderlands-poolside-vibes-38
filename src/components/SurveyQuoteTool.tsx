@@ -271,6 +271,11 @@ const SurveyQuoteTool = ({
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
   const [imageOverrides, setImageOverrides] = useState<Record<string, string>>({});
   const [imageCropSettings, setImageCropSettings] = useState<Record<string, ImageCropSettings>>({});
+  // The quote's main/cover image: a quote-level image (data URL or URL) set
+  // from the main image control at the top of the quote document. It is NOT
+  // tied to the product section, so removing that section can no longer
+  // erase the quote's main image. Saved with the quote snapshot.
+  const [mainImage, setMainImage] = useState<string>("");
 
   // Custom extra items added by admin in Edit Mode
   type CustomQuoteItem = { id: string; name: string; price: number; image?: string };
@@ -383,6 +388,7 @@ const SurveyQuoteTool = ({
       setEditableQuoteAmount(0);
       // Reset custom items when dialog opens
       setCustomItems([]);
+      setMainImage("");
       setSolarLines([]);
       // Fresh session: drop any previously restored snapshot
       setRestored(null);
@@ -649,6 +655,7 @@ const SurveyQuoteTool = ({
       customItems,
       imageOverrides,
       imageCropSettings,
+      mainImage: mainImage || undefined,
       pool: pool || null,
       customProduct: customProduct || null,
       extras: extras || null,
@@ -687,6 +694,7 @@ const SurveyQuoteTool = ({
     setCustomItems(snap.customItems || []);
     setImageOverrides(snap.imageOverrides || {});
     setImageCropSettings(snap.imageCropSettings || {});
+    setMainImage(snap.mainImage || "");
     setShowGallery(false);
     setCurrentStep('quote');
     toast({ title: "Quote Reopened", description: "You can continue modifying this quote." });
@@ -705,7 +713,7 @@ const SurveyQuoteTool = ({
     }, 2000);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, currentStep, editableQuoteAmount, selectedOptions, customItems, editablePrices, editableTexts, hiddenSections]);
+  }, [isOpen, currentStep, editableQuoteAmount, selectedOptions, customItems, editablePrices, editableTexts, hiddenSections, imageOverrides, imageCropSettings, mainImage]);
 
 
 
@@ -1618,6 +1626,45 @@ const SurveyQuoteTool = ({
                   </div>
                 </div>
               </div>
+
+              {/* Quote main image: a quote-level cover image, set from this
+                  control in Edit Mode and saved with the quote. It sits at
+                  the top of the document and of its PDF, independent of the
+                  product section. When no main image is set, nothing renders
+                  here and the document keeps its previous layout exactly. */}
+              {(mainImage || isEditMode) && (
+                <div className="p-6 pb-0">
+                  <div className="avoid-break">
+                    <ImageUploadOverlay
+                      imageKey="main-cover"
+                      isEditMode={isEditMode}
+                      imageOverrides={{ ...imageOverrides, 'main-cover': mainImage }}
+                      onImageOverride={(_key, url) => setMainImage(url)}
+                      cropSettings={imageCropSettings}
+                      onCropChange={handleCropChange}
+                    >
+                      {mainImage ? (
+                        <ImageCard
+                          src={mainImage}
+                          alt={pool?.model || customProduct?.name || 'Quote main image'}
+                          className="w-full h-auto max-h-[420px] rounded-lg border border-orange-200"
+                          objectFit="contain"
+                          enableZoom={!isEditMode}
+                        />
+                      ) : (
+                        <div className="w-full rounded-lg border-2 border-dashed border-orange-300 bg-orange-50 text-orange-700 text-sm text-center py-10 no-print print:hidden">
+                          No main image set for this quote. Use the camera button to set one.
+                        </div>
+                      )}
+                    </ImageUploadOverlay>
+                    {isEditMode && (
+                      <p className="text-xs text-center mt-1 text-muted-foreground no-print print:hidden">
+                        Main image for this quote. It appears at the top of the quote and its PDF.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Customer Information */}
               {!hiddenSections.has('customer-info') && (

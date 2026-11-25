@@ -16,6 +16,11 @@ export interface SavedQuoteSnapshot {
   customItems: any[];
   imageOverrides: Record<string, string>;
   imageCropSettings: Record<string, any>;
+  // The quote's own main/cover image (data URL or URL), set from the quote
+  // editor's main image control. Independent of any product section, so it
+  // survives the product section being removed. Optional: older snapshots
+  // simply have none.
+  mainImage?: string;
   pool: any;
   customProduct: any;
   extras: any;
