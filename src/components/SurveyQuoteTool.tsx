@@ -273,6 +273,13 @@ const SurveyQuoteTool = ({
   // True only when the admin types the total by hand in Edit Mode; while false,
   // the seeded total tracks calculateQuote() as items are added or prices edited.
   const quoteTotalTouchedRef = useRef(false);
+  // When Edit Mode is entered on a quote restored from a saved snapshot, the
+  // snapshot's stored total is authoritative. The live calculation at entry
+  // (which re-derives the base from the anchor product's catalogue price)
+  // and the stored total are captured here, and while editing, the total may
+  // only move by the DELTA of the live calculation from that baseline — the
+  // anchor's catalogue base is never added on top of the saved total.
+  const restoredBaselineRef = useRef<{ calc: number; total: number } | null>(null);
   const [hiddenSections, setHiddenSections] = useState<Set<string>>(new Set());
   const [editableTexts, setEditableTexts] = useState<Record<string, string>>({});
   const [editablePrices, setEditablePrices] = useState<Record<string, number>>({});
@@ -418,6 +425,7 @@ const SurveyQuoteTool = ({
           setSolarLines([]);
           // Fresh session: drop any previously restored snapshot
           setRestored(null);
+          restoredBaselineRef.current = null;
           setCurrentQuoteId(null);
           setSavedQuotes(listSavedQuotes(user?.id));
         }
@@ -627,10 +635,23 @@ const SurveyQuoteTool = ({
     const entered = (typeof code === "string" ? code : passcodeInput).trim().toUpperCase();
     if (entered === "WONDERMAGIC") {
       setIsEditMode(true);
-      // Initialize editableQuoteAmount with current calculated value
-      const currentQuote = calculateQuote();
       quoteTotalTouchedRef.current = false;
-      setEditableQuoteAmount(currentQuote);
+      // A quote restored from a saved snapshot reopens at its SAVED total.
+      // Entering Edit Mode must never re-derive the total from the anchor
+      // product's catalogue base plus the lines: doing so silently rewrote
+      // a saved quote whose lines alone were the price (a kitchen quote
+      // anchored on a pool product) from $38,373.66 to $31,150 + lines.
+      // Capture the baseline instead, so the sync effect below moves the
+      // total only by line-edit deltas. Fresh quotes keep the live seed.
+      const snapshotTotal = restored ? (restored.editableQuoteAmount || restored.total || 0) : 0;
+      if (restored && snapshotTotal > 0) {
+        restoredBaselineRef.current = { calc: calculateQuote(), total: snapshotTotal };
+        setEditableQuoteAmount(snapshotTotal);
+      } else {
+        restoredBaselineRef.current = null;
+        // Initialize editableQuoteAmount with current calculated value
+        setEditableQuoteAmount(calculateQuote());
+      }
       
       // Initialize all editable texts with current values if not already set
       setEditableTexts(prev => ({
@@ -691,19 +712,37 @@ const SurveyQuoteTool = ({
     if (saved) {
       setCurrentQuoteId(saved.id);
       setSavedQuotes(listSavedQuotes(user?.id));
+      // Keep the restored snapshot in step with what was just saved, so a
+      // later Edit Mode entry in this same session baselines against the
+      // latest save rather than the originally opened snapshot.
+      if (restored) setRestored(saved);
     }
     return saved;
   };
 
   const handleSaveEditedQuote = async () => {
-    setIsEditMode(false);
-    // Save only — never open a print dialog automatically.
+    // Save only — never open a print dialog automatically. The editor's
+    // full current snapshot (lines, prices, total, main image, line images)
+    // is written back to the SAME gallery entry the quote was opened from:
+    // persistCurrentQuote overwrites currentQuoteId.
     const saved = persistCurrentQuote(true);
+    if (!saved) {
+      // Never claim a save that did not land. Stay in Edit Mode so the
+      // edits are not lost behind a success message. (This path used to
+      // toast "Your changes are applied" on a failed save.)
+      toast({
+        title: "Save failed",
+        description: "Local storage is full, so the changes could not be saved to your quote gallery. Your edits are still open in the editor.",
+        variant: "destructive"
+      });
+      return;
+    }
+    setIsEditMode(false);
     // The quote is saved: the work-in-progress draft has done its job.
-    if (saved) clearQuoteWip(user?.id, wipSignature);
+    clearQuoteWip(user?.id, wipSignature);
     toast({
-      title: saved ? "Quote Saved" : "Quote Updated",
-      description: saved ? "Saved to your quote gallery. Your changes will also appear on the invoice." : "Your changes are applied."
+      title: "Quote Saved",
+      description: "Saved to your quote gallery. Your changes will also appear on the invoice."
     });
   };
 
@@ -717,12 +756,13 @@ const SurveyQuoteTool = ({
   // both paths bring back exactly the same state.
   const applySnapshotState = (snap: SavedQuoteSnapshot) => {
     setRestored(snap);
+    restoredBaselineRef.current = null;
     setCurrentQuoteId(snap.id);
     setSurveyData(snap.surveyData || surveyData);
     setSelectedOptions(snap.selectedOptions || []);
     setEditableTexts(snap.editableTexts || {});
     setEditablePrices(snap.editablePrices || {});
-    setEditableQuoteAmount(snap.editableQuoteAmount || 0);
+    setEditableQuoteAmount(snap.editableQuoteAmount || snap.total || 0);
     setHiddenSections(new Set(snap.hiddenSections || []));
     setCustomItems(snap.customItems || []);
     setImageOverrides(snap.imageOverrides || {});
@@ -854,10 +894,20 @@ const SurveyQuoteTool = ({
   // the seeded editable total in step with the live calculation, so items
   // added in Edit Mode (e.g. a pool added to a finish quote) are included in
   // the Total Investment instead of the total staying frozen at entry time.
+  // For a quote restored from a saved snapshot, the total instead tracks the
+  // DELTA of the live calculation from the entry baseline, so the saved
+  // total is preserved exactly and line edits move it by their difference
+  // only — the anchor product's catalogue base is never re-added.
   useEffect(() => {
     if (isEditMode && !quoteTotalTouchedRef.current) {
       const t = calculateQuote();
-      setEditableQuoteAmount(prev => (prev !== t ? t : prev));
+      const baseline = restoredBaselineRef.current;
+      if (baseline) {
+        const next = baseline.total + (t - baseline.calc);
+        setEditableQuoteAmount(prev => (prev !== next ? next : prev));
+      } else {
+        setEditableQuoteAmount(prev => (prev !== t ? t : prev));
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEditMode, customItems, selectedOptions, editablePrices]);

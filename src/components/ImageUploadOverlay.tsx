@@ -39,14 +39,41 @@ const ImageUploadOverlay: React.FC<ImageUploadOverlayProps> = ({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const emit = (dataUrl: string) => {
+      onImageOverride(imageKey, dataUrl);
+      // Reset crop to default — image will show fully (object-fit: contain style)
+      onCropChange?.(imageKey, DEFAULT_CROP);
+      setShowCropControls(true);
+    };
+    // Quote snapshots persist in localStorage, whose per-origin quota a
+    // single full-size photo or render data URL can exceed on its own —
+    // and an over-quota save used to be dropped silently, taking the
+    // quote's images (and its total) with it. Large images are therefore
+    // downscaled to a maximum 1600px edge as JPEG before they enter the
+    // editor state; small files keep their original bytes untouched.
+    const KEEP_ORIGINAL_MAX_BYTES = 500_000;
+    const MAX_EDGE = 1600;
     const reader = new FileReader();
     reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        onImageOverride(imageKey, reader.result);
-        // Reset crop to default — image will show fully (object-fit: contain style)
-        onCropChange?.(imageKey, DEFAULT_CROP);
-        setShowCropControls(true);
-      }
+      if (typeof reader.result !== 'string') return;
+      const original = reader.result;
+      if (file.size <= KEEP_ORIGINAL_MAX_BYTES) { emit(original); return; }
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, MAX_EDGE / Math.max(img.naturalWidth, img.naturalHeight));
+        if (scale >= 1 && original.length <= 1_500_000) { emit(original); return; }
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(img.naturalWidth * scale));
+        canvas.height = Math.max(1, Math.round(img.naturalHeight * scale));
+        const ctx = canvas.getContext('2d');
+        if (!ctx) { emit(original); return; }
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        emit(canvas.toDataURL('image/jpeg', 0.85));
+      };
+      img.onerror = () => emit(original);
+      img.src = original;
     };
     reader.readAsDataURL(file);
     e.target.value = '';

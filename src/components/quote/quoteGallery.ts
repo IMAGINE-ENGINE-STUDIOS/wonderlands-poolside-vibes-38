@@ -41,15 +41,47 @@ export const listSavedQuotes = (userId?: string | null): SavedQuoteSnapshot[] =>
   }
 };
 
-const persist = (userId: string | null | undefined, quotes: SavedQuoteSnapshot[]) => {
+const persist = (
+  userId: string | null | undefined,
+  quotes: SavedQuoteSnapshot[],
+  priorityId?: string
+) => {
+  const key = keyFor(userId);
   try {
-    localStorage.setItem(keyFor(userId), JSON.stringify(quotes));
+    localStorage.setItem(key, JSON.stringify(quotes));
     return true;
   } catch {
-    // Storage full — drop image overrides (largest payload) and retry once
+    // Storage full. Make room WITHOUT touching the quote being saved: the
+    // record identified by priorityId is always written exactly as given.
+    // (The previous fallback stripped the image overrides from EVERY
+    // entry — including the one being saved — and reported success, so a
+    // save could silently lose the very line images it was meant to
+    // persist; and when even the stripped write did not fit, the write
+    // vanished while the caller still claimed the quote was saved.)
+    // First, drop the oldest OTHER entries one at a time.
+    let trimmed = [...quotes];
+    while (trimmed.length > 1) {
+      let dropIdx = -1;
+      for (let i = trimmed.length - 1; i >= 0; i--) {
+        if (trimmed[i].id !== priorityId) { dropIdx = i; break; }
+      }
+      if (dropIdx === -1) break;
+      trimmed = trimmed.filter((_, i) => i !== dropIdx);
+      try {
+        localStorage.setItem(key, JSON.stringify(trimmed));
+        return true;
+      } catch {
+        // Still too big — keep trimming
+      }
+    }
+    // Last resort: strip image payloads from the OTHER entries only.
     try {
-      const slim = quotes.map(q => ({ ...q, imageOverrides: {}, imageCropSettings: {} }));
-      localStorage.setItem(keyFor(userId), JSON.stringify(slim));
+      const slim = trimmed.map(q =>
+        q.id === priorityId
+          ? q
+          : { ...q, imageOverrides: {}, imageCropSettings: {}, mainImage: undefined }
+      );
+      localStorage.setItem(key, JSON.stringify(slim));
       return true;
     } catch {
       return false;
@@ -65,7 +97,7 @@ export const saveQuoteSnapshot = (
   const id = snapshot.id || `q-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
   const record: SavedQuoteSnapshot = { ...snapshot, id, savedAt: new Date().toISOString() };
   const next = [record, ...existing.filter(q => q.id !== id)].slice(0, MAX_QUOTES);
-  return persist(userId, next) ? record : null;
+  return persist(userId, next, id) ? record : null;
 };
 
 export const deleteSavedQuote = (userId: string | null | undefined, id: string) => {
