@@ -13,6 +13,7 @@ import SolarEditorial from "@/components/SolarEditorial";
 import grassBanner from "@/assets/turf/grass-natural-green.avif";
 import lathamGilmerBanner from "@/assets/banners/latham-gilmer-banner.webp";
 import saunaBanner from "@/assets/banners/sauna-banner.webp";
+import kitchenBanner from "@/assets/deck/outdoor-kitchen.webp";
 import spaBanner from "@/assets/banners/spa-banner.webp";
 import screenEnclosureBanner from "@/assets/banners/screen-enclosure-banner.webp";
 import paversBanner from "@/assets/banners/pavers-banner.webp";
@@ -39,6 +40,7 @@ const ScreenEnclosureSection = lazy(() => import("@/components/ScreenEnclosureSe
 const PatioFencingSection = lazy(() => import("@/components/PatioFencingSection"));
 const LanaiSection = lazy(() => import("@/components/LanaiSection"));
 const HansoPergolaSection = lazy(() => import("@/components/HansoPergolaSection"));
+const KitchenSection = lazy(() => import("@/components/KitchenSection"));
 const PaversSection = lazy(() => import("@/components/PaversSection"));
 const ArtificialGrassSection = lazy(() => import("@/components/ArtificialGrassSection"));
 const DrivewayGateSection = lazy(() => import("@/components/DrivewayGateSection"));
@@ -177,6 +179,11 @@ const Index = () => {
         <Suspense fallback={<SectionFallback />}>
           <SectionBanner id="pergolas" image={hansoBanner} alt="Hansø Pergolas" title="Pérgolas" subtitle="Aluminum pergolas with louvered roofs from Hansø. Shade you control, built for Florida weather." />
           <HansoPergolaSection />
+        </Suspense>
+
+        <Suspense fallback={<SectionFallback />}>
+          <SectionBanner id="kitchens" image={kitchenBanner} alt="Outdoor Kitchens" title="Outdoor Kitchens" subtitle="Stone and steel kitchens with granite tops, brand grills and every chain priced in the open" />
+          <KitchenSection />
         </Suspense>
 
         <Suspense fallback={<SectionFallback />}>

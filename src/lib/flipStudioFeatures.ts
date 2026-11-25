@@ -52,6 +52,7 @@ const CATEGORY_TO_PRODUCT: Record<string, ProductType> = {
   "concrete-pools": "pool",
   spas: "spa",
   saunas: "sauna",
+  kitchens: "kitchen",
   "tanning-ledges": "tanning-ledge",
   covers: "cover",
   pavers: "paver",

@@ -95,6 +95,7 @@ const FlipPagesFile = lazy(() => import("./pages/FlipPagesFile"));
 const FlipBookPublished = lazy(() => import("./pages/FlipBookPublished"));
 /* Per-category configuration suites (dropdown + carousel options + board) */
 const SaunaSuite = lazy(() => import("./pages/suites/SaunaSuite"));
+const KitchenSuite = lazy(() => import("./pages/suites/KitchenSuite"));
 const SaunaPlacement = lazy(() => import("./pages/suites/SaunaPlacement"));
 const CategorySuite = lazy(() => import("./pages/suites/CategorySuite"));
 const FloorDecorCatalogue = lazy(() => import("./pages/FloorDecorCatalogue"));
@@ -287,6 +288,7 @@ const App = () => {
             )}
             {/* Product suites — one per category, full configuration + board */}
             <Route path="/suites/saunas" element={<SaunaSuite />} />
+            <Route path="/suites/kitchens" element={<KitchenSuite />} />
             <Route path="/suites/saunas/place" element={<SaunaPlacement />} />
             <Route path="/suites/spas" element={<SpaSuite />} />
             <Route path="/suites/pools-and-spas" element={<PoolAndSpaSuite />} />

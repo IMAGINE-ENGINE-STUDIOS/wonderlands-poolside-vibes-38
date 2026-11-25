@@ -165,6 +165,24 @@ async function resolveCategoryEntries(categoryId: string): Promise<ConsoleEntry[
         }))
         .sort((a, b) => (a.price ?? 0) - (b.price ?? 0));
     }
+    /* Outdoor kitchens — the kitchen section of the quote tool: every
+       kitchen product we sell at the selling price the pricing model
+       computes from its held cost. Products with no cost on record (the
+       Belgard sets, the utility chains held as ranges) carry no price
+       and print no price line, never an invented figure. */
+    case "kitchens": {
+      const { kitchens } = await import("@/data/kitchenData");
+      return kitchens.map((k) => ({
+        id: k.id,
+        name: k.name,
+        image: k.image,
+        ...(typeof k.price === "number"
+          ? { price: k.price, unit: k.unit === "sqft" ? ("sqft" as const) : ("each" as const) }
+          : { hidePrice: true }),
+        brand: k.brand,
+        meta: k.meta,
+      }));
+    }
     case "driveway-gates": {
       const { drivewayGates } = await import("@/data/drivewayGates");
       return drivewayGates.map((g: any, i: number) => ({

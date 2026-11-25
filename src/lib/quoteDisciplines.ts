@@ -7,7 +7,7 @@
 
 export type Discipline =
   | "pool" | "lanai" | "solar" | "sauna" | "enclosure" | "fencing" | "gate"
-  | "cover" | "paver" | "turf" | "liner" | "finish" | "landscaping" | "general";
+  | "cover" | "paver" | "turf" | "liner" | "finish" | "landscaping" | "kitchen" | "general";
 
 export interface WarrantyLine { label: string; term: string; note?: string }
 
@@ -33,6 +33,7 @@ export const resolveDiscipline = ({ pool, customProduct, extras }: Ctx): Discipl
   if (pt === "lanai") return "lanai";
   if (pt === "solar" || t === "solar" || t.startsWith("solar")) return "solar";
   if (pt === "sauna" || t === "sauna") return "sauna";
+  if (pt === "kitchen" || t.includes("kitchen")) return "kitchen";
   if (pool || ["pool", "spa", "tanning ledge"].includes(t)) return "pool";
   if (extras?.enclosure || t.includes("enclosure")) return "enclosure";
   if (t.includes("gate")) return "gate";
@@ -87,6 +88,25 @@ export const DISCIPLINES: Record<Exclude<Discipline, "pool" | "lanai">, Discipli
     warranties: [
       { label: "Sauna room", term: "Per manufacturer (limited lifetime on Almost Heaven rooms)", note: "Wood structure against manufacturing defects." },
       { label: "Heater & controls", term: "Per manufacturer (typically 5 years)", note: "Heating elements and control unit." },
+      { label: "Installation workmanship", term: "1 year" },
+    ],
+    disclaimer: STD,
+  },
+  kitchen: {
+    title: "OUTDOOR KITCHEN QUOTATION",
+    subtitle: "Built, Delivered & Installed in Florida",
+    includesTitle: "EVERY OUTDOOR KITCHEN INCLUDES",
+    includes: [
+      "Every piece priced on its own line, with delivery and installation included in each price",
+      "The stone body or cabinetry, the countertop and the backsplash as itemized",
+      "Plumbing and electrical work by licensed trades where the quote carries them",
+      "Expedited permits where the quote carries them",
+      "A first fire test of the grill and hood with the client before the crew leaves",
+    ],
+    warranties: [
+      { label: "Grill body, burners & grates", term: "Per manufacturer (lifetime on the Lynx Professional line)", note: "As printed by the maker for the grill on this quote." },
+      { label: "Sink", term: "Per manufacturer (lifetime limited on the Kraus Kore Workstation)" },
+      { label: "Cabinets", term: "Per manufacturer (lifetime on American Outdoor Cabinets HDPE)" },
       { label: "Installation workmanship", term: "1 year" },
     ],
     disclaimer: STD,

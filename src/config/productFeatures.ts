@@ -5,13 +5,14 @@ import azureBlueFinish from '@/assets/finishes/azure-blue-g2.webp';
 import shaleGrayFinish from '@/assets/finishes/shale-gray-g3.webp';
 import noCoverBlack from '@/assets/covers/no-cover-black.webp';
 import { getSaunaOptionRetail } from '@/lib/saunaPricing';
+import { kitchenPriceById } from '@/data/kitchenData';
 import gilmerMoonlight from '@/assets/pools/glimmerglass/gilmer-moonlight.webp';
 import gilmerPacifica from '@/assets/pools/glimmerglass/gilmer-pacifica.webp';
 import gilmerPearl from '@/assets/pools/glimmerglass/gilmer-pearl.webp';
 import gilmerTranquility from '@/assets/pools/glimmerglass/gilmer-tranquility.webp';
 
 // Product type definitions
-export type ProductType = 'pool' | 'spa' | 'sauna' | 'tanning-ledge' | 'cover' | 'paver' | 'heater' | 'screen-enclosure' | 'driveway-gate' | 'scene';
+export type ProductType = 'pool' | 'spa' | 'sauna' | 'tanning-ledge' | 'cover' | 'paver' | 'heater' | 'screen-enclosure' | 'driveway-gate' | 'scene' | 'kitchen';
 
 // Feature type definitions
 export type FeatureType = 'boolean' | 'selection' | 'quantity' | 'nested' | 'area';
@@ -940,6 +941,67 @@ export const PRODUCT_FEATURES: Record<ProductType, FeatureConfig[]> = {
         { name: 'Audio Intercom', price: 600 },
         { name: 'Video Intercom', price: 1200 }
       ]
+    }
+  ],
+  /* Outdoor kitchens: the product is the piece (grill, cabinet, front,
+     stone); the features are the full scope services from the kitchen
+     section of the catalogue, priced by the same pricing model, so a
+     kitchen quote always carries its chains (study rule A5.2). Prices
+     are read from src/data/kitchenData.ts, never duplicated here. */
+  'kitchen': [
+    {
+      id: 'plumbing-and-fittings',
+      label: 'Plumbing and fittings',
+      description: 'The full sink water chain by a licensed plumber: supply and drain lines, fittings, hookup, permit and inspections',
+      type: 'boolean',
+      icon: 'Droplets',
+      basePrice: kitchenPriceById('plumbing-and-fittings') ?? 0,
+      pricingModifier: base => base
+    },
+    {
+      id: 'electrical-connection',
+      label: 'Electrical connection from existing outlets',
+      description: 'From the power already on the wall to the fridge, the hood and the grill lights',
+      type: 'boolean',
+      icon: 'Zap',
+      basePrice: kitchenPriceById('electrical-connection') ?? 0,
+      pricingModifier: base => base
+    },
+    {
+      id: 'expedited-permits',
+      label: 'Expedited permits',
+      description: 'The permits the kitchen needs, run expedited',
+      type: 'boolean',
+      icon: 'FileCheck',
+      basePrice: kitchenPriceById('expedited-permits') ?? 0,
+      pricingModifier: base => base
+    },
+    {
+      id: 'kitchen-installation',
+      label: 'Installation',
+      description: 'Setting the cabinets, the fronts and the appliances in place',
+      type: 'boolean',
+      icon: 'Wrench',
+      basePrice: kitchenPriceById('kitchen-installation') ?? 0,
+      pricingModifier: base => base
+    },
+    {
+      id: 'kitchen-delivery',
+      label: 'Delivery',
+      description: 'Delivery of the body materials and pieces to the property',
+      type: 'boolean',
+      icon: 'Truck',
+      basePrice: kitchenPriceById('kitchen-delivery') ?? 0,
+      pricingModifier: base => base
+    },
+    {
+      id: 'masonry-handwork',
+      label: 'Weston Stone masonry handwork',
+      description: 'The masonry build of the stone body, counted from the project take off',
+      type: 'boolean',
+      icon: 'Layers',
+      basePrice: kitchenPriceById('masonry-handwork') ?? 0,
+      pricingModifier: base => base
     }
   ]
 };

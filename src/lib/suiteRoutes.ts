@@ -10,6 +10,7 @@ export const DEDICATED_SUITES: Record<string, string> = {
      registry catalogue, never the priced generic suite. */
   flooring: "/suites/flooring",
   saunas: "/suites/saunas",
+  kitchens: "/suites/kitchens",
   spas: "/suites/spas",
   "pools-and-spas": "/suites/pools-and-spas",
   "tanning-ledges": "/suites/tanning-ledges",
@@ -26,6 +27,7 @@ export const ALL_BOARDS: Array<{ id: string; label: string }> = [
   { id: "solar", label: "Solar" },
   { id: "pools", label: "Fiberglass Pools" },
   { id: "saunas", label: "Saunas" },
+  { id: "kitchens", label: "Outdoor Kitchens" },
   { id: "spas", label: "Spas" },
   { id: "tanning-ledges", label: "Tanning Ledges" },
   { id: "screen-enclosures", label: "Screen Enclosures" },

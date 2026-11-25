@@ -21,6 +21,9 @@ import tanningLedgeBanner from "@/assets/banners/tanning-ledge-banner.webp";
 import patioFencingBanner from "@/assets/banners/patio-fencing-banner.webp";
 import lanaiBanner from "@/assets/banners/lanai-banner.webp";
 import landscapingBanner from "@/assets/banners/landscaping-banner.webp";
+import kitchenBanner from "@/assets/deck/outdoor-kitchen.webp";
+import kitchenIslandAsset from "@/assets/campaigns/email-kitchen-island.jpg.asset.json";
+import kitchenGrayAsset from "@/assets/campaigns/kitchen-real-gray.jpg.asset.json";
 import grassBanner from "@/assets/turf/grass-natural-green.avif";
 import sapphireFinish from "@/assets/finishes/sapphire-blue-g3.webp";
 
@@ -84,6 +87,16 @@ export const ITEMS: Item[] = [
     description:
       "Nordic cedar and thermally treated spruce cabins from Almost Heaven and Harvia. Barrel, cabin, and panoramic models — wired, set, and heated on delivery day.",
     notes: ["Cedar & spruce cabins", "Electric or wood heaters", "Indoor and outdoor models"],
+  },
+  {
+    id: "kitchens",
+    label: "Outdoor Kitchens",
+    tagline: "Stone, Steel and Fire",
+    layout: "duo",
+    images: [kitchenBanner, kitchenIslandAsset.url, kitchenGrayAsset.url],
+    description:
+      "Outdoor kitchens built two ways: a Weston Stone block body with stainless fronts, or marine grade HDPE cabinetry, with granite tops in the same stone, brand grills, workstation sinks and copper hoods. Every line is priced on its own, with delivery and installation included.",
+    notes: ["Stone block and stainless builds", "Granite tops with matching backsplash", "Grills, sinks, fridges and hoods"],
   },
   {
     id: "spas",
