@@ -383,6 +383,7 @@
   </div>
   <p style="font-size:13.5px;color:#445;margin:10px 0 0">No witness present? Once the Client has signed, “Finish &amp; save now” finalizes and saves the contract exactly as it stands — unsigned sections simply stay blank. Signing progress is kept on this device, so closing and reopening this contract link resumes where you left off.</p>
   <p id="signMsg" style="font-size:13.5px;color:#a33;margin:10px 0 0"></p>
+  <p id="adminLinkRow" style="text-align:right;margin:12px 0 0" hidden><a href="#" id="adminLink" style="font-size:12px;color:#8a94a0">Admin</a></p>
 </div>
 
 <script>
@@ -580,7 +581,13 @@
         headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
         body: JSON.stringify(payload)
       }).then(function(r){
-        msg(r.ok ? 'Signed copy saved to the Sign Contracts tab.' : warn);
+        // In the customer view the confirmation is the customer's own
+        // thank-you, never the internal admin wording.
+        if(typeof customerView !== 'undefined' && customerView){
+          msg(r.ok ? 'Thank you — you have signed this contract.' : warn);
+        } else {
+          msg(r.ok ? 'Signed copy saved to the Sign Contracts tab.' : warn);
+        }
       }).catch(function(){ msg(warn); });
     } catch (e) { msg(warn); }
   }
@@ -655,6 +662,7 @@
     pill.textContent = 'SIGNING \u2014 ' + doneCount + ' OF 3';
     msg('Signing resumed \u2014 ' + doneCount + ' of 3 parties already signed on this device.');
     refreshFinish();
+    applyCustomerState();
   }
 
   // ---- Finalize: lock the document and save exactly one signed copy ----
@@ -774,6 +782,20 @@
       var opt = roleEl.querySelector('option[value="' + role + '"]'); if(opt) opt.disabled = true;
       var order = ['contractor','client','witness'];
       for(var i=0;i<order.length;i++){ if(!signedRoles[order[i]]){ roleEl.value = order[i]; break; } }
+    }
+    if(customerView && role === 'client'){
+      // The customer's whole job was: name, signature, done. When
+      // Wonderlands has already signed, their signature completes the
+      // contract on the spot; otherwise their part is finished here and
+      // Wonderlands completes it on their side.
+      if(signedRoles.contractor){
+        finalize();
+        msg('Thank you — you have signed this contract.');
+      } else {
+        saveDraft(false, false);
+        showCustomerDone('Thank you — you have signed. Wonderlands World will complete the contract and send you the final copy.');
+      }
+      return;
     }
     var doneCount = Object.keys(signedRoles).length;
     if(doneCount < 3){
@@ -899,6 +921,7 @@
         try { sessionStorage.setItem('ww_contract_unlocked_' + draftId, value); } catch (e) {}
         unlockBar.hidden = true;
         passcodeInput.value = '';
+        exitCustomerView();
         setSaveStatus('Unlocked. Your changes will save to the shared record.');
         setEdit(true);
       } else {
@@ -911,6 +934,106 @@
   document.getElementById('unlockBtn').addEventListener('click', tryUnlock);
   passcodeInput.addEventListener('keydown', function(e){
     if(e.key === 'Enter'){ e.preventDefault(); tryUnlock(); }
+  });
+
+  // ---- Customer view on shared links ----
+  // A customer who opens a shared link does exactly two things: add their
+  // name and sign below. The customer view therefore presents only that —
+  // no Edit mode, no Share / Send Email, no role picker (they sign as the
+  // Client), no consent checkbox step (the line above the Sign button
+  // states the agreement, and signing is the agreement), no Finish button.
+  // Wonderlands keeps the full view: a small Admin link at the bottom of
+  // the sign panel opens the passcode bar, and a correct passcode restores
+  // every control. When the Client signs here and the Contractor has
+  // already signed, the contract finalizes on the spot — sign, done.
+  var customerView = false;
+  var panelIntroOrig = null;
+  var applySigTextOrig = null;
+  function setupCustomerView(){
+    if(!draftId || adminUnlocked) return;
+    customerView = true;
+    ['editBtn', 'shareBtn', 'emailBtn', 'printBtn', 'dlBtn'].forEach(function(id){
+      var b = document.getElementById(id); if(b) b.hidden = true;
+    });
+    var panel = document.getElementById('signPanel');
+    var intro = panel.querySelector('p');
+    if(intro){ panelIntroOrig = intro.textContent; intro.textContent = 'Enter your name and sign below. By signing, you agree to sign this contract electronically.'; }
+    panel.querySelectorAll('p').forEach(function(p){
+      if(p.textContent.indexOf('No witness present') === 0) p.hidden = true;
+    });
+    var roleLabel = panel.querySelector('label[for="signerRole"]');
+    if(roleLabel) roleLabel.hidden = true;
+    var roleEl = document.getElementById('signerRole');
+    if(roleEl){ roleEl.hidden = true; roleEl.value = 'client'; }
+    var consent = document.getElementById('consent');
+    if(consent){
+      consent.checked = true;
+      var cl = consent.closest('label'); if(cl) cl.hidden = true;
+    }
+    if(finishBtn) finishBtn.hidden = true;
+    var applyBtn = document.getElementById('applySig');
+    if(applyBtn){ applySigTextOrig = applyBtn.textContent; applyBtn.textContent = 'Sign'; }
+    var adminRow = document.getElementById('adminLinkRow');
+    if(adminRow) adminRow.hidden = false;
+  }
+  function exitCustomerView(){
+    if(!customerView) return;
+    customerView = false;
+    ['editBtn', 'shareBtn', 'emailBtn', 'printBtn', 'dlBtn'].forEach(function(id){
+      var b = document.getElementById(id); if(b) b.hidden = false;
+    });
+    var panel = document.getElementById('signPanel');
+    var intro = panel.querySelector('p');
+    if(intro && panelIntroOrig) intro.textContent = panelIntroOrig;
+    panel.querySelectorAll('p').forEach(function(p){
+      if(p.textContent.indexOf('No witness present') === 0) p.hidden = false;
+    });
+    var roleLabel = panel.querySelector('label[for="signerRole"]');
+    if(roleLabel) roleLabel.hidden = false;
+    var roleEl = document.getElementById('signerRole');
+    if(roleEl) roleEl.hidden = false;
+    var consent = document.getElementById('consent');
+    if(consent){
+      consent.checked = false;
+      var cl = consent.closest('label'); if(cl) cl.hidden = false;
+    }
+    if(finishBtn) finishBtn.hidden = false;
+    var applyBtn = document.getElementById('applySig');
+    if(applyBtn && applySigTextOrig) applyBtn.textContent = applySigTextOrig;
+    var adminRow = document.getElementById('adminLinkRow');
+    if(adminRow) adminRow.hidden = true;
+    refreshFinish();
+  }
+  function showCustomerDone(text){
+    var nameEl = document.getElementById('signerName'); if(nameEl) nameEl.disabled = true;
+    var a = document.getElementById('applySig'); if(a) a.disabled = true;
+    var c = document.getElementById('clearPad'); if(c) c.disabled = true;
+    var t = document.getElementById('typedBtn'); if(t) t.disabled = true;
+    msg(text);
+  }
+  function applyCustomerState(){
+    if(!customerView) return;
+    var roleEl = document.getElementById('signerRole');
+    if(draftIsFinal){
+      // A finished contract may be printed / downloaded by its customer;
+      // the working controls stay hidden.
+      var pb = document.getElementById('printBtn'); if(pb) pb.hidden = false;
+      var db = document.getElementById('dlBtn'); if(db) db.hidden = false;
+      return;
+    }
+    if(signedRoles.client){
+      showCustomerDone('Thank you — you have already signed this contract.');
+    } else if(roleEl){
+      roleEl.value = 'client';
+    }
+  }
+  var adminLinkEl = document.getElementById('adminLink');
+  if(adminLinkEl) adminLinkEl.addEventListener('click', function(e){
+    e.preventDefault();
+    unlockBar.hidden = false;
+    unlockMsg.textContent = 'Enter the admin passcode to modify this contract.';
+    passcodeInput.focus();
+    unlockBar.scrollIntoView({ behavior: 'smooth', block: 'center' });
   });
 
   function shareLink(){
@@ -987,6 +1110,7 @@
       msg('Signing in progress — ' + doneCount + ' of 3 parties already signed.');
       refreshFinish();
     }
+    applyCustomerState();
     if(draftIsFinal || doneCount >= 3){
       var aBtn = document.getElementById('accessBtn');
       var aText = document.getElementById('accessText');
@@ -1152,6 +1276,7 @@
   }
 
   stripBlankUnderscores();
+  setupCustomerView();
   if(draftId){ loadDraft(); } else { restoreProgress(); }
   document.getElementById('signBtn').addEventListener('click', function(){ document.getElementById('signPanel').scrollIntoView({ behavior:'smooth' }); });
   
