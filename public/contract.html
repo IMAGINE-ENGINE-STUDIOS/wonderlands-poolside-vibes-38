@@ -1015,10 +1015,13 @@
     if(!customerView) return;
     var roleEl = document.getElementById('signerRole');
     if(draftIsFinal){
-      // A finished contract may be printed / downloaded by its customer;
-      // the working controls stay hidden.
+      // A finished contract belongs to its customer too: they may print /
+      // download their copy, and share their own contract link from the
+      // page's Share button (the phone share sheet, where one exists).
+      // The working controls stay hidden.
       var pb = document.getElementById('printBtn'); if(pb) pb.hidden = false;
       var db = document.getElementById('dlBtn'); if(db) db.hidden = false;
+      if(navigator.share){ var sb = document.getElementById('shareBtn'); if(sb) sb.hidden = false; }
       return;
     }
     if(signedRoles.client){
