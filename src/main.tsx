@@ -48,6 +48,13 @@ if (typeof window !== "undefined") {
 if (typeof window !== "undefined") {
   window.addEventListener("vite:preloadError", (event) => {
     event.preventDefault();
+    // Never reload out from under a quote being edited: the quote editor
+    // holds the admin's work in the page, and a deploy landing mid-edit
+    // used to wipe every edit with this reload (founder, 2026-11-24).
+    // The editor flags document.body.dataset.quoteOpen while it is open
+    // and persists a restorable draft of the edits, so with the error
+    // prevented the session simply continues on the current build.
+    if (typeof document !== "undefined" && document.body?.dataset?.quoteOpen === "true") return;
     try {
       const last = Number(sessionStorage.getItem("wl_preload_reloaded_at") || 0);
       if (Date.now() - last < 20000) return; // just reloaded — a loop, let it surface

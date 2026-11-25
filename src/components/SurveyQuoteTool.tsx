@@ -30,7 +30,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { calculatePaverPrice, calculatePaverArea } from "@/data/paverData";
 import { cacheCustomerFromQuote } from "@/hooks/useCustomerCache";
-import { listSavedQuotes, saveQuoteSnapshot, deleteSavedQuote, type SavedQuoteSnapshot } from "@/components/quote/quoteGallery";
+import { listSavedQuotes, saveQuoteSnapshot, deleteSavedQuote, readQuoteWip, writeQuoteWip, clearQuoteWip, type SavedQuoteSnapshot } from "@/components/quote/quoteGallery";
 import { useOptionalShoppingCart } from "@/components/ShoppingCartProvider";
 import { mergeCartIntoExtras } from "@/lib/cartQuoteLines";
 import { resolveDiscipline, getDisciplineConfig } from "@/lib/quoteDisciplines";
@@ -168,6 +168,15 @@ const SurveyQuoteTool = ({
   const pool = restored ? restored.pool : poolProp;
   const customProduct = restored ? restored.customProduct : customProductProp;
   const baseExtras = restored ? restored.extras : extrasProp;
+  // Identity of the quote context this tool was opened with. The
+  // work-in-progress draft (see quoteGallery) is stored under this
+  // signature, so reopening the same product restores the in-progress
+  // edits while a different product still starts fresh.
+  const wipSignature = [
+    poolProp?.model || customProductProp?.name || '',
+    poolProp?.category || customProductProp?.type || '',
+    (extrasProp as any)?.productType || '',
+  ].join('|');
 
   // Every product in the shopping list must appear in the quote, whatever its category
   const cart = useOptionalShoppingCart();
@@ -380,22 +389,41 @@ const SurveyQuoteTool = ({
     }
   }, [surveyData, user, isOpen]);
 
-  // Toggle a global flag so other components (e.g., RightNavigation) can react when the quote dialog is open
+  // Toggle a global flag so other components (e.g., RightNavigation) can react when the quote dialog is open.
+  // The (re)initialisation below runs ONLY on the closed→open transition.
+  // This effect used to re-run its full state reset whenever user?.id
+  // changed mid-session, and after any page reload it started from a blank
+  // quote even though the auto-save had persisted the edits — the two
+  // halves of the lost-edits defect (founder, 2026-11-24). Now a saved
+  // work-in-progress draft for this quote context is restored instead;
+  // the fresh start runs only when no draft exists.
+  const openInitRef = useRef(false);
   useEffect(() => {
     if (isOpen) {
       document.body.dataset.quoteOpen = 'true';
-      // Reset editable quote amount when dialog opens to ensure fresh calculation
-      setEditableQuoteAmount(0);
-      // Reset custom items when dialog opens
-      setCustomItems([]);
-      setMainImage("");
-      setSolarLines([]);
-      // Fresh session: drop any previously restored snapshot
-      setRestored(null);
-      setCurrentQuoteId(null);
-      setSavedQuotes(listSavedQuotes(user?.id));
-
+      if (!openInitRef.current) {
+        openInitRef.current = true;
+        const wip = readQuoteWip(user?.id, wipSignature);
+        if (wip) {
+          applySnapshotState(wip);
+          setCurrentStep('quote');
+          setSavedQuotes(listSavedQuotes(user?.id));
+          toast({ title: "Edits restored", description: "Your in-progress quote edits were restored." });
+        } else {
+          // Reset editable quote amount when dialog opens to ensure fresh calculation
+          setEditableQuoteAmount(0);
+          // Reset custom items when dialog opens
+          setCustomItems([]);
+          setMainImage("");
+          setSolarLines([]);
+          // Fresh session: drop any previously restored snapshot
+          setRestored(null);
+          setCurrentQuoteId(null);
+          setSavedQuotes(listSavedQuotes(user?.id));
+        }
+      }
     } else {
+      openInitRef.current = false;
       delete document.body.dataset.quoteOpen;
     }
     return () => {
@@ -671,6 +699,8 @@ const SurveyQuoteTool = ({
     setIsEditMode(false);
     // Save only — never open a print dialog automatically.
     const saved = persistCurrentQuote(true);
+    // The quote is saved: the work-in-progress draft has done its job.
+    if (saved) clearQuoteWip(user?.id, wipSignature);
     toast({
       title: saved ? "Quote Saved" : "Quote Updated",
       description: saved ? "Saved to your quote gallery. Your changes will also appear on the invoice." : "Your changes are applied."
@@ -682,7 +712,10 @@ const SurveyQuoteTool = ({
     setShowGallery(true);
   };
 
-  const handleRestoreQuote = (snap: SavedQuoteSnapshot) => {
+  // Applies a saved snapshot to every editable field. Shared by the
+  // gallery reopen and by the work-in-progress draft restore on open, so
+  // both paths bring back exactly the same state.
+  const applySnapshotState = (snap: SavedQuoteSnapshot) => {
     setRestored(snap);
     setCurrentQuoteId(snap.id);
     setSurveyData(snap.surveyData || surveyData);
@@ -695,6 +728,10 @@ const SurveyQuoteTool = ({
     setImageOverrides(snap.imageOverrides || {});
     setImageCropSettings(snap.imageCropSettings || {});
     setMainImage(snap.mainImage || "");
+  };
+
+  const handleRestoreQuote = (snap: SavedQuoteSnapshot) => {
+    applySnapshotState(snap);
     setShowGallery(false);
     setCurrentStep('quote');
     toast({ title: "Quote Reopened", description: "You can continue modifying this quote." });
@@ -705,15 +742,19 @@ const SurveyQuoteTool = ({
     if (currentQuoteId === id) setCurrentQuoteId(null);
   };
 
-  // Auto-save EVERY generated quote (not just edited ones) to the gallery
+  // Auto-save EVERY generated quote (not just edited ones) to the gallery.
+  // The same snapshot is also written as the work-in-progress draft for
+  // this quote context: if the page reloads or the dialog is closed
+  // mid-edit, reopening restores these exact edits (see the open effect).
   useEffect(() => {
     if (!isOpen || currentStep !== 'quote') return;
     const t = setTimeout(() => {
-      persistCurrentQuote(true);
+      const saved = persistCurrentQuote(true);
+      if (saved) writeQuoteWip(user?.id, wipSignature, saved);
     }, 2000);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, currentStep, editableQuoteAmount, selectedOptions, customItems, editablePrices, editableTexts, hiddenSections, imageOverrides, imageCropSettings, mainImage]);
+  }, [isOpen, currentStep, editableQuoteAmount, selectedOptions, customItems, editablePrices, editableTexts, hiddenSections, imageOverrides, imageCropSettings, mainImage, surveyData]);
 
 
 
@@ -2171,7 +2212,7 @@ const SurveyQuoteTool = ({
                           <div className="mb-4 avoid-break">
                             <ImageUploadOverlay imageKey="main-product" isEditMode={isEditMode} imageOverrides={imageOverrides} onImageOverride={handleImageOverride} cropSettings={imageCropSettings} onCropChange={handleCropChange}>
                               <ImageCard 
-                                src={imageOverrides['main-product'] || displayPool?.image || customProduct?.image || (isPoolType(customProduct?.type) ? CUSTOM_POOL_IMAGE : discipline === 'fencing' ? fenceQuoteImage : (quoteLineImage(customProduct?.name || '') || fenceQuoteImage))} 
+                                src={imageOverrides['main-product'] || displayPool?.image || customProduct?.image || (isPoolType(customProduct?.type) || displayPool ? CUSTOM_POOL_IMAGE : discipline === 'fencing' ? fenceQuoteImage : (quoteLineImage(customProduct?.name || '') || fenceQuoteImage))} 
                                 alt={pool?.model || customProduct?.name || 'Product'}
                                 className="w-full h-auto max-h-[420px] rounded-lg border border-orange-200" 
                                 objectFit="contain" 

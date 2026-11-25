@@ -73,3 +73,47 @@ export const deleteSavedQuote = (userId: string | null | undefined, id: string) 
   persist(userId, next);
   return next;
 };
+
+// Work-in-progress draft: the editor's in-progress state for one quote
+// context (a signature built from the product the tool was opened with).
+// Written as the admin types, read back when the tool reopens for the same
+// context — so a page reload (a deploy rotating the build mid-edit, a
+// browser crash, an accidental close) can no longer throw the edits away.
+// Cleared only when the quote is explicitly saved or submitted.
+const wipKeyFor = (userId: string | null | undefined, signature?: string | null) =>
+  `quote_wip_${userId || 'guest'}_${signature || 'default'}`;
+
+export const readQuoteWip = (
+  userId: string | null | undefined,
+  signature?: string | null
+): SavedQuoteSnapshot | null => {
+  try {
+    const raw = localStorage.getItem(wipKeyFor(userId, signature));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === 'object' && typeof parsed.id === 'string' ? parsed : null;
+  } catch {
+    return null;
+  }
+};
+
+export const writeQuoteWip = (
+  userId: string | null | undefined,
+  signature: string | null | undefined,
+  snapshot: SavedQuoteSnapshot
+) => {
+  try {
+    localStorage.setItem(wipKeyFor(userId, signature), JSON.stringify(snapshot));
+  } catch {
+    // Storage full: the gallery snapshot written alongside still holds the
+    // state; the WIP copy is the restore convenience, not the only copy.
+  }
+};
+
+export const clearQuoteWip = (userId: string | null | undefined, signature?: string | null) => {
+  try {
+    localStorage.removeItem(wipKeyFor(userId, signature));
+  } catch {
+    // Nothing to clear
+  }
+};

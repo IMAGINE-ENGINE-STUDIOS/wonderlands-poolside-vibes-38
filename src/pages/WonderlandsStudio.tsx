@@ -455,6 +455,12 @@ const WonderlandsStudio = () => {
     };
   } | null>(null);
   const [showQuoteModal, setShowQuoteModal] = useState(false);
+  // Quote anchors for the flows with no catalogue product selected: the
+  // pool drawn in Build a Pool (as the quote's pool) and a shopping list
+  // standing on its own (as a zero-price custom product the cart lines
+  // hang from). Set by handleQuoteRequest, cleared when the modal closes.
+  const [builderQuotePool, setBuilderQuotePool] = useState<any | null>(null);
+  const [cartQuoteProduct, setCartQuoteProduct] = useState<any | null>(null);
   const [selectedExtras, setSelectedExtras] = useState<any>({
     liner: false,
     heater: false,
@@ -1373,7 +1379,52 @@ const WonderlandsStudio = () => {
       });
 
   const handleQuoteRequest = () => {
-    if (!selectedProduct) return;
+    if (!selectedProduct) {
+      // No catalogue product is selected. Two real cases used to die here
+      // in silence — no quote, no error, no message (founder, 2026-11-24):
+      // a pool drawn in Build a Pool (which never sets a catalogue
+      // product) and a shopping list standing on its own. Build the quote
+      // from what actually exists, the same way the product path does:
+      // a base product plus itemized extras lines, in the same tool.
+      if (activeTab === 'build-a-pool' && poolBuilderData?.breakdown) {
+        const b = poolBuilderData.breakdown;
+        const builderLines = [
+          ...(b.deckCost > 0 ? [{ name: `Deck Pavers (${(poolBuilderData.deckArea || 0).toFixed(1)} sq ft)`, price: b.deckCost, image: '' }] : []),
+          ...(b.copingCost > 0 ? [{ name: `Coping (${poolBuilderData.perimeter.toFixed(1)} ft)`, price: b.copingCost, image: '' }] : []),
+          ...(b.featuresCost > 0 ? [{ name: 'Pool Features', price: b.featuresCost, image: '' }] : []),
+          ...buildCartQuoteLines(null),
+        ];
+        const builderTotal = builderLines.reduce((sum, item) => sum + item.price, 0);
+        extrasDataRef.current = { extrasBreakdown: builderLines, extrasTotal: builderTotal };
+        setSelectedExtras(prev => ({ ...prev, extrasBreakdown: builderLines, extrasTotal: builderTotal, totalPrice: undefined }));
+        setBuilderQuotePool({
+          model: 'Custom Pool',
+          price: b.poolCost,
+          category: 'Pool',
+          image: '',
+          dimensions: `${poolBuilderData.area.toFixed(1)} sq ft`,
+          depth: '',
+          warrantyYears: undefined,
+        });
+        setShowQuoteModal(true);
+        return;
+      }
+      const cartLines = buildCartQuoteLines(null);
+      if (cartLines.length > 0) {
+        const cartTotal = cartLines.reduce((sum, item) => sum + item.price, 0);
+        extrasDataRef.current = { extrasBreakdown: cartLines, extrasTotal: cartTotal };
+        setSelectedExtras(prev => ({ ...prev, extrasBreakdown: cartLines, extrasTotal: cartTotal, totalPrice: undefined }));
+        setCartQuoteProduct({ name: 'Wonderlands Quote', price: 0, type: 'Custom Quote', image: '' });
+        setShowQuoteModal(true);
+        return;
+      }
+      toast({
+        title: "Nothing to quote yet",
+        description: "Select a product, draw a pool, or add items to your list first.",
+        variant: "destructive",
+      });
+      return;
+    }
 
 
     // Screen enclosures are fully itemized by the enclosure configurator
@@ -4314,7 +4365,7 @@ const WonderlandsStudio = () => {
         const enclosureExtrasTotal = extrasDataRef.current.extrasTotal || 0;
         return (
           <SurveyQuoteTool
-            pool={selectedProduct && !isEnclosureQuote ? {
+            pool={builderQuotePool || (selectedProduct && !isEnclosureQuote ? {
               model: selectedProduct.model || selectedProduct.name || 'Product',
               price: selectedProduct.price,
               category: selectedProduct.category as any,
@@ -4322,15 +4373,15 @@ const WonderlandsStudio = () => {
               dimensions: selectedProduct.dimensions,
               depth: selectedProduct.depth,
               warrantyYears: selectedProduct.warrantyYears
-            } : null}
-            customProduct={selectedProduct && isEnclosureQuote ? {
+            } : null)}
+            customProduct={cartQuoteProduct || (selectedProduct && isEnclosureQuote ? {
               name: selectedProduct.model || selectedProduct.name || 'Screen Enclosure',
               price: Math.max(0, (enclosureProject?.total || calculateTotalPrice()) - enclosureExtrasTotal),
               type: 'Screen Enclosure',
               image: selectedProduct.image,
-            } : undefined}
+            } : undefined)}
             isOpen={showQuoteModal}
-            onClose={() => setShowQuoteModal(false)}
+            onClose={() => { setShowQuoteModal(false); setBuilderQuotePool(null); setCartQuoteProduct(null); }}
             extras={{
               ...selectedExtras,
               /* One cart, one quote: the open configuration plus everything else
